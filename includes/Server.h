@@ -67,7 +67,7 @@ class Server {
 				for (int i = 0; i < FD_SETSIZE; i++) {
 					// if ready to read or accept a socket
 					if (FD_ISSET(i, &worker_set)) {
-						if ((it =isServerSocket(i)) != _sockets.end()) {
+						if ((it = isServerSocket(i)) != _sockets.end()) {
 							int conn = it->acceptConnection();
 							FD_SET(conn, &master_set);
 						} else {
