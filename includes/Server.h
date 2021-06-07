@@ -35,11 +35,62 @@ class Server {
 				it->socketCreate();
 			}
 		}
+
+		// polymorph socketBind
+		void socketsBind() {
+			std::vector<ServerSocket>::iterator it;
+			for (it = _sockets.begin(); it != _sockets.end(); it++) {
+				it->socketBind();
+			}	
+		}
+
+		// polymorph listen
+		void socketsListen() {
+			std::vector<ServerSocket>::iterator it;
+			for (it = _sockets.begin(); it != _sockets.end(); it++) {
+				it->socketListen();
+			}	
+		}
+
+		// accepte connections
+		void acceptConnections() {
+			std::vector<ServerSocket>::iterator it;
+			FD_ZERO(&master_set);
+			addServerSocketsToSet();
+			while (true) {
+				worker_set = master_set;
+				std::cout << "Select Waiting" << std::endl;
+				if (select(FD_SETSIZE, &worker_set, NULL, NULL, NULL) < 0) {
+					std::cerr << "Select failed" << std::endl;
+					continue;
+				}
+				for (int i = 0; i < FD_SETSIZE; i++) {
+					// if ready to read or accept a socket
+					if (FD_ISSET(i, &worker_set)) {
+						if ((it =isServerSocket(i)) != _sockets.end()) {
+							int conn = it->acceptConnection();
+							FD_SET(conn, &master_set);
+						} else {
+							std::cout << "Connection should we read from" << std::endl;
+							// TODO read the request
+							// depend on a strategy
+							// if Content-Encoding chunked
+							// ChunkedStrategy
+							// else
+							// Default Strategy
+							FD_CLR(i, &master_set);
+						}
+					}
+				}
+			}
+		}
 	private:
 		Server() {}
 		static Server* _instance;
 		std::vector<HttpServer> _http_servers;
 		std::vector<ServerSocket> _sockets;
+		fd_set master_set;
+		fd_set worker_set;
 
 		// add socket
 		void addSocket(ServerSocket const& ss) {
@@ -48,6 +99,25 @@ class Server {
 			if (it == _sockets.end()) {
 				_sockets.push_back(ss);
 			}
+		}
+
+		void addServerSocketsToSet() {
+			std::vector<ServerSocket>::iterator it;
+			for (it = _sockets.begin(); it != _sockets.end(); it++) {
+				if (it->getFd() != -1) {
+					FD_SET(it->getFd(), &master_set);
+				}
+			}
+		}
+
+		std::vector<ServerSocket>::iterator isServerSocket(int fd) {
+			std::vector<ServerSocket>::iterator it;
+			for (it = _sockets.begin(); it != _sockets.end(); it++) {
+				if (it->getFd() == fd) {
+					return it;
+				}
+			}
+			return it;
 		}
 };
 
