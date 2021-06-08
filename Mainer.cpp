@@ -1,5 +1,5 @@
-#include "HttpServer.h"
-#include "Server.h"
+#include "./includes/HttpServer.h"
+#include "./includes/Server.h"
 
 int	main() {
 	HttpServer s1(8080, "hello");

@@ -2,6 +2,8 @@
 #define PARSING_H
 
 #include "../includes/HttpServer.hpp"
+#include "../includes/Location.hpp"
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -13,13 +15,16 @@ class pars {
 		std::vector<std::string>	_conf;
 		std::vector<int>			_servBegin;
 		std::vector<int>			_servEnd;
-		HttpServer			_httpServers;
+		HttpServer					_httpServers;
+		std::vector<Location>		_location;
+
 	public:
 		pars(std::string fileName);
 		~pars();
 
 		void	checkServer();
 		void	parsServer(int i);
+		int		parsLocation(int i);
 		// void	raseValue();
 
 		

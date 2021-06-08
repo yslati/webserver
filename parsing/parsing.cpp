@@ -1,10 +1,24 @@
 #include "parsing.hpp"
 
-// void	pars::raseValue(std::string str) {
-// 	if (str.compare(0, 4, "host") == 0)
-// 		_httpServers.
 
-// }
+int		pars::parsLocation(int i) {
+
+	Location	tmp;
+	int			open = 0;
+	tmp.setUri(_conf[i].substr(_conf[i].find(":") + 1));
+	
+	if (_conf[++i] != "{") {
+		std::cout << "error location, line: " << i << std::endl;
+		return (i);
+	}
+
+	while (_conf[++i] != "}") {
+
+
+	}
+	_location.push_back(tmp);
+	return (i);
+}
 
 void	pars::parsServer(int n) {
 
@@ -25,10 +39,15 @@ void	pars::parsServer(int n) {
 		else if (_conf[i].compare(0, 16, "allowed_methods:") == 0)
 			_httpServers.setAllowedMethods(_conf[i].substr(_conf[i].find(":") + 1));
 		else if (_conf[i].compare(0, 8, "location") == 0) {
-			// pars location
+			if (_conf[i].substr(_conf[i].find(":") + 1).compare(0, 1, "/") != 0)
+				std::cout << "Location URI error" << std::endl;
+			else {
+				i = parsLocation(i++);
+			}
 		}
 		else if (_conf[i].compare(0, 10, "error_page") == 0) {
-			// pars error pages
+			std::string tmp =  _conf[i].substr(_conf[i].find(":") + 1);
+			_httpServers.addErrorPage(atoi(tmp.c_str()), tmp.substr(tmp.find(":") + 1));
 		}
 		i++;
 	}
@@ -46,7 +65,7 @@ void	pars::checkServer() {
 	int serverClosed = 0;
 	for (int i = 0; i < _conf.size(); i++) {
 		_conf[i].erase(std::remove_if(_conf[i].begin(), _conf[i].end(), ::isspace), _conf[i].end());
-		if ( serverClosed == 0 && _conf[i].compare("server") == 0) {
+		if (serverClosed == 0 && _conf[i].compare("server") == 0) {
 			serverClosed = 1;
 			if (_conf[i + 1].compare("[") != 0)
 				break ;
