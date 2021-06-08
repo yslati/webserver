@@ -1,31 +1,55 @@
 #include "parsing.hpp"
 
+bool	checkbool(std::string str) {
+	if (str == "on")
+		return (true);
+	return (false);
+}
 
-int		pars::parsLocation(int i) {
+int		pars::parsLocation(int i, int end) {
 
 	Location	tmp;
 	int			open = 0;
 	tmp.setUri(_conf[i].substr(_conf[i].find(":") + 1));
-	
-	if (_conf[++i] != "{") {
+	_conf[i].find("{") < _conf[i].length() ? open = 1 : open = 0;
+	if ((_conf[++i] != "{" && open == 0) || (_conf[i] == "{" && open == 1)) {
 		std::cout << "error location, line: " << i << std::endl;
 		return (i);
 	}
-
-	while (_conf[++i] != "}") {
-
-
+	open = 1;
+	while (open && ++i < end) {
+		_conf[i] == "}" ? open = 0 : 1;
+		if (_conf[i].compare(0, 8, "location") == 0 || (open == 1 && i + 1 == end)) {
+			std::cout << "error location, line: " << i << std::endl;
+			return (--i);
+		}
+		if (_conf[i].compare(0, 4, "root") == 0)
+			tmp.setRoot(_conf[i].substr(_conf[i].find("=") + 1));
+		else if (_conf[i].compare(0, 7, "default") == 0)
+			tmp.setIndex(_conf[i].substr(_conf[i].find("=") + 1));
+		else if (_conf[i].compare(0, 15, "allowed_methods") == 0)
+			tmp.setAllowedMethods(_conf[i].substr(_conf[i].find("=") + 1));
+		else if (_conf[i].compare(0, 9, "autoindex") == 0)
+			tmp.setAutoIndex(checkbool(_conf[i].substr(_conf[i].find("=") + 1)));
+		else if (_conf[i].compare(0, 9, "redirect=") == 0)
+			tmp.setIsRedirect(checkbool(_conf[i].substr(_conf[i].find("=") + 1)));
+		else if (_conf[i].compare(0, 4, "code") == 0)
+			tmp.setStatusCode(atoi(_conf[i].substr(_conf[i].find("=") + 1).c_str()));
+		else if (_conf[i].compare(0, 13, "redirect_path") == 0)
+			tmp.setRedirectUrl(_conf[i].substr(_conf[i].find("=") + 1));
+		// std::cout << _conf[i].substr(_conf[i].find("=") + 1);
 	}
+	tmp.checkVal();
 	_location.push_back(tmp);
 	return (i);
 }
 
 void	pars::parsServer(int n) {
 
-	int i = _servBegin[n] + 1;
+	int i = _servBegin[n];
 	int port = -1;
 	std::string serverName = "";
-	while (i < _servEnd[n]) {
+	while (++i < _servEnd[n]) {
 		if (_conf[i].compare("server") == 0)
 			std::cout << "faild " << i << std::endl;
 		if ((_conf[i].compare(0, 11, "server_name") == 0 && serverName != "") || (_conf[i].compare(0, 4, "port") == 0 && port != -1))
@@ -41,22 +65,23 @@ void	pars::parsServer(int n) {
 		else if (_conf[i].compare(0, 8, "location") == 0) {
 			if (_conf[i].substr(_conf[i].find(":") + 1).compare(0, 1, "/") != 0)
 				std::cout << "Location URI error" << std::endl;
-			else {
-				i = parsLocation(i++);
-			}
+			else
+				i = parsLocation(i++, _servEnd[n]);
 		}
 		else if (_conf[i].compare(0, 10, "error_page") == 0) {
 			std::string tmp =  _conf[i].substr(_conf[i].find(":") + 1);
 			_httpServers.addErrorPage(atoi(tmp.c_str()), tmp.substr(tmp.find(":") + 1));
 		}
-		i++;
+		// i++;
 	}
+
 	_httpServers.setPort(port);
 	_httpServers.setServerName(serverName);
-	if (serverName == "" || port == -1 || _httpServers.getHost() == "" || _httpServers.getAllowedMethods() == "")
-		std::cout << "syntax err, somthing missing" << std::endl;
-	else
+	// if (serverName == "" || port == -1 || _httpServers.getHost() == "" || _httpServers.getAllowedMethods() == "")
+	// 	std::cout << "syntax err, somthing missing" << std::endl;
+	// else
 		_httpServers.checkVal();
+	std::cout << "\n################### END OF SERVER ###################" << std::endl;
 }
 
 void	pars::checkServer() {

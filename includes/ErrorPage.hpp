@@ -8,6 +8,12 @@ class ErrorPage {
 			_statusCode = code;
 			_path = path;
 		}
+
+
+		void	checkVal() const {
+			std::cout << "Code: " << _statusCode << "\tPath: " << _path << std::endl;
+		}
+
 	private:
 		int _statusCode;
 		std::string _path;

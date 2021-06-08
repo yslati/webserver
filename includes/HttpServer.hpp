@@ -2,7 +2,12 @@
 # define HTTP_SERVER_HPP
 # include <iostream>
 #include <vector>
+#include <map>
+#include <iterator>
 # include "ErrorPage.hpp"
+
+#define log std::cout << 
+#define line << std::endl
 
 class HttpServer {
 	public:
@@ -10,8 +15,6 @@ class HttpServer {
 		HttpServer(int port, std::string server_name) {
 			_port = port;
 			_server_name = server_name;
-			_host = "";
-			_allowed_methods = "";
 		}
 		HttpServer(HttpServer const& src) {
 			*this = src;
@@ -27,9 +30,12 @@ class HttpServer {
 
 		// ---------------------------CHECKERS--------------------------
 		void	checkVal() const {
-			// std::cout << "server_name: " << _server_name << "\tPort: " << _port << std::endl;
-			// std::cout << "allowed_methods: " << _allowed_methods << "\thost: " << _host << std::endl;
-			// std::cout << "============================" << std::endl;
+			std::cout << "server_name: \t" << _server_name << "\tPort: " << _port << std::endl;
+			std::cout << "allowed_methods: ";
+			// for (int i = 0; i < _allowed_methods.size(); i++)
+				std::cout << _allowed_methods[0] << ", ";
+			std::cout << "\t\thost: " << _host << std::endl;
+			std::cout << "============================" << std::endl;
 		}
 
 		// ----------------------------GETTERS--------------------------
@@ -41,7 +47,7 @@ class HttpServer {
 			return _host;
 		}
 
-		std::string const& getAllowedMethods() const {
+		std::vector<std::string> const& getAllowedMethods() const {
 			return _allowed_methods;
 		}
 
@@ -58,7 +64,7 @@ class HttpServer {
 		}
 
 		void	setAllowedMethods(std::string const& x) {
-			_allowed_methods = x;
+			_allowed_methods.push_back(x);
 		}
 
 		void	setPort(int const& x) {
@@ -67,16 +73,19 @@ class HttpServer {
 		// ----------------------------OVERLOADS-----------------------
 
 		void	addErrorPage(int statusCode, std::string path) {
-			ErrorPage ep(statusCode, path);
-			_error_pages.push_back(ep);
+			_errors.insert(std::pair<int, std::string>(statusCode, path));
+			// ErrorPage ep(statusCode, path);
+			// _error_pages.push_back(ep);
 		}
-	
+
 	private:
-		std::string _server_name;
-		int _port;
-		std::vector<ErrorPage> _error_pages;
-		std::string		_host;
-		std::string		_allowed_methods;
+		int							_port;
+		std::string					_server_name;
+		std::string					_host;
+		// std::vector<ErrorPage>		_error_pages;
+		std::map<int, std::string>	_errors;
+		std::map<char,int> mymap;
+		std::vector<std::string>	_allowed_methods;
 };
 
 // std::ostream& operator<<(std::ostream& o, HttpServer const& rhs);

@@ -24,7 +24,7 @@ class pars {
 
 		void	checkServer();
 		void	parsServer(int i);
-		int		parsLocation(int i);
+		int		parsLocation(int i, int end);
 		// void	raseValue();
 
 		
