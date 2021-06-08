@@ -6,7 +6,7 @@
 /*   By: aaqlzim <aaqlzim@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/07 11:53:41 by aaqlzim           #+#    #+#             */
-/*   Updated: 2021/06/07 16:54:45 by aaqlzim          ###   ########.fr       */
+/*   Updated: 2021/06/08 17:22:52 by aaqlzim          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 # define HEADER_READER_HPP
 
 #include "IReader.hpp"
+#include <map>
 
 struct					s_client
 {
@@ -37,18 +38,35 @@ struct					s_server
 	std::string			url;
 	std::string			method;
 	std::string			protocol;
+	std::vector<std::string> _reader;
+	std::map<std::string, std::string> _readmap;
 };
 
 class HeaderReader: public IReader {
 	public:
-		HeaderReader(struct s_server *serv);
-		HeaderReader(const HeaderReader& rhs);
-		HeaderReader& operator=(const HeaderReader& rhs);
-		~HeaderReader(void);
-		void readConnection();
+		HeaderReader(int fd);
+		HeaderReader(const HeaderReader& rhs) {}
+		HeaderReader& operator=(const HeaderReader& rhs) {
+			return *this;
+		}
+		~HeaderReader(void) {}
+		std::string _readData();
+		void _sendDataBack() {}
+		int	_parseData();
+		int _checkMethod();
+		int _checkUri();
+		int _checkProtocol();
+		void readConnection() {}
 	public:
-		struct s_server *_server;
-		std::vector<struct s_server*> *_serv;
+		int 		_fd;
+		size_t		_r;
+		char		*_retbuff;
+		std::string _buff;
+		std::string _method;
+		std::string _protocol;
+		std::string _uri;
+		std::vector<std::string> _read;
+		std::map<std::string, std::string> _rmap;
 };
 
 #endif

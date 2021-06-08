@@ -13,7 +13,7 @@ int	main() {
 	server.socketsBind();
 	server.socketsListen();
 	server.acceptConnections();
-	std::cout << server;
+	std::cout << "OK";
 	return (0);
 }
 

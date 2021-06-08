@@ -4,6 +4,9 @@
 # include <vector>
 # include "HttpServer.h"
 # include "ServerSocket.h"
+# include "HeaderReader.hpp"
+# include <cstdlib>
+# include <map>
 
 class Server {
 	public:
@@ -55,8 +58,10 @@ class Server {
 		// accepte connections
 		void acceptConnections() {
 			std::vector<ServerSocket>::iterator it;
+			char buffer[MAX];
 			FD_ZERO(&master_set);
 			addServerSocketsToSet();
+			std::map<int, std::string> rmap;
 			while (true) {
 				worker_set = master_set;
 				std::cout << "Select Waiting" << std::endl;
@@ -78,8 +83,38 @@ class Server {
 							// ChunkedStrategy
 							// else
 							// Default Strategy
-							FD_CLR(i, &master_set);
+							// std::memset((char *)buffer, 0, MAX);
+							// size_t r = read(i, buffer, MAX);
+							// int r = recv(i, buffer, 101, 0);
+							// buffer[r] = '\0';
+							HeaderReader _headerReader(i);
+							_headerReader._readData();
+							// _headerReader._parseData();
+							// send(1, buffer, sizeof(buffer), 0);
+							// std::cout  << "buffer = " << buffer[r] << "\n";
+							write(1, _headerReader._retbuff, _headerReader._r);
+							std::string str;
+							str = "HTTP/1.1 200 OK\r\n";
+							str += "Content-Type: text/html\r\n";
+							str += "Content-Length: 11\r\n";
+							str += "\r\n";
+							str += "Hello World";
+							std::pair<int, std::string> p(i, str);
+							rmap.insert(p);
+							FD_SET(i, &response_set);
+							// FD_CLR(i, &master_set);
 						}
+					}
+				}
+
+				for (int i = 0; i < FD_SETSIZE; i++) {
+					if (FD_ISSET(i, &response_set)) {
+						std::map<int, std::string>::iterator it;
+						it = rmap.find(i);
+						if (it != rmap.end()) {
+							write(i, it->second.c_str(), it->second.size());
+						}
+						FD_CLR(i, &response_set);
 					}
 				}
 			}
@@ -91,6 +126,7 @@ class Server {
 		std::vector<ServerSocket> _sockets;
 		fd_set master_set;
 		fd_set worker_set;
+		fd_set response_set;
 
 		// add socket
 		void addSocket(ServerSocket const& ss) {

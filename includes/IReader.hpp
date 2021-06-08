@@ -6,7 +6,7 @@
 /*   By: aaqlzim <aaqlzim@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/07 11:49:47 by aaqlzim           #+#    #+#             */
-/*   Updated: 2021/06/07 12:40:49 by aaqlzim          ###   ########.fr       */
+/*   Updated: 2021/06/08 17:23:46 by aaqlzim          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,10 +29,16 @@
 # include <unistd.h>
 # include <vector>
 
+const int MAX = 101;
+
 class IReader {
 	public:
 		virtual ~IReader() {}
 		virtual	void readConnection() = 0;
+		virtual int _checkMethod() = 0;
+		virtual int _checkUri() = 0;
+		virtual int _checkProtocol() = 0;
+		virtual std::string _readData() = 0;
 };
 
 #endif
