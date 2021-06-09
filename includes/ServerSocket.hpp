@@ -1,5 +1,6 @@
-#ifndef SERVER_SOCKET
-# define SERVER_SOCKET
+#ifndef SERVER_SOCKET_HPP
+# define SERVER_SOCKET_HPP
+
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include <unistd.h>

@@ -1,12 +1,15 @@
-#ifndef SERVER_H
-# define SERVER_H
+#ifndef SERVER_HPP
+# define SERVER_HPP
 # include <iostream>
 # include <vector>
-# include "HttpServer.h"
-# include "ServerSocket.h"
+# include "HttpServer.hpp"
+# include "ServerSocket.hpp"
 # include "HeaderReader.hpp"
 # include <cstdlib>
 # include <map>
+# include <algorithm>
+# include "Response.hpp"
+# include "Request.hpp"
 
 class Server {
 	public:
@@ -59,6 +62,7 @@ class Server {
 		void acceptConnections() {
 			std::vector<ServerSocket>::iterator it;
 			char buffer[MAX];
+			Request req;
 			FD_ZERO(&master_set);
 			addServerSocketsToSet();
 			std::map<int, std::string> rmap;
@@ -85,14 +89,16 @@ class Server {
 							// Default Strategy
 							// std::memset((char *)buffer, 0, MAX);
 							// size_t r = read(i, buffer, MAX);
-							// int r = recv(i, buffer, 101, 0);
-							// buffer[r] = '\0';
-							HeaderReader _headerReader(i);
-							_headerReader._readData();
+							int r = recv(i, buffer, sizeof(buffer), 0);
+							buffer[r] = '\0';
+							req._parseIncomingRequest(std::string(buffer));
+							// HeaderReader _headerReader(i);
+							// _headerReader._readData();
 							// _headerReader._parseData();
+							write(1, buffer, sizeof(buffer));
 							// send(1, buffer, sizeof(buffer), 0);
 							// std::cout  << "buffer = " << buffer[r] << "\n";
-							write(1, _headerReader._retbuff, _headerReader._r);
+							// write(1, _headerReader._retbuff, _headerReader._r);
 							std::string str;
 							str = "HTTP/1.1 200 OK\r\n";
 							str += "Content-Type: text/html\r\n";
@@ -107,7 +113,11 @@ class Server {
 					}
 				}
 
-				for (int i = 0; i < FD_SETSIZE; i++) {
+				/*for (int i = 0; i < FD_SETSIZE; i++) {
+					// Response res;
+					// res._setRequest(req);
+					// res._startResponse();
+					// std::string content = res._getResContent();
 					if (FD_ISSET(i, &response_set)) {
 						std::map<int, std::string>::iterator it;
 						it = rmap.find(i);
@@ -116,7 +126,7 @@ class Server {
 						}
 						FD_CLR(i, &response_set);
 					}
-				}
+				}*/
 			}
 		}
 	private:

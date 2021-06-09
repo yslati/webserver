@@ -1,5 +1,5 @@
-#ifndef HTTP_SERVER_H
-# define HTTP_SERVER_H
+#ifndef HTTP_SERVER_HPP
+# define HTTP_SERVER_HPP
 # include <iostream>
 class HttpServer {
 	public:

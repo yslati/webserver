@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   IReader.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaqlzim <aaqlzim@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ayoub <ayoub@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/07 11:49:47 by aaqlzim           #+#    #+#             */
-/*   Updated: 2021/06/08 17:23:46 by aaqlzim          ###   ########.fr       */
+/*   Updated: 2021/06/08 19:02:10 by ayoub            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@
 # include <arpa/inet.h>
 # include <sys/select.h>
 # include <sys/types.h>
-# include <sys/event.h>
+// # include <sys/event.h>
 # include <sys/time.h>
 # include <sys/socket.h>
 # include <fcntl.h>
