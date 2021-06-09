@@ -3,6 +3,27 @@
 
 # include "Request.hpp"
 # include <stdexcept>
+# include <unistd.h>
+# include <fstream>
+# include <map>
+
+# define S_OK 200
+# define S_MOVED_PERM 301
+# define S_TEMP_REDIR 307
+# define S_BAD_REQ 400
+# define S_FORBIDDEN 403
+# define S_NOT_FOUND 404
+# define S_METHOD_NOT_ALLOWED 405
+# define S_LENGTH_REQUIRED 411
+# define S_PAY_LOAD_TOO_LARGE 413
+# define S_URI_TOO_LONG 414
+# define S_UNSUPPORTED_MEDIA_TYPE 415
+# define S_INTERNAL_SERVER_ERROR 500
+# define S_NOT_IMPLEMENTED 501
+# define S_BAD_GATEWAY 502
+# define S_GATEWAY_TIMEOUT 504
+# define S_HTTP_VERSION_NOT_SUPPORTED 505
+// AND SOME OTHER STATUS
 
 class Response {
     private:
@@ -10,6 +31,7 @@ class Response {
         size_t  _status;
         std::string _body;
         std::string _ResponseContent;
+        std::map<int, std::string> _stResp;
     public:
         class MethodNotFound: public std::exception
         {
@@ -26,12 +48,17 @@ class Response {
         void _startResponse();
         void _applyMethod();
         const std::string& _getResContent() const;
+        void _makeStatus();
 
         // GET METHOD member
-        const std::string& _getFilePath(const std::string& uri) const;
-        void _readFile(const std::string& path);
+        void _applyGetMethod();
+        const std::string& _getFilePath(const std::string& uri);
+        std::string _getDir(void);
+        void _readFile(const std::string& file);
         // POST METHOD member
+        void _applyPostMethod();
         // DELETE METHOD member
+        void _applyDeleteMethod();
 };
 
 #endif

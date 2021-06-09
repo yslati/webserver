@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: aaqlzim <aaqlzim@student.42.fr>            +#+  +:+       +#+         #
+#    By: ayoub <ayoub@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/06/09 13:26:06 by aaqlzim           #+#    #+#              #
-#    Updated: 2021/06/09 15:25:20 by aaqlzim          ###   ########.fr        #
+#    Updated: 2021/06/09 22:24:44 by ayoub            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,7 +15,7 @@ NAME := webserv
 SRCS := Mainer.cpp ./includes/Request.cpp
 OBJS := $(SRCS:.cpp=.o)
 CXX := g++
-CXXFLAGS := -std=c++98
+CXXFLAGS :=
 
 all: $(NAME)
 $(NAME): $(OBJS)

@@ -2,18 +2,21 @@
 
 Request::Request()
 {
-	this->_Header = "";
+	this->_Host = "";
 	this->_method = "";
 	this->_uri = "";
 	this->_protocol = "";
 	this->_Server = "";
 	this->_Date = "";
 	this->_Ctype = "";
+	this->_Atype = "";
+	this->_Cdisp = "";
 	this->_Clen = 0;
 	this->_Lmodified = "";
 	this->_Conn = "";
 	this->_Etag = "";
 	this->_Aranges = "";
+	this->_boundary = "";
 }
 
 Request::~Request() {}
@@ -74,14 +77,20 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
         }
         else if ((f = _data.find("Content-type:")) != std::string::npos)
         {
-			_line = "Content-type:";
-			this->_Ctype = _data.substr(f + _line.length() + 1
-			, _data.length() - 1);
-        }
+			if (!this->_boundary.length())
+			{
+				_line = "Content-type:";
+				this->_Ctype = _data.substr(f + _line.length() + 1
+				, _data.find_first_of(';') - 14);
+				this->_boundary = this->_boundary.append("--").append()
+			}
+			else
+				this->_Atype = _data.substr(_data.find(":") + 2);
+		}
 		else if ((f = _data.find("Host:")) != std::string::npos)
 		{
 			_line = "Host:";
-			this->_Header = _data.substr(f + _line.length() + 1
+			this->_Host = _data.substr(f + _line.length() + 1
 			, _data.length() - 1);
 		}
 		else if ((f = _data.find("Content-Length:")) != std::string::npos)
@@ -92,13 +101,26 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 			std::stringstream ss(_slen);
 			ss >> this->_Clen;
 		}
-		else if ((f = _data.find()))
+		else if ((f = _data.find("Content-Disposition:")) != std::string::npos)
+		{
+			_line = "Content-Disposition:";
+			this->_Cdisp = _data.substr(f + _line.length() + 1,
+			_data.length() - 1);
+		}
+		else if ((f = _data.find("Connection:")) != std::string::npos)
+		{
+			_line = "Connection:";
+			this->_Conn = _data.substr(f + _line.length() + 1,
+			_data.length() - 1);
+		}
+		else if ((f = _data.find("we'll see 4eda")) != std::string::npos)
+		{
+			_line = "we'll see 4eda";
+		}
     }
-	location /
-	index index.html;
 	std::cout << "_CType = " << _Ctype << "\n";
 	std::cout << "_Clen = " << _Clen << "\n";
-	std::cout << "_Host = " << _Header << "\n";
+	std::cout << "_Host = " << _Host << "\n";
 	// std::cout << "Method = " << _method;
 	// std::cout << "uri = " << _uri;
 	// std::cout << "_protocol = " << _protocol;
