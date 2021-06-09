@@ -7,8 +7,11 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cstring>
 #include <vector>
 #include <cctype>
+#include <sstream>
+
 
 class pars {
 	private:
@@ -18,6 +21,9 @@ class pars {
 		HttpServer					_httpServers;
 		std::vector<Location>		_location;
 
+		std::vector<std::string>	_split(std::string const &str, char sep);
+		bool						_checkbool(std::string str);
+
 	public:
 		pars(std::string fileName);
 		~pars();
@@ -25,17 +31,7 @@ class pars {
 		void	checkServer();
 		void	parsServer(int i);
 		int		parsLocation(int i, int end);
-		// void	raseValue();
-
-		
+	
 };
-
-// std::ostream& operator<<(std::ostream& o, HttpServer const& rhs) {
-// 	o << "httpserver:";
-// 	o << std::endl << "Port: " << rhs.getPort();
-// 	o << std::endl << "ServerName: " << rhs.getServerName();
-// 	o << std::endl;
-// 	return o;
-// }
 
 #endif

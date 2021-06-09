@@ -10,7 +10,7 @@ class Location {
 		void	setUri(std::string const& x);
 		void	setRoot(std::string const& x);
 		void	setIndex(std::string const& x);
-		void	setAllowedMethods(std::string x);
+		void	setAllowedMethods(std::vector<std::string> x);
 		void	setAutoIndex(bool x);
 		void	setIsRedirect(bool x);
 		void	setStatusCode(int x);

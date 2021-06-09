@@ -25,7 +25,7 @@ void	HttpServer::checkVal() const {
     std::cout << "server_name: \t" << _server_name << "\tPort: " << _port << std::endl;
     std::cout << "allowed_methods: ";
     // for (int i = 0; i < _allowed_methods.size(); i++)
-        std::cout << _allowed_methods[0] << ", ";
+        std::cout << _allowed_methods[0] << " ";
     std::cout << "\t\thost: " << _host << std::endl;
     std::cout << "============================" << std::endl;
 }
@@ -55,8 +55,9 @@ void	HttpServer::setHost(std::string const& x) {
     _host = x;
 }
 
-void	HttpServer::setAllowedMethods(std::string const& x) {
-    _allowed_methods.push_back(x);
+void	HttpServer::setAllowedMethods(std::vector<std::string> x) {
+    for (int i = 0; i < x.size(); i++)
+        _allowed_methods.push_back(x[i]);
 }
 
 void	HttpServer::setPort(int const& x) {
