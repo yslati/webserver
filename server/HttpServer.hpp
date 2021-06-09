@@ -34,7 +34,7 @@ class HttpServer {
 
 		void	setHost(std::string const& x);
 
-		void	setAllowedMethods(std::string const& x);
+		void	setAllowedMethods(std::vector<std::string> x);
 
 		void	setPort(int const& x);
 		// ----------------------------OVERLOADS-----------------------

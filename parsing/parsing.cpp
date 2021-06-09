@@ -1,15 +1,28 @@
 #include "parsing.hpp"
+# include <string.h>
 
-bool	checkbool(std::string str) {
+bool	pars::_checkbool(std::string str) {
 	if (str == "on")
 		return (true);
 	return (false);
+}
+
+std::vector<std::string> pars::_split(std::string const &str, char sep)
+{
+    std::vector<std::string> wordsArr;
+    std::stringstream ss(str);
+    std::string buff;
+
+    while (getline(ss, buff, sep))
+        wordsArr.push_back(buff);
+    return wordsArr;
 }
 
 int		pars::parsLocation(int i, int end) {
 
 	Location	tmp;
 	int			open = 0;
+
 	tmp.setUri(_conf[i].substr(_conf[i].find(":") + 1));
 	_conf[i].find("{") < _conf[i].length() ? open = 1 : open = 0;
 	if ((_conf[++i] != "{" && open == 0) || (_conf[i] == "{" && open == 1)) {
@@ -28,11 +41,11 @@ int		pars::parsLocation(int i, int end) {
 		else if (_conf[i].compare(0, 7, "default") == 0)
 			tmp.setIndex(_conf[i].substr(_conf[i].find("=") + 1));
 		else if (_conf[i].compare(0, 15, "allowed_methods") == 0)
-			tmp.setAllowedMethods(_conf[i].substr(_conf[i].find("=") + 1));
+			tmp.setAllowedMethods(_split(_conf[i].substr(_conf[i].find("=") + 1), ','));
 		else if (_conf[i].compare(0, 9, "autoindex") == 0)
-			tmp.setAutoIndex(checkbool(_conf[i].substr(_conf[i].find("=") + 1)));
+			tmp.setAutoIndex(_checkbool(_conf[i].substr(_conf[i].find("=") + 1)));
 		else if (_conf[i].compare(0, 9, "redirect=") == 0)
-			tmp.setIsRedirect(checkbool(_conf[i].substr(_conf[i].find("=") + 1)));
+			tmp.setIsRedirect(_checkbool(_conf[i].substr(_conf[i].find("=") + 1)));
 		else if (_conf[i].compare(0, 4, "code") == 0)
 			tmp.setStatusCode(atoi(_conf[i].substr(_conf[i].find("=") + 1).c_str()));
 		else if (_conf[i].compare(0, 13, "redirect_path") == 0)
@@ -61,7 +74,7 @@ void	pars::parsServer(int n) {
 		else if (_conf[i].compare(0, 4, "host") == 0)
 			_httpServers.setHost(_conf[i].substr(_conf[i].find(":") + 1));
 		else if (_conf[i].compare(0, 16, "allowed_methods:") == 0)
-			_httpServers.setAllowedMethods(_conf[i].substr(_conf[i].find(":") + 1));
+			_httpServers.setAllowedMethods(_split(_conf[i].substr(_conf[i].find(":") + 1), ','));
 		else if (_conf[i].compare(0, 8, "location") == 0) {
 			if (_conf[i].substr(_conf[i].find(":") + 1).compare(0, 1, "/") != 0)
 				std::cout << "Location URI error" << std::endl;
@@ -105,6 +118,7 @@ void	pars::checkServer() {
 	}
 	serverClosed == 0 ? std::cout << "success" << std::endl : std::cout << "faild" << std::endl;
 
+		std::cout << "test" << std::endl;
 	for (int i = 0; i < _servBegin.size(); i++) {
 		parsServer(i);
 	}
@@ -121,7 +135,10 @@ pars::pars(std::string fileName) {
 			_conf.push_back(tmp);
 	}
 	readFile.close();
-	checkServer();
+	if (!_conf.empty())
+		checkServer();
+	else
+		std::cout << "cant read the file!" << std::endl;
 }
 
 pars::~pars() {
