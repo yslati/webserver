@@ -5,6 +5,7 @@
 #include <map>
 #include <iterator>
 # include "ErrorPage.hpp"
+# include "Location.hpp"
 
 #define log std::cout << 
 #define line << std::endl
@@ -37,6 +38,8 @@ class HttpServer {
 		void	setAllowedMethods(std::vector<std::string> x);
 
 		void	setPort(int const& x);
+
+		void	addLocation(Location const& loc);
 		// ----------------------------OVERLOADS-----------------------
 
 		void	addErrorPage(int statusCode, std::string path);
@@ -49,6 +52,7 @@ class HttpServer {
 		std::map<int, std::string>	_errors;
 		std::map<char,int> mymap;
 		std::vector<std::string>	_allowed_methods;
+		std::vector<Location> _locations;
 };
 
 // std::ostream& operator<<(std::ostream& o, HttpServer const& rhs);

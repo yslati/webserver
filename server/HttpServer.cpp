@@ -63,6 +63,11 @@ void	HttpServer::setAllowedMethods(std::vector<std::string> x) {
 void	HttpServer::setPort(int const& x) {
     _port = x;
 }
+
+void	HttpServer::addLocation(Location const& loc) {
+    _locations.push_back(loc);
+}
+
 // ----------------------------OVERLOADS-----------------------
 
 void	HttpServer::addErrorPage(int statusCode, std::string path) {
