@@ -77,33 +77,35 @@ std::vector<ServerSocket>::iterator Server::isServerSocket(int fd) {
 void Server::acceptConnections() {
     std::vector<ServerSocket>::iterator it;
     FD_ZERO(&master_set);
+    // FD_ZERO(&response_set);
     addServerSocketsToSet();
     while (true) {
         worker_set = master_set;
         response_set = master_set;
         std::cout << "Select Waiting" << std::endl;
-        if (select(FD_SETSIZE, &worker_set, NULL, NULL, NULL) < 0) {
-            std::cerr << "Select failed" << std::endl;
+        int select_ret = select(FD_SETSIZE, &worker_set, &response_set, NULL, NULL);
+        if (select_ret == 0)
+        {
+            std::cout << "select 0" << std::endl;
             continue;
         }
+        // std::cout << "ret = " << select_ret << std::endl;
         for (int i = 0; i < FD_SETSIZE; i++) {
+            if (FD_ISSET(i, &response_set)) {
+                std::string _str = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: 10\r\nHello world";
+                send(i, _str.c_str(), _str.size(), 0);
+            }
             // if ready to read or accept a socket
             if (FD_ISSET(i, &worker_set)) {
                 if ((it =isServerSocket(i)) != _sockets.end()) {
                     int conn = it->acceptConnection();
                     FD_SET(conn, &master_set);
                 } else {
-                    std::cout << "Connection should we read from" << std::endl;
-                    char buffer[1025];
-                    std::string _s;
-                    int ret;
-                    while ((ret = recv(i, buffer, 1024, 0)) > 0) {
-                        buffer[ret] = '\0';
-                        std::cout << buffer << std::endl;
-                    }
-                    FD_CLR(i, &master_set);
+                    RequestReader reader;
+                    reader.readConnection(i);
                 }
             }
+
         }
     }
 }
