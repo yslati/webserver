@@ -5,11 +5,7 @@
 
 class Location {
 	public:
-		Location() {
-			_status_code = -1;
-			_auto_index = false;
-			_is_redirect = false;
-		}
+		Location();
 
 		void	setUri(std::string const& x);
 		void	setRoot(std::string const& x);

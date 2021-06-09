@@ -1,8 +1,8 @@
 #ifndef PARSING_H
 #define PARSING_H
 
-#include "../includes/HttpServer.hpp"
-#include "../includes/Location.hpp"
+#include "HttpServer.hpp"
+#include "Location.hpp"
 
 #include <iostream>
 #include <fstream>
