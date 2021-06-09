@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   IReader.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ayoub <ayoub@student.42.fr>                +#+  +:+       +#+        */
+/*   By: aaqlzim <aaqlzim@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/07 11:49:47 by aaqlzim           #+#    #+#             */
-/*   Updated: 2021/06/08 19:02:10 by ayoub            ###   ########.fr       */
+/*   Updated: 2021/06/09 15:26:46 by aaqlzim          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@
 # include <unistd.h>
 # include <vector>
 
-const int MAX = 101;
+const int MAX = 1024;
 
 class IReader {
 	public:

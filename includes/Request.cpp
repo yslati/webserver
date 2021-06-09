@@ -1,6 +1,20 @@
 #include "Request.hpp"
 
-Request::Request() {}
+Request::Request()
+{
+	this->_Header = "";
+	this->_method = "";
+	this->_uri = "";
+	this->_protocol = "";
+	this->_Server = "";
+	this->_Date = "";
+	this->_Ctype = "";
+	this->_Clen = 0;
+	this->_Lmodified = "";
+	this->_Conn = "";
+	this->_Etag = "";
+	this->_Aranges = "";
+}
 
 Request::~Request() {}
 
@@ -44,6 +58,8 @@ void Request::_parseLine(const std::string& _line)
 void Request::_parseIncomingRequest(const std::string& _buffer)
 {
     std::string _data;
+	std::string _line;
+	size_t 		f;
     std::istringstream _read(_buffer);
 
     // std::cout << "data to parse: " << _buffer << "\n";
@@ -56,12 +72,34 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
             this->_uri = _parse[1];
             this->_protocol = _parse[2];
         }
-        else if (_data.find("Content-type") != std::string::npos)
+        else if ((f = _data.find("Content-type:")) != std::string::npos)
         {
-            
+			_line = "Content-type:";
+			this->_Ctype = _data.substr(f + _line.length() + 1
+			, _data.length() - 1);
         }
+		else if ((f = _data.find("Host:")) != std::string::npos)
+		{
+			_line = "Host:";
+			this->_Header = _data.substr(f + _line.length() + 1
+			, _data.length() - 1);
+		}
+		else if ((f = _data.find("Content-Length:")) != std::string::npos)
+		{
+			_line = "Content-Length:";
+			std::string _slen = _data.substr(f + _line.length() + 1,
+			_data.length() - 1);
+			std::stringstream ss(_slen);
+			ss >> this->_Clen;
+		}
+		else if ((f = _data.find()))
     }
-    // std::cout << "Method = " << _method;
-    // std::cout << "uri = " << _uri;
-    // std::cout << "_protocol = " << _protocol;
+	location /
+	index index.html;
+	std::cout << "_CType = " << _Ctype << "\n";
+	std::cout << "_Clen = " << _Clen << "\n";
+	std::cout << "_Host = " << _Header << "\n";
+	// std::cout << "Method = " << _method;
+	// std::cout << "uri = " << _uri;
+	// std::cout << "_protocol = " << _protocol;
 }

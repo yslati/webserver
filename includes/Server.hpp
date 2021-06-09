@@ -59,8 +59,37 @@ class Server {
 		}
 
 		// accepte connections
+		void acceptIncomingConnections() {
+			while (true) {
+				std::vector<ServerSocket>::iterator it = _sockets.begin();
+				char buffer[MAX];
+				Request req;
+				int r;
+				std::string strRequest = "";
+
+				int conn = it->acceptConnection();
+				std::cout << "Port = " << it->getPort() << "\n";
+				while ((r = read(conn, buffer, sizeof(buffer) - 1)) == 1023)
+				{
+					std::cout << r << "\n";
+					buffer[r] = '\0';
+					std::string tmp = "";
+					tmp.assign(buffer);
+					strRequest += tmp;
+				}
+				std::string tmp = "";
+				tmp.assign(buffer);
+				strRequest += tmp;
+				// std::cout << strRequest << std::endl;
+				std::cout << "End\n";
+				send(conn, strRequest.c_str(), strRequest.size(), 0);
+				// write(conn, strRequest.c_str(), strRequest.size());
+				req._parseIncomingRequest(strRequest);
+				close(conn);
+			}	
+		}
 		void acceptConnections() {
-			std::vector<ServerSocket>::iterator it;
+			std::vector<ServerSocket>::iterator it = _sockets.begin();
 			char buffer[MAX];
 			Request req;
 			FD_ZERO(&master_set);
@@ -80,7 +109,6 @@ class Server {
 							int conn = it->acceptConnection();
 							FD_SET(conn, &master_set);
 						} else {
-							std::cout << "Connection should we read from" << std::endl;
 							// TODO read the request
 							// depend on a strategy
 							// if Content-Encoding chunked
@@ -88,15 +116,25 @@ class Server {
 							// else
 							// Default Strategy
 							// std::memset((char *)buffer, 0, MAX);
-							// size_t r = read(i, buffer, MAX);
-							int r = recv(i, buffer, sizeof(buffer), 0);
-							buffer[r] = '\0';
-							req._parseIncomingRequest(std::string(buffer));
+							// size_t r = read(i, buffer, sizeof(buffer));
+							int r;
+							std::string strRequest = "";
+							std::string tmp;
+							// r = recv(i, buffer, sizeof(buffer) - 1, 0);
+							while ((r = recv(i, buffer, sizeof(buffer) - 1, 0)) == sizeof(buffer) - 1) {
+								// std::cout << "hello\n";
+								buffer[r] = '\0';
+								tmp = "";
+								tmp.assign(buffer);
+								strRequest += tmp;
+							}
+							// std::cout << "hey\n";
+							send(1, strRequest.c_str(), strRequest.size(), 0);
+							req._parseIncomingRequest(strRequest);
 							// HeaderReader _headerReader(i);
 							// _headerReader._readData();
 							// _headerReader._parseData();
-							write(1, buffer, sizeof(buffer));
-							// send(1, buffer, sizeof(buffer), 0);
+							// write(1, buffer, sizeof(buffer));
 							// std::cout  << "buffer = " << buffer[r] << "\n";
 							// write(1, _headerReader._retbuff, _headerReader._r);
 							std::string str;
