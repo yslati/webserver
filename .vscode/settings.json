@@ -61,6 +61,10 @@
 		"unordered_map": "cpp",
 		"utility": "cpp",
 		"__tree": "cpp",
-		"map": "cpp"
+		"map": "cpp",
+		"*.tcc": "cpp",
+		"deque": "cpp",
+		"clocale": "cpp",
+		"memory_resource": "cpp"
 	}
 }

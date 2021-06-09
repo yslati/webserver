@@ -1,5 +1,5 @@
-#include "./includes/HttpServer.h"
-#include "./includes/Server.h"
+#include "HttpServer.hpp"
+#include "Server.hpp"
 
 int	main() {
 	HttpServer s1(8080, "hello");
@@ -10,7 +10,10 @@ int	main() {
 	server.addHttpServer(s2);
 	server.addHttpServer(s3);
 	server.socketsCreate();
-	std::cout << server;
+	server.socketsBind();
+	server.socketsListen();
+	server.acceptConnections();
+	// std::cout << server;
 	return (0);
 }
 
