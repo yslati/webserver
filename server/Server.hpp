@@ -27,8 +27,8 @@ class Server {
 
 		void addServerSocketsToSet();
 		std::vector<ServerSocket>::iterator isServerSocket(int fd);
-		Server();
 	private:
+		Server();
 		static Server* _instance;
 		std::vector<HttpServer> _http_servers;
 		std::vector<ServerSocket> _sockets;

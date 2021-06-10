@@ -22,9 +22,8 @@ class pars {
 		std::vector<int>			_servBegin;
 		std::vector<int>			_servEnd;
 		
-		Server						_Servers;
-		HttpServer					_httpServers;
-		std::vector<Location>		_location;
+		Server						&_Servers;
+		
 
 		std::vector<std::string>	_split(std::string const &str, char sep);
 		bool						_checkbool(std::string str);
@@ -35,7 +34,7 @@ class pars {
 
 		void	checkServer();
 		void	parsServer(int i);
-		int		parsLocation(int i, int end);
+		int		parsLocation(int i, int end, HttpServer& srv);
 
 };
 

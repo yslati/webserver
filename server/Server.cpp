@@ -9,6 +9,8 @@ Server& Server::getInstance() {
 
 void Server::addHttpServer(HttpServer const& server) {
     _http_servers.push_back(server);
+    
+    HttpServer &sr = _http_servers.back();
     ServerSocket ss(server.getPort());
     addSocket(ss);
 }
@@ -43,7 +45,9 @@ void Server::socketsListen() {
     }
 }
 
-Server::Server() {}
+Server::Server() {
+
+}
 
 void Server::addSocket(ServerSocket const& ss) {
     std::vector<ServerSocket>::iterator it;

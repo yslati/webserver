@@ -10,8 +10,11 @@ void	Location::setUri(std::string const& x) {	_uri = x; }
 void	Location::setRoot(std::string const& x) {	_root = x; }
 void	Location::setIndex(std::string const& x) {	_index = x; }
 void	Location::setAllowedMethods(std::vector<std::string> x) {
-    for (int i = 0; i < x.size(); i++)
+    for (int i = 0; i < x.size(); i++) {
+        if (x[i] != "GET" && x[i] != "POST" && x[i] != "DELETE")
+            throw "allowed method not acceptable";
         _allowed_methods.push_back(x[i]);
+    }
 }
 void	Location::setAutoIndex(bool x) {	_auto_index = x; }
 void	Location::setIsRedirect(bool x) {	_is_redirect = x; }

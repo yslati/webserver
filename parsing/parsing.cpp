@@ -18,7 +18,7 @@ std::vector<std::string> pars::_split(std::string const &str, char sep)
     return wordsArr;
 }
 
-int		pars::parsLocation(int i, int end) {
+int		pars::parsLocation(int i, int end, HttpServer& srv) {
 
 	Location	tmp;
 	int			open = 0;
@@ -49,7 +49,7 @@ int		pars::parsLocation(int i, int end) {
 		else if (_conf[i].compare(0, 13, "redirect_path") == 0)
 			tmp.setRedirectUrl(_conf[i].substr(_conf[i].find("=") + 1));
 	}
-	_httpServers.addLocation(tmp);
+	srv.addLocation(tmp);
 	return (i);
 }
 
@@ -58,6 +58,8 @@ void	pars::parsServer(int n) {
 	int i = _servBegin[n];
 	int port = -1;
 	std::string serverName = "";
+	HttpServer					_httpServers;
+
 
 	while (++i < _servEnd[n]) {
 		if (_conf[i].compare("server") == 0)
@@ -70,12 +72,14 @@ void	pars::parsServer(int n) {
 			serverName = _conf[i].substr(_conf[i].find(":") + 1);
 		else if (_conf[i].compare(0, 4, "host") == 0)
 			_httpServers.setHost(_conf[i].substr(_conf[i].find(":") + 1));
+		else if (_conf[i].compare(0, 4, "root") == 0)
+			_httpServers.setRoot(_conf[i].substr(_conf[i].find(":") + 1));
 		else if (_conf[i].compare(0, 16, "allowed_methods:") == 0)
 			_httpServers.setAllowedMethods(_split(_conf[i].substr(_conf[i].find(":") + 1), ','));
 		else if (_conf[i].compare(0, 8, "location") == 0) {
 			if (_conf[i].substr(_conf[i].find(":") + 1).compare(0, 1, "/") != 0)
 				throw "Location URI error";
-			i = parsLocation(i++, _servEnd[n]);
+			i = parsLocation(i++, _servEnd[n], _httpServers);
 		}
 		else if (_conf[i].compare(0, 10, "error_page") == 0) {
 			std::string tmp =  _conf[i].substr(_conf[i].find(":") + 1);
@@ -112,7 +116,7 @@ void	pars::checkServer() {
 		parsServer(i);
 }
 
-pars::pars(std::string fileName) {
+pars::pars(std::string fileName): _Servers(Server::getInstance()) {
 
 	std::string buff;
 	std::ifstream readFile(fileName);
