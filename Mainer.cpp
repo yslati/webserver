@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #include "./includes/HttpServer.hpp"
 #include "./includes/Server.hpp"
 
@@ -17,11 +18,24 @@ int	main() {
 
 	// std::cout << "body len = " << tmp.length() << std::endl;
 
+=======
+#include "HttpServer.hpp"
+#include "Server.hpp"
+#include "parsing.hpp"
+
+int	main(int argc, char **argv) {
+	if (argc < 2) 
+		return 1;
+	pars::pars(argv[1]);
+>>>>>>> ba23578ae19ed6898d0bafb106edb9bed0dc5405
 	HttpServer s1(8080, "hello");
 	// HttpServer s2(8080, "hello_guys");
 	// HttpServer s3(80, "hello_guys");
 	Server& server = Server::getInstance();	
+	// server.addHttpServer(s1);
+	// server.addHttpServer(s2);
 	server.addHttpServer(s1);
+<<<<<<< HEAD
 	// server.addHttpServer(s2);
 	// server.addHttpServer(s3);
 	server.socketsCreate();
@@ -29,6 +43,13 @@ int	main() {
 	server.socketsListen();
 	server.acceptIncomingConnections();
 	std::cout << "OK";
+=======
+	server.socketsCreate();
+	server.socketsBind();
+	server.socketsListen();
+	server.acceptConnections();
+	// std::cout << server;
+>>>>>>> ba23578ae19ed6898d0bafb106edb9bed0dc5405
 	return (0);
 }
 

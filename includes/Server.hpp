@@ -82,9 +82,16 @@ class Server {
 				strRequest += tmp;
 				// std::cout << strRequest << std::endl;
 				std::cout << "End\n";
-				send(conn, strRequest.c_str(), strRequest.size(), 0);
+				// send(conn, strRequest.c_str(), strRequest.size(), 0);
 				// write(conn, strRequest.c_str(), strRequest.size());
 				req._parseIncomingRequest(strRequest);
+				Response res;
+
+				res._setRequest(req);
+				res._startResponse();
+				std::string content = res._getResContent();
+				std::cout << content << "\n";
+				// write(conn, content.c_str(), content.length());
 				close(conn);
 			}	
 		}

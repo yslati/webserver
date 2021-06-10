@@ -33,6 +33,7 @@ class Response {
         std::string _ResponseContent;
         std::map<int, std::string> _stResp;
     public:
+        std::map<std::string, std::string> _headers;
         class MethodNotFound: public std::exception
         {
             public:
@@ -47,18 +48,18 @@ class Response {
         void _setRequest(Request& req);
         void _startResponse();
         void _applyMethod();
-        const std::string& _getResContent() const;
+        std::string _getResContent() const;
         void _makeStatus();
 
         // GET METHOD member
         void _applyGetMethod();
-        const std::string& _getFilePath(const std::string& uri);
+        std::string _getFilePath(const std::string& uri);
         std::string _getDir(void);
         void _readFile(const std::string& file);
         // POST METHOD member
-        void _applyPostMethod();
+        void _applyPostMethod() {}
         // DELETE METHOD member
-        void _applyDeleteMethod();
+        void _applyDeleteMethod() {}
 };
 
 #endif
