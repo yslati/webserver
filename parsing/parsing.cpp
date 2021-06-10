@@ -49,7 +49,6 @@ int		pars::parsLocation(int i, int end) {
 		else if (_conf[i].compare(0, 13, "redirect_path") == 0)
 			tmp.setRedirectUrl(_conf[i].substr(_conf[i].find("=") + 1));
 	}
-	// tmp.checkVal();
 	_httpServers.addLocation(tmp);
 	return (i);
 }
@@ -89,7 +88,6 @@ void	pars::parsServer(int n) {
 		throw "syntax err, port or Host missing!";
 	else
 		_Servers.addHttpServer(_httpServers);
-		// _httpServers.checkVal();
 }
 
 void	pars::checkServer() {
