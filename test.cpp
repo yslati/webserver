@@ -1,7 +1,14 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <vector>
 #include <unistd.h>
+
+struct Arg {
+    std::string Cdisp;
+    std::string Ctype;
+    std::string Ftype;
+};
 
 int main()
 {
@@ -17,7 +24,7 @@ int main()
     // std::cout << k << std::endl;
     // std::cout << b << std::endl;
 
-    char buff[1024];
+    /*char buff[1024];
     getcwd(buff, sizeof(buff));
 
     std::string dir = buff;
@@ -30,5 +37,26 @@ int main()
     while (getline(readFile, _line))
         body.append(_line).append("\n");
     
-    std::cout << body;
+    std::cout << body;*/
+    std::vector<struct Arg> v;
+
+    struct Arg f;
+    struct Arg f1;
+
+    f.Cdisp = "Content-Decposition: text/plain; charset=ascii";
+    f.Ctype = "Content-Type: text/html";
+    f.Ftype = "form-data";
+
+    f1.Cdisp = "Content-Decposition: text/html; charset=utf-8";
+    f1.Ctype = "Content-Type: image/png";
+    f1.Ftype = "json";
+    v.push_back(f);
+    v.push_back(f1);
+
+    std::vector<struct Arg>::iterator it = v.begin();
+
+    for (; it != v.end(); it++)
+    {
+        std::cout << "Cdisp = " << it->Cdisp << "\n";
+    }
 }
