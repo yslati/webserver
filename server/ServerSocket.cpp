@@ -6,6 +6,9 @@ ServerSocket::ServerSocket() {
 }
 
 ServerSocket::~ServerSocket() {
+    if (_fd != -1) {
+        close(_fd);
+    }
 }
 
 ServerSocket::ServerSocket(ServerSocket const& src) {
@@ -43,12 +46,16 @@ void ServerSocket::socketCreate() {
     if (_fd == -1) {
         std::cerr << "Socket failed" << std::endl;
     } else {
-        // fcntl(_fd, F_SETFL, fcntl(_fd, F_GETFL, 0) | O_NONBLOCK);
+        fcntl(_fd, F_SETFL, O_NONBLOCK);
     }
 }
 
 void ServerSocket::socketBind() {
     if (_fd != -1) {
+        // opt
+        int opt = 1;
+        setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int));
+        
         sockaddr_in addr;
         addr.sin_family = AF_INET;
         addr.sin_addr.s_addr = INADDR_ANY;
