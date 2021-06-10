@@ -3,6 +3,7 @@
 
 #include "HttpServer.hpp"
 #include "Location.hpp"
+#include "Server.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -11,6 +12,8 @@
 #include <vector>
 #include <cctype>
 #include <sstream>
+#include <exception>
+#include <stdexcept>
 
 
 class pars {
@@ -18,6 +21,8 @@ class pars {
 		std::vector<std::string>	_conf;
 		std::vector<int>			_servBegin;
 		std::vector<int>			_servEnd;
+		
+		Server						_Servers;
 		HttpServer					_httpServers;
 		std::vector<Location>		_location;
 
@@ -31,7 +36,7 @@ class pars {
 		void	checkServer();
 		void	parsServer(int i);
 		int		parsLocation(int i, int end);
-	
+
 };
 
 #endif

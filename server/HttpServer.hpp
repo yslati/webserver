@@ -47,12 +47,12 @@ class HttpServer {
 	private:
 		int							_port;
 		std::string					_server_name;
-		std::string					_host;
-		// std::vector<ErrorPage>		_error_pages;
-		std::map<int, std::string>	_errors;
-		std::map<char,int> mymap;
 		std::vector<std::string>	_allowed_methods;
-		std::vector<Location> _locations;
+		std::string					_host;
+
+		// std::vector<ErrorPage>	_error_pages;
+		std::map<int, std::string>	_errors;
+		std::vector<Location> 		_locations;
 };
 
 // std::ostream& operator<<(std::ostream& o, HttpServer const& rhs);

@@ -26,7 +26,11 @@
 
 int main()
 {
-	pars ser("./parsing/file.conf");
+	try {
+		pars ser("./parsing/file.conf");
+	} catch (char const *e) {
+		std::cout << e << std::endl;
+	}
 	// allMethod("GET,PUT,HEAD,POST");
 	// 	std::vector<std::string> arr=_split("GET	 	 	 	PUT 	 	 HEAD POST    Something");
 	// for (size_t i = 0; i < arr.size(); i++)
