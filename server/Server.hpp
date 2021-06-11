@@ -5,7 +5,6 @@
 # include "HttpServer.hpp"
 # include "ServerSocket.hpp"
 # include <algorithm>
-# include "RequestReader.hpp"
 
 class Server {
 	public:

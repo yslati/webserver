@@ -24,10 +24,16 @@ int	main() {
 #include "parsing.hpp"
 
 int	main(int argc, char **argv) {
+<<<<<<< HEAD
 	if (argc < 2) 
 		return 1;
 	pars::pars(argv[1]);
 >>>>>>> ba23578ae19ed6898d0bafb106edb9bed0dc5405
+=======
+	// if (argc < 2) 
+	// 	return 1;
+	// pars::pars(argv[1]);
+>>>>>>> c67543e89d53236c43d3d3c16b801fda4eb2f1cd
 	HttpServer s1(8080, "hello");
 	// HttpServer s2(8080, "hello_guys");
 	// HttpServer s3(80, "hello_guys");
