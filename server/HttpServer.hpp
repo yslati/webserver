@@ -26,18 +26,24 @@ class HttpServer {
 		std::string const& getServerName() const;
 
 		std::string const& getHost() const;
+		std::string const& getRoot() const;
 
 		std::vector<std::string> const& getAllowedMethods() const;
 
 		int const& getPort() const;
+
+		int const& getMaxBodySize() const;
 		// -----------------------------SETTERS-------------------------
 		void	setServerName(std::string const& x);
 
 		void	setHost(std::string const& x);
+		void	setRoot(std::string const& x);
 
 		void	setAllowedMethods(std::vector<std::string> x);
 
 		void	setPort(int const& x);
+
+		void	setMaxBodySize(int const& x);
 
 		void	addLocation(Location const& loc);
 		// ----------------------------OVERLOADS-----------------------
@@ -46,14 +52,18 @@ class HttpServer {
 
 	private:
 		int							_port;
+		int							_maxBodySize;
 		std::string					_server_name;
 		std::string					_host;
-		// std::vector<ErrorPage>		_error_pages;
-		std::map<int, std::string>	_errors;
-		std::map<char,int> mymap;
+		std::string					_root;
 		std::vector<std::string>	_allowed_methods;
-		std::vector<Location> _locations;
+		std::vector<Location> 		_locations;
+		std::map<int, std::string>	_errors;
+
+		// std::vector<ErrorPage>	_error_pages;
 };
 
-// std::ostream& operator<<(std::ostream& o, HttpServer const& rhs);
+// std::ostream& operator<<(std::ostream& o, HttpServer const& rhs) {
+
+// }
 #endif

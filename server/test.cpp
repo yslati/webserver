@@ -35,78 +35,78 @@ void    writeToConnection(int fd) {
     std::cout << ret;
 }
 
-int     main() {
-    ServerSocket s(1337);
-    s.socketCreate();
-    s.socketBind();
-    s.socketListen();
+// int     main() {
+//     ServerSocket s(1337);
+//     s.socketCreate();
+//     s.socketBind();
+//     s.socketListen();
 
-    std::vector<struct pollfd> fds;
-    fds.push_back((struct pollfd){s.getFd(), POLLIN});
+//     std::vector<struct pollfd> fds;
+//     fds.push_back((struct pollfd){s.getFd(), POLLIN});
 
 
-    while (true)
-    {
-        std::vector<struct pollfd> tmp;
-        std::set<int> toRemove;
+//     while (true)
+//     {
+//         std::vector<struct pollfd> tmp;
+//         std::set<int> toRemove;
     
-        std::cout << "Open fds keep alive" << std::endl;
-        for (size_t i = 0; i < fds.size(); i++)
-        {
-            std::cout << fds[i].fd << " ";
-        }
-        std::cout << std::endl;
+//         std::cout << "Open fds keep alive" << std::endl;
+//         for (size_t i = 0; i < fds.size(); i++)
+//         {
+//             std::cout << fds[i].fd << " ";
+//         }
+//         std::cout << std::endl;
         
-        int n = poll(&fds[0], fds.size(), 1000);
-        if (n == 0) {
-            continue;
-        }
-        std::cout << "Poll" << std::endl;
-        for (int i = 0; i < fds.size(); i++) {
-            if (fds[i].revents & POLLIN) {
-                if (fds[i].fd == s.getFd()) {
-                    int conn = s.acceptConnection();
-                    tmp.push_back((struct pollfd){ conn, POLLIN });
-                } else {
-                    try
-                    {
-                        // read connection
-                        // fds[i].fd // content
-                        std::string content = readConnection(fds[i].fd);
-                        std::cout << content << std::endl;
-                        fds[i].events = POLLOUT | POLLIN;
-                    }
-                    catch(const std::exception& e)
-                    {
-                        std::cerr << e.what() << '\n';
-                        toRemove.insert(i);
-                    }
-                }
-            } else if (fds[i].revents & POLLOUT) {
+//         int n = poll(&fds[0], fds.size(), 1000);
+//         if (n == 0) {
+//             continue;
+//         }
+//         std::cout << "Poll" << std::endl;
+//         for (int i = 0; i < fds.size(); i++) {
+//             if (fds[i].revents & POLLIN) {
+//                 if (fds[i].fd == s.getFd()) {
+//                     int conn = s.acceptConnection();
+//                     tmp.push_back((struct pollfd){ conn, POLLIN });
+//                 } else {
+//                     try
+//                     {
+//                         // read connection
+//                         // fds[i].fd // content
+//                         std::string content = readConnection(fds[i].fd);
+//                         std::cout << content << std::endl;
+//                         fds[i].events = POLLOUT | POLLIN;
+//                     }
+//                     catch(const std::exception& e)
+//                     {
+//                         std::cerr << e.what() << '\n';
+//                         toRemove.insert(i);
+//                     }
+//                 }
+//             } else if (fds[i].revents & POLLOUT) {
                 
-                try
-                {
-                    // write to Connection
-                    writeToConnection(fds[i].fd);
-                    fds[i].events = POLLIN;
-                }
-                catch(const std::exception& e)
-                {
-                    std::cerr << e.what() << '\n';
-                    toRemove.insert(i);
-                }
-            } else if (fds[i].revents & POLLHUP){
-                toRemove.insert(i);
-            }
-        }
-        std::set<int>::iterator it;
-        for (it = toRemove.begin(); it != toRemove.end(); it++)
-        {
-            if (fds.begin() + *it != fds.end()) {
-                close((fds.begin() + *it)->fd);
-                fds.erase(fds.begin() + *it);
-            }
-        }
-        fds.insert(fds.end(), tmp.begin(), tmp.end());
-    }
-}
+//                 try
+//                 {
+//                     // write to Connection
+//                     writeToConnection(fds[i].fd);
+//                     fds[i].events = POLLIN;
+//                 }
+//                 catch(const std::exception& e)
+//                 {
+//                     std::cerr << e.what() << '\n';
+//                     toRemove.insert(i);
+//                 }
+//             } else if (fds[i].revents & POLLHUP){
+//                 toRemove.insert(i);
+//             }
+//         }
+//         std::set<int>::iterator it;
+//         for (it = toRemove.begin(); it != toRemove.end(); it++)
+//         {
+//             if (fds.begin() + *it != fds.end()) {
+//                 close((fds.begin() + *it)->fd);
+//                 fds.erase(fds.begin() + *it);
+//             }
+//         }
+//         fds.insert(fds.end(), tmp.begin(), tmp.end());
+//     }
+// }
