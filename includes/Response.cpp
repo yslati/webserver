@@ -73,6 +73,14 @@ void Response::_applyGetMethod()
     _readFile(path);
 }
 
+void Response::_applyPostMethod()
+{
+}
+
+void Response::_applyDeleteMethod()
+{
+}
+
 void Response::_applyMethod()
 {
     if (_request._getHeaderContent("method").compare("GET") == 0)
@@ -112,7 +120,13 @@ void Response::_startResponse()
     _applyMethod();
 	_makeStatus();
 
-    _ResponseContent += _request._getHeaderContent("protocol");
+    if (_request._getHeaderContent("protocol").compare("HTTP/1.1") == 0)
+        _ResponseContent += _request._getHeaderContent("protocol");
+    else
+    {
+        _status = S_HTTP_VERSION_NOT_SUPPORTED;
+        _ResponseContent += "HTTP/1.1";
+    }
 	_ResponseContent += " ";
     _ResponseContent += std::to_string(_status);
     _ResponseContent += " ";
@@ -131,8 +145,10 @@ void Response::_startResponse()
 	_ResponseContent += "Connection: ";
 	if (_request._getHeaderContent("Connection").length())
 		_ResponseContent += _request._getHeaderContent("Connection");
-	else
-		_ResponseContent += "keep-alive";
+	else if (_status != S_OK)
+		_ResponseContent += "close";
+    else
+        _ResponseContent += "keep-alive";
     _ResponseContent += "\r\n\r\n";
     _ResponseContent += _body;
     // _body

@@ -57,9 +57,9 @@ class Response {
         std::string _getDir(void);
         void _readFile(const std::string& file);
         // POST METHOD member
-        void _applyPostMethod() {}
+        void _applyPostMethod();
         // DELETE METHOD member
-        void _applyDeleteMethod() {}
+        void _applyDeleteMethod();
 };
 
 #endif

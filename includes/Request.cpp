@@ -130,6 +130,11 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 			// this->_Conn = _data.substr(f + _line.length() + 1,
 			// _data.length() - 1);
 		}
+		else if ((f = _data.find("Transfer-Encoding:")) != std::string::npos)
+		{
+			_line = "Transfer-Encoding:";
+			_rmap[_line] = _data.substr(_data.find(_line) + _line.length());
+		}
 		else if ((f = _data.find("we'll see 4eda")) != std::string::npos)
 		{
 			_line = "we'll see 4eda";
