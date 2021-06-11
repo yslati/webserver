@@ -52,18 +52,18 @@ int     main() {
         std::vector<struct pollfd> tmp;
         std::set<int> toRemove;
     
-        std::cout << "Open fds keep alive" << std::endl;
-        for (size_t i = 0; i < fds.size(); i++)
-        {
-            std::cout << fds[i].fd << " ";
-        }
-        std::cout << std::endl;
+        // std::cout << "Open fds keep alive" << std::endl;
+        // for (size_t i = 0; i < fds.size(); i++)
+        // {
+        //     std::cout << fds[i].fd << " ";
+        // }
+        // std::cout << std::endl;
         
         int n = poll(&fds[0], fds.size(), -1);
         if (n == 0) {
             continue;
         }
-        std::cout << "Poll" << std::endl;
+        // std::cout << "Poll" << std::endl;
         for (int i = 0; i < fds.size(); i++) {
             if (fds[i].revents & POLLIN) {
                 if (fds[i].fd == s.getFd()) {
@@ -77,6 +77,8 @@ int     main() {
                         std::string content = readConnection(fds[i].fd);
                         Request req;
                         req._fd = fds[i].fd;
+                        std::cout << content << std::endl;
+                        // content = content.substr(0, content.find("\r\n"));
                         req._parseIncomingRequest(content);
                         Response res;
 
@@ -84,7 +86,6 @@ int     main() {
                         res._startResponse();
                         std::string cont = res._getResContent();
 
-                        std::cout << "here: " << cont << std::endl;
                         write(req._fd, cont.c_str(), cont.length());
                         fds[i].events = POLLIN;
                     }

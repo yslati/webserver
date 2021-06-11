@@ -6,6 +6,8 @@
 # include <unistd.h>
 # include <fstream>
 # include <map>
+# include <sys/stat.h>
+# include <cstdio>
 
 # define S_OK 200
 # define S_MOVED_PERM 301
@@ -50,7 +52,7 @@ class Response {
         void _applyMethod();
         std::string _getResContent() const;
         void _makeStatus();
-
+        int _checkPermission(std::string path, int mode);
         // GET METHOD member
         void _applyGetMethod();
         std::string _getFilePath(const std::string& uri);
@@ -60,6 +62,7 @@ class Response {
         void _applyPostMethod();
         // DELETE METHOD member
         void _applyDeleteMethod();
+        void _handleError();
 };
 
 #endif

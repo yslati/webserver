@@ -58,6 +58,11 @@ void Request::_parseLine(const std::string& _line)
 	this->_parse.push_back(_noSpace);
 }
 
+void Request::_pushDataToArg(std::string _data)
+{
+	std::cout << "data = " << _data << "\n";
+}
+
 void Request::_parseIncomingRequest(const std::string& _buffer)
 {
     std::string _data;
@@ -65,24 +70,24 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 	std::string _bdr = "";
 	size_t 		f;
 	std::string _buff = _buffer;
-	_buff = _buff.substr(0, _buff.find("\r\n"));
+	// _buff = _buff.substr(0, _buff.find("\r\n"));
     std::istringstream _read(_buff);
 
     while (std::getline(_read, _data))
     {
-		// _data = _data.substr(0, _data.find("\r\n"));
-        if (_data.find("HTTP/1.1") != std::string::npos)
-        {
-            _parseLine(_data);
+		_data = _data.substr(0, _data.find("\r"));
+		if (_data.find("HTTP/1.1") != std::string::npos)
+		{
+			_parseLine(_data);
 			this->_rmap["method"] = _parse[0];
 			this->_rmap["uri"] = _parse[1];
 			this->_rmap["protocol"] = _parse[2];
-            // this->_method = _parse[0];
-            // this->_uri = _parse[1];
-            // this->_protocol = _parse[2];
-        }
-        else if ((f = _data.find("Content-type:")) != std::string::npos)
-        {
+			// this->_method = _parse[0];
+			// this->_uri = _parse[1];
+			// this->_protocol = _parse[2];
+		}
+		else if ((f = _data.find("Content-type:")) != std::string::npos)
+		{
 			if (!this->_boundary.length())
 			{
 				_line = "Content-type:";
@@ -135,10 +140,8 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 			_line = "Transfer-Encoding:";
 			_rmap[_line] = _data.substr(_data.find(_line) + _line.length());
 		}
-		else if ((f = _data.find("we'll see 4eda")) != std::string::npos)
-		{
-			_line = "we'll see 4eda";
-		}
+		else
+			_pushDataToArg(_data);
     }
 	// std::cout << "_CType = " << _Ctype << "\n";
 	// std::cout << "_Clen = " << _Clen << "\n";
@@ -152,3 +155,15 @@ std::string Request::_getHeaderContent(std::string _first)
 {
 	return _rmap[_first];
 }
+
+// POST / HTTP/1.1
+// Host: localhost
+// Transfer-Encoding: chunked
+
+// A
+// ssssssssss
+// 0
+
+
+// DELETE / HTTP/1.1
+// Host: localhost

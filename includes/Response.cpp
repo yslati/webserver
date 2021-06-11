@@ -69,16 +69,61 @@ void Response::_readFile(const std::string& file)
 void Response::_applyGetMethod()
 {
     std::string path = _getFilePath(_request._getHeaderContent("uri"));
-    // std::cerr << "path = " << path << "\n";
-    _readFile(path);
+	if (_checkPermission(path, R_OK))
+		_handleError();
+	else
+    	_readFile(path);
 }
 
 void Response::_applyPostMethod()
 {
+    // std::cout << "Server->Content-Type: " <<
+    // _request._getHeaderContent("Host:") << "\n";
+}
+
+int Response::_checkPermission(std::string path, int mode)
+{
+    int retval = access(path.c_str(), mode);
+    if (retval != 0)
+    {
+        if (errno == EACCES)
+            return (1);
+    }
+    return (0);
+}
+
+void Response::_handleError()
+{
+	_body += "<html>\r\n";
+	_body += "<head>\r\n";
+	_body += "	<title>405 Not Allowed</title>\r\n";
+	_body += "</head>\r\n";
+	_body += "<body>\r\n";
+	_body += "	<center>\r\n";
+	_body += "		<h1>405 Not Allowed</h1>\r\n";
+	_body += "	</center>\r\n";
+	_body += "	<hr>\r\n";
+	_body += "	<center>webserv/0.0</center>\r\n";
+	_body += "</body>\r\n";
+	_body += "</html>\r\n";
+	_status = S_METHOD_NOT_ALLOWED;
 }
 
 void Response::_applyDeleteMethod()
 {
+    std::string path = _getFilePath(_request._getHeaderContent("uri"));
+    if (_checkPermission(path, W_OK))
+        _handleError();
+    else
+    {
+		remove(path.c_str());
+        _body = "<html>\r\n";
+        _body += "	<body>\r\n";
+        _body += "		<h1>File deleted.</h1>\r\n";
+        _body += "	</body>\r\n";
+        _body += "</html>\r\n";
+		_status = S_OK;
+    }
 }
 
 void Response::_applyMethod()
@@ -119,8 +164,12 @@ void Response::_startResponse()
 {
     _applyMethod();
 	_makeStatus();
+    std::string _data;
 
-    if (_request._getHeaderContent("protocol").compare("HTTP/1.1") == 0)
+    _data = _request._getHeaderContent("protocol");
+    int t = _data[_data.size() - 1];
+    std::cout << t << std::endl;
+    if (_data.compare("HTTP/1.1") == 0)
         _ResponseContent += _request._getHeaderContent("protocol");
     else
     {
