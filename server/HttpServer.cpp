@@ -130,3 +130,7 @@ void    HttpServer::start_listen()
             throw std::runtime_error("listen failed");
     }
 }
+
+int HttpServer::getFd() const {
+    return this->_fd;
+}

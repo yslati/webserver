@@ -38,6 +38,8 @@ class HttpServer {
 		int const& getPort() const;
 
 		int const& getMaxBodySize() const;
+
+		int getFd() const;
 		// -----------------------------SETTERS-------------------------
 		void	setServerName(std::string const& x);
 

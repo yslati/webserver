@@ -104,6 +104,85 @@ void Server::start_servers() {
     }
 }
 
+void    Server::init_poll(std::vector<struct pollfd>& fds) {
+    std::vector<HttpServer>::iterator h_it;
+
+    // server fds
+    h_it = _http_servers.begin();
+    while (h_it != _http_servers.end()) {
+        fds.push_back((struct pollfd){h_it->getFd(), POLLIN});
+        h_it++;
+    }
+    // client fds
+    std::vector<Client>::iterator c_it;
+    c_it = _clients.begin();
+    while (c_it != _clients.end())
+    {
+        fds.push_back((struct pollfd){c_it->getConnection(), POLLIN});
+        c_it++;
+    }
+}
+
+void Server::acceptIncomingConnection(std::vector<struct pollfd>& fds) {
+    for(int i = 0; i < _http_servers.size(); i++) {
+        if (fds[i].revents == POLLIN) {
+            std::cout << "Got a new connection" << std::endl;
+            try
+            {
+                Client c(fds[i].fd);
+                _clients.push_back(c);
+            }
+            catch(const std::exception& e)
+            {
+                std::cerr << e.what() << '\n';
+            }
+        }
+    }
+}
+
+void   Server::handle_read(std::vector<struct pollfd>& fds) {
+    int i = _http_servers.size() - 1;
+    while (i < fds.size()) {
+        if (fds[i].revents == POLLIN) {
+          try
+          {
+            if (!_clients[i].readConnection()) {
+                std::cout << "Client ready" << std::endl;
+            } else {
+                std::cout << _clients[i].getContent();
+            }
+          }
+          catch(const std::exception& e)
+          {
+              std::cerr << e.what() << '\n';
+          }
+          
+        }
+    }
+}
+
+void Server::poll_handle(std::vector<struct pollfd>& fds) {
+    int n = poll(&(*fds.begin()), fds.size(), 3000);
+    if (n == 0) {
+        std::cout << "Timeout" << std::endl;
+    } else if (n > 0) {
+        acceptIncomingConnection(fds);
+    }
+}
+
+void Server::poll_loop() {
+    while (true) {
+        std::vector<struct pollfd> fds;
+        init_poll(fds);
+        poll_handle(fds);
+    }
+}
+
 void Server::acceptConnections() {
+    std::cout << "start servers" << std::endl;
     start_servers();
+    if (_http_servers.size() > 0) {
+        std::cout << "start poll loop" << std::endl;
+        poll_loop();
+    }
 }
