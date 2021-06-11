@@ -5,7 +5,12 @@
 #include <map>
 #include <iterator>
 # include "ErrorPage.hpp"
+# include <sys/socket.h>
+# include <netinet/in.h>
+# include <unistd.h>
+# include <arpa/inet.h>
 # include "Location.hpp"
+# include <fcntl.h>
 
 #define log std::cout << 
 #define line << std::endl
@@ -50,6 +55,8 @@ class HttpServer {
 
 		void	addErrorPage(int statusCode, std::string path);
 
+		void	start_listen();
+
 	private:
 		int							_port;
 		int							_maxBodySize;
@@ -59,6 +66,8 @@ class HttpServer {
 		std::vector<std::string>	_allowed_methods;
 		std::vector<Location> 		_locations;
 		std::map<int, std::string>	_errors;
+		int							_fd;
+		struct sockaddr_in			_addr;
 
 		// std::vector<ErrorPage>	_error_pages;
 };

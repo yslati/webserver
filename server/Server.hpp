@@ -5,6 +5,7 @@
 # include "HttpServer.hpp"
 # include "ServerSocket.hpp"
 # include <algorithm>
+# include <set>
 
 class Server {
 	public:
@@ -25,6 +26,7 @@ class Server {
 		void	acceptConnections();
 
 		void addServerSocketsToSet();
+		void start_servers();
 		std::vector<ServerSocket>::iterator isServerSocket(int fd);
 	private:
 		Server();

@@ -14,10 +14,6 @@ Server& Server::getInstance() {
 
 void Server::addHttpServer(HttpServer const& server) {
     _http_servers.push_back(server);
-    
-    HttpServer &sr = _http_servers.back();
-    ServerSocket ss(server.getPort());
-    addSocket(ss);
 }
 
 std::vector<ServerSocket> const& Server::getSockets() const {
@@ -83,56 +79,31 @@ std::vector<ServerSocket>::iterator Server::isServerSocket(int fd) {
     return it;
 }
 
-void Server::acceptConnections() {
-    bool running = true;
-    std::vector<int> _sockets_fd;
-    int serverSocketCount = 0;
-
-    // add server sockets
-    std::vector<ServerSocket>::iterator it;
-    for (it = _sockets.begin(); it != _sockets.end(); it++) {
-        _sockets_fd.push_back(it->getFd());
-        serverSocketCount++;
-    }
-
-    while (running)
+void Server::start_servers() {
+    std::set< std::vector<HttpServer>::iterator > toRemove;
+    std::vector<HttpServer>::iterator it;
+    it = _http_servers.begin();
+    while (it != _http_servers.end())
     {
-        struct pollfd fds[_sockets_fd.size()];
-        for (int i = 0; i < _sockets_fd.size(); i++) {
-            fds[i].fd = _sockets_fd[i];
-            fds[i].events = POLLIN;
+        try
+        {
+           it->start_listen();
         }
-        log "Poll" line;
-        int n = poll(fds, _sockets_fd.size(), 2000);
-        if (n == 0)
-            continue;
-        for (int i = 0; i < _sockets_fd.size(); i++) {
-            if (fds[i].revents & POLLIN) {
-                if (i < serverSocketCount) {
-                    int conn = _sockets[i].acceptConnection();
-                    _sockets_fd.push_back(conn);
-                    fcntl(conn, F_SETFL, O_NONBLOCK);
-                    std::cout << "Got a new connection" << std::endl;
-                } else {
-                    std::cout << "Connection i should read from" << std::endl;
-                    int ret;
-                    char buffer[1024];
-                    std::string reqContent = "";
-                    while ((ret = recv(fds[i].fd, buffer, 1023, 0)) == 1024) {
-                        std::string tmp;
-                        buffer[ret] = '\0';
-                        tmp.assign(buffer);
-                        reqContent += tmp;
-                    }
-                    if (ret != -1) {
-                        std::string tmp;
-                        buffer[ret] = '\0';
-                        tmp.assign(buffer);
-                        reqContent += tmp;
-                        std::cout << reqContent << std::endl;
-                    }
-                }
-            }
+        catch(const std::exception& e)
+        {
+            toRemove.insert(it);
+            std::cerr << e.what() << '\n';
         }
+        it++;
     }
+    std::set< std::vector<HttpServer>::iterator >::iterator its;
+    its = toRemove.begin();
+    while (its != toRemove.end()) {
+        _http_servers.erase(*its);
+        its++;
+    }
+}
+
+void Server::acceptConnections() {
+    start_servers();
 }
