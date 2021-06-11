@@ -25,10 +25,8 @@ int		pars::parsLocation(int i, int end, HttpServer& srv) {
 
 	tmp.setUri(_conf[i].substr(_conf[i].find(":") + 1));
 	_conf[i].find("{") < _conf[i].length() ? open = 1 : open = 0;
-	if ((_conf[++i] != "{" && open == 0) || (_conf[i] == "{" && open == 1)) {
+	if ((_conf[++i] != "{" && open == 0) || (_conf[i] == "{" && open == 1))
 		throw "Syntax Error: location `{`";
-		return (i);
-	}
 	open = 1;
 	while (open && ++i < end) {
 		_conf[i] == "}" ? open = 0 : 1;
@@ -36,7 +34,7 @@ int		pars::parsLocation(int i, int end, HttpServer& srv) {
 			throw "Syntax Error: location `}`";
 		if (_conf[i].compare(0, 4, "root") == 0)
 			tmp.setRoot(_conf[i].substr(_conf[i].find("=") + 1));
-		else if (_conf[i].compare(0, 7, "default") == 0)
+		else if (_conf[i].compare(0, 7, "index") == 0)
 			tmp.setIndex(_conf[i].substr(_conf[i].find("=") + 1));
 		else if (_conf[i].compare(0, 15, "allowed_methods") == 0)
 			tmp.setAllowedMethods(_split(_conf[i].substr(_conf[i].find("=") + 1), ','));
@@ -49,31 +47,45 @@ int		pars::parsLocation(int i, int end, HttpServer& srv) {
 		else if (_conf[i].compare(0, 13, "redirect_path") == 0)
 			tmp.setRedirectUrl(_conf[i].substr(_conf[i].find("=") + 1));
 	}
+
+	if (tmp.getIsRedirect() == true && (tmp.getStatusCode() == -1 || tmp.getRedirectUrl() == ""))
+		throw "you need to setup redirect code and index";
+	// if (tmp.getAutoIndex() == true && tmp.getIndex() == "")
+	// 	throw "you need to setup the index, or change auto index to off";
+
 	srv.addLocation(tmp);
 	return (i);
 }
 
+void	pars::_check_missing(HttpServer &srv) {
+	if (srv.getPort() == -1)
+		throw "syntax err: Port Not found!";
+	else if (srv.getHost() == "")
+		throw "syntax err: Host Not found!";
+	else if (srv.getRoot() == "")
+		throw "syntax err: Root Not found!";
+}
+
 void	pars::parsServer(int n) {
 
-	int i = _servBegin[n];
-	int port = -1;
-	std::string serverName = "";
-	HttpServer					_httpServers;
-
+	int i = 		_servBegin[n];
+	HttpServer		_httpServers;
 
 	while (++i < _servEnd[n]) {
 		if (_conf[i].compare("server") == 0)
 			throw "Syntax Error: You miss to Close the server `]`";
-		if (_conf[i].compare(0, 4, "port") == 0 && port != -1)
+		if (_conf[i].compare(0, 4, "port") == 0 && _httpServers.getPort() != -1)
 			throw "Config Error: You Can't setup more than one Port";
 		if (_conf[i].compare(0, 4, "port") == 0)
-			port = atoi(_conf[i].substr(_conf[i].find(":") + 1).c_str());
+			_httpServers.setPort(atoi(_conf[i].substr(_conf[i].find(":") + 1).c_str()));
 		else if (_conf[i].compare(0, 11, "server_name") == 0)
-			serverName = _conf[i].substr(_conf[i].find(":") + 1);
+			_httpServers.setServerName(_conf[i].substr(_conf[i].find(":") + 1));
 		else if (_conf[i].compare(0, 4, "host") == 0)
 			_httpServers.setHost(_conf[i].substr(_conf[i].find(":") + 1));
 		else if (_conf[i].compare(0, 4, "root") == 0)
 			_httpServers.setRoot(_conf[i].substr(_conf[i].find(":") + 1));
+		else if (_conf[i].compare(0, 20, "client_max_body_size") == 0)
+			_httpServers.setMaxBodySize(atoi(_conf[i].substr(_conf[i].find(":") + 1).c_str()));
 		else if (_conf[i].compare(0, 16, "allowed_methods:") == 0)
 			_httpServers.setAllowedMethods(_split(_conf[i].substr(_conf[i].find(":") + 1), ','));
 		else if (_conf[i].compare(0, 8, "location") == 0) {
@@ -85,13 +97,11 @@ void	pars::parsServer(int n) {
 			std::string tmp =  _conf[i].substr(_conf[i].find(":") + 1);
 			_httpServers.addErrorPage(atoi(tmp.c_str()), tmp.substr(tmp.find(":") + 1));
 		}
+		else if (_conf[i].find("#"))
+			throw "Syntax Error !";
 	}
-	_httpServers.setPort(port);
-	_httpServers.setServerName(serverName);
-	if (port == -1 || _httpServers.getHost() == "")
-		throw "syntax err, port or Host missing!";
-	else
-		_Servers.addHttpServer(_httpServers);
+	_check_missing(_httpServers);
+	_Servers.addHttpServer(_httpServers);
 }
 
 void	pars::checkServer() {

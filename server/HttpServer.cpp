@@ -1,6 +1,9 @@
 #include "HttpServer.hpp"
 
-HttpServer::HttpServer() {}
+HttpServer::HttpServer() {
+    _port = -1;
+    _maxBodySize = -1;
+}
 
 HttpServer::HttpServer(int port, std::string server_name) {
     _port = port;
@@ -61,6 +64,10 @@ std::vector<std::string> const& HttpServer::getAllowedMethods() const {
 int const& HttpServer::getPort() const {
     return _port;
 }
+
+int const& HttpServer::getMaxBodySize() const {
+    return _maxBodySize;
+}
 // -----------------------------SETTERS-------------------------
 void	HttpServer::setServerName(std::string const& x) {
     _server_name = x;
@@ -84,6 +91,10 @@ void	HttpServer::setAllowedMethods(std::vector<std::string> x) {
 
 void	HttpServer::setPort(int const& x) {
     _port = x;
+}
+
+void	HttpServer::setMaxBodySize(int const& x) {
+    _maxBodySize = x;
 }
 
 void	HttpServer::addLocation(Location const& loc) {

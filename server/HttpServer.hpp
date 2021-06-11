@@ -31,6 +31,8 @@ class HttpServer {
 		std::vector<std::string> const& getAllowedMethods() const;
 
 		int const& getPort() const;
+
+		int const& getMaxBodySize() const;
 		// -----------------------------SETTERS-------------------------
 		void	setServerName(std::string const& x);
 
@@ -41,6 +43,8 @@ class HttpServer {
 
 		void	setPort(int const& x);
 
+		void	setMaxBodySize(int const& x);
+
 		void	addLocation(Location const& loc);
 		// ----------------------------OVERLOADS-----------------------
 
@@ -48,6 +52,7 @@ class HttpServer {
 
 	private:
 		int							_port;
+		int							_maxBodySize;
 		std::string					_server_name;
 		std::string					_host;
 		std::string					_root;
