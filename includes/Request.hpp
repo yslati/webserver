@@ -15,6 +15,7 @@ class Request {
             std::string _Ctype;
             std::string _Ftype;
             size_t      _arglen;
+            std::string _data;
         };
         std::string _Host;
         std::string _method;
@@ -34,6 +35,8 @@ class Request {
         std::vector<std::string> _parse;
         std::map<std::string, std::string> _rmap;
         std::vector<struct ArgContent> _aCont;
+        bool _isArg;
+        std::string _argBody;
     public:
         Request();
         ~Request();

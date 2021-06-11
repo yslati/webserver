@@ -77,8 +77,9 @@ void Response::_applyGetMethod()
 
 void Response::_applyPostMethod()
 {
-    // std::cout << "Server->Content-Type: " <<
-    // _request._getHeaderContent("Host:") << "\n";
+    // get the path of the file
+    // put the data of the post method in the file
+    // then if success print File Upload
 }
 
 int Response::_checkPermission(std::string path, int mode)
@@ -167,8 +168,6 @@ void Response::_startResponse()
     std::string _data;
 
     _data = _request._getHeaderContent("protocol");
-    int t = _data[_data.size() - 1];
-    std::cout << t << std::endl;
     if (_data.compare("HTTP/1.1") == 0)
         _ResponseContent += _request._getHeaderContent("protocol");
     else

@@ -59,4 +59,13 @@ int main()
     {
         std::cout << "Cdisp = " << it->Cdisp << "\n";
     }
+
+    std::string t = "";
+    t += "--------------------------eb32ead89fa23a33\r\n";
+    t += "Content-Disposition: form-data; name=\"fname\"\r\n";
+    t += "\r\n";
+    t += "ayoub\r\n";
+    t += "--------------------------eb32ead89fa23a33--\r\n";
+
+    std::cout << "t.length() = " << t.length() << std::endl;
 }
