@@ -30,8 +30,9 @@ class Server {
 		void start_servers();
 		void poll_loop();
 		void poll_handle(std::vector<struct pollfd>& fds);
-		void acceptIncomingConnection(std::vector<struct pollfd>& fds);
+		// void acceptIncomingConnection(std::vector<struct pollfd>& fds);
 		void   handle_read(std::vector<struct pollfd>& fds);
+		void acceptIncomingConnection(std::vector<struct pollfd>& fds, std::vector<Client>& clients);
 
 		std::vector<ServerSocket>::iterator isServerSocket(int fd);
 	private:

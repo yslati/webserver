@@ -9,6 +9,7 @@ Client::Client(int server_fd) {
     }
     fcntl(_conn, F_SETFL, O_NONBLOCK);
     pfd.events = POLLIN;
+    pfd.fd = _conn;
 }
 
 bool Client::getReady() {
@@ -49,9 +50,10 @@ int checkEnd(const std::string& str, const std::string& end)
 int Client::readConnection() {
     char buffer[1028];
     int r = recv(_conn, buffer, 128, 0);
-//     std::cout << r << std::endl;
+//     return 0;
+    std::cout << r << std::endl;
     if (r == -1) {
-            return (1);
+            return 1;
     }
     if (r == 0) {
             throw std::runtime_error("Closed");
@@ -82,8 +84,8 @@ int Client::readConnection() {
                                     return (0);
                     }
                     size_t  len = std::atoi(content.substr(content.find("Content-Length: ") + 16, 10).c_str());
-                    size_t pos = content.find("\r\n\r\n");
-                    if (content.size() >= len + pos + 4)
+                //     size_t pos = content.find("\r\n\r\n");
+                    if (content.size() >= len + j + 4)
                     {
                             std::cout << "kahkjfdhsa" << std::endl;
                             return (0);
