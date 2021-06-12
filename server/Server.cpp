@@ -143,7 +143,7 @@ void Server::acceptIncomingConnection(std::vector<struct pollfd>& fds) {
 void   Server::handle_read(std::vector<struct pollfd>& fds) {
     int i = _http_servers.size() - 1;
     while (i < fds.size()) {
-        if (fds[i].revents == POLLIN) {
+        if (fds[i].revents & POLLIN) {
           try
           {
             if (!_clients[i].readConnection()) {
