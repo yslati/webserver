@@ -1,4 +1,8 @@
+.gitignore
+.vscode
 my_note.txt
 a.out
 file.conf
+exam2.c
+exam3.c
 exam.c
