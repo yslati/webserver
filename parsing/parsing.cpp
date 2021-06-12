@@ -32,20 +32,41 @@ int		pars::parsLocation(int i, int end, HttpServer& srv) {
 		_conf[i] == "}" ? open = 0 : 1;
 		if (_conf[i].compare(0, 8, "location") == 0 || (open == 1 && i + 1 == end))
 			throw "Syntax Error: location `}`";
-		if (_conf[i].compare(0, 4, "root") == 0)
+		if (_conf[i].compare(0, 4, "root") == 0) {
+			if (tmp.getRoot() != "")
+				throw "Syntax Error: location: 'root' duplicated";
 			tmp.setRoot(_conf[i].substr(_conf[i].find("=") + 1));
-		else if (_conf[i].compare(0, 7, "index") == 0)
+		}
+		else if (_conf[i].compare(0, 7, "index") == 0) {
+			if (tmp.getIndex() != "")
+				throw "Syntax Error: location: 'index' duplicated";
 			tmp.setIndex(_conf[i].substr(_conf[i].find("=") + 1));
-		else if (_conf[i].compare(0, 15, "allowed_methods") == 0)
+		}
+		else if (_conf[i].compare(0, 15, "allowed_methods") == 0) {
+			if (!tmp.getAllowedMethod().empty())
+				throw "Syntax Error: location: 'allowed_methods' duplicated";
 			tmp.setAllowedMethods(_split(_conf[i].substr(_conf[i].find("=") + 1), ','));
-		else if (_conf[i].compare(0, 9, "autoindex") == 0)
+		}
+		else if (_conf[i].compare(0, 9, "autoindex") == 0) {
+			if (tmp.getAutoIndex() != false)
+				throw "Syntax Error: location: 'autoindex' duplicated";
 			tmp.setAutoIndex(_checkbool(_conf[i].substr(_conf[i].find("=") + 1)));
-		else if (_conf[i].compare(0, 9, "redirect=") == 0)
+		}
+		else if (_conf[i].compare(0, 9, "redirect=") == 0) {
+			if (tmp.getIsRedirect() != false)
+				throw "Syntax Error: location: 'redirect' duplicated";
 			tmp.setIsRedirect(_checkbool(_conf[i].substr(_conf[i].find("=") + 1)));
-		else if (_conf[i].compare(0, 4, "code") == 0)
+		}
+		else if (_conf[i].compare(0, 4, "code") == 0) {
+			if (tmp.getStatusCode() != -1)
+				throw "Syntax Error: location: 'status Code' duplicated";
 			tmp.setStatusCode(atoi(_conf[i].substr(_conf[i].find("=") + 1).c_str()));
-		else if (_conf[i].compare(0, 13, "redirect_path") == 0)
+		}
+		else if (_conf[i].compare(0, 13, "redirect_path") == 0) {
+			if (tmp.getRedirectUrl() != "")
+				throw "Syntax Error: location: 'redirect_path' duplicated";
 			tmp.setRedirectUrl(_conf[i].substr(_conf[i].find("=") + 1));
+		}
 	}
 
 	if (tmp.getIsRedirect() == true && (tmp.getStatusCode() == -1 || tmp.getRedirectUrl() == ""))
@@ -74,20 +95,36 @@ void	pars::parsServer(int n) {
 	while (++i < _servEnd[n]) {
 		if (_conf[i].compare("server") == 0)
 			throw "Syntax Error: You miss to Close the server `]`";
-		if (_conf[i].compare(0, 4, "port") == 0 && _httpServers.getPort() != -1)
-			throw "Config Error: You Can't setup more than one Port";
-		if (_conf[i].compare(0, 4, "port") == 0)
+		if (_conf[i].compare(0, 4, "port") == 0) {
+			if (_httpServers.getPort() != -1)
+				throw "Syntax Error: 'Port' duplicated";
 			_httpServers.setPort(atoi(_conf[i].substr(_conf[i].find(":") + 1).c_str()));
-		else if (_conf[i].compare(0, 11, "server_name") == 0)
+		}
+		else if (_conf[i].compare(0, 11, "server_name") == 0) {
+			if (_httpServers.getServerName() != "")
+				throw "Syntax Error: 'server_name' duplicated";
 			_httpServers.setServerName(_conf[i].substr(_conf[i].find(":") + 1));
-		else if (_conf[i].compare(0, 4, "host") == 0)
+		}
+		else if (_conf[i].compare(0, 4, "host") == 0) {
+			if (_httpServers.getHost() != "")
+				throw "Syntax Error: 'host' duplicated";
 			_httpServers.setHost(_conf[i].substr(_conf[i].find(":") + 1));
-		else if (_conf[i].compare(0, 4, "root") == 0)
+		}
+		else if (_conf[i].compare(0, 4, "root") == 0) {
+			if (_httpServers.getRoot() != "")
+				throw "Syntax Error: 'root' duplicated";
 			_httpServers.setRoot(_conf[i].substr(_conf[i].find(":") + 1));
-		else if (_conf[i].compare(0, 20, "client_max_body_size") == 0)
+		}
+		else if (_conf[i].compare(0, 20, "client_max_body_size") == 0) {
+			if (_httpServers.getMaxBodySize() != -1)
+				throw "Syntax Error: 'client_max_body_size' duplicated";
 			_httpServers.setMaxBodySize(atoi(_conf[i].substr(_conf[i].find(":") + 1).c_str()));
-		else if (_conf[i].compare(0, 16, "allowed_methods:") == 0)
+		}
+		else if (_conf[i].compare(0, 16, "allowed_methods:") == 0) {
+			if (!_httpServers.getAllowedMethods().empty())
+				throw "Syntax Error: 'alowed_method' duplicated";
 			_httpServers.setAllowedMethods(_split(_conf[i].substr(_conf[i].find(":") + 1), ','));
+		}
 		else if (_conf[i].compare(0, 8, "location") == 0) {
 			if (_conf[i].substr(_conf[i].find(":") + 1).compare(0, 1, "/") != 0)
 				throw "Location URI error";
@@ -131,6 +168,10 @@ pars::pars(std::string fileName): _Servers(Server::getInstance()) {
 	std::string buff;
 	std::ifstream readFile(fileName);
 
+	if (access( fileName.c_str(), F_OK ))
+		throw "file doesn't exist!";
+	if (fileName.compare(fileName.length() - 5, fileName.length(), ".conf") != 0)
+		throw "config file must be '.conf'";
 	while (getline(readFile, buff)) {
 		std::string tmp = buff.substr(0, buff.size());
 		if (tmp != "")

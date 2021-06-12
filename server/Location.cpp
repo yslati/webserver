@@ -29,6 +29,7 @@ std::string	Location::getUri() const { return (_uri); }
 std::string	Location::getRoot() const { return (_root); }
 std::string	Location::getIndex() const { return (_index); }
 std::string	Location::getRedirectUrl() const { return (_redirect_url); }
+std::vector<std::string>	Location::getAllowedMethod() const { return (_allowed_methods); }
 
 
 void		Location::checkVal() {
