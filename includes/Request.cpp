@@ -70,6 +70,31 @@ void Request::_parseLine(const std::string& _line)
 	this->_parse.push_back(_noSpace);
 }
 
+bool Request::_isPrefix(std::string& s1, std::string& s2)
+{
+	size_t n1 = s1.length();
+	size_t n2 = s2.length();
+	if (!n1 || !n2)
+		return false;
+	for (int i = 0; i < n1; i++)
+	{
+		if (s1[i] != s2[i])
+		{
+			if (i + 1 == n1)
+				return true;
+			return false;
+		}
+	}
+	return true;
+}
+
+bool Request::_matchBegin(std::string& _regex, std::string& _line)
+{
+	std::string _r = _regex;
+	_r.pop_back();
+
+	return _line.compare(0, _r.size(), _r) == 0;
+}
 
 void	Request::_printArg()
 {
@@ -83,8 +108,7 @@ void	Request::_printArg()
 	}
 }
 
-
-Request::ArgContent Request::_pushDataToArg(std::string _data)
+Request::ArgContent Request::_pushToArg(std::string _data)
 {
 	std::string _line;
 	// _data.pop_back();
@@ -110,41 +134,42 @@ Request::ArgContent Request::_pushDataToArg(std::string _data)
 			continue;
 		}
 		if (_line.find("Content-Type") != std::string::npos)
-		{
 			arg._Ctype = _line.substr(_line.find(":") + 2);
-			// arg._Ctype.pop_back();
-			// std::cout << "c-type = " << arg._Ctype << "\n";
-		}
 		else if (_line.find("Content-Disposition") != std::string::npos)
-		{
 			arg._Cdisp = _line.substr(_line.find(":") + 2);
-			// arg._Cdisp.pop_back();
-			// std::cout << "c-disp = " << arg._Cdisp << "\n";
-		}
-		else if (_line.length() && _line[0] != '\r'
-		&& _line.compare(_rmap["boundary"]) != 0 && _line.compare(_endline) != 0)
+		else if (_line.length() && _line[0] != '\r')
 		{
+			if (arg._data.length())
+				arg._data.append("\n");
 			arg._data.append(_line);
-			// arg._data.pop_back();
-			// std::cout << "match = " << _endline << "\n";
-			// std::cout << "_line = " << _line << "\n";
 		}
-		// else if (_line.length() && _line[0] != '\r' &&
-		// (_line.compare(_boundary) != 0 && _line.compare(_endline) != 0))
-		// {
-		// 	arg._data.append(_line);
-		// 	// arg._data.pop_back();
-		// 	// std::cout << "arg._data = " << arg._data << "\n";
-		// }
-		_isArg = true;
 	}
-	if (_isArg)
+	/*if (_isArg)
 	{
 		_aCont.push_back(arg);
 		_isArg = false;
 		_lenArg++;
-	}
+	}*/
 	return (arg);
+}
+
+void	Request::_pushDataToArg(std::string _data)
+{
+	_data.pop_back();
+	std::string _regex = _boundary;
+	std::string _body = "";
+	// _isArg = true;
+
+	if (_regex.length() && _matchBegin(_regex, _data))
+	{
+		_isArg = false;
+		_aCont.push_back(_pushToArg(_body));
+		_body.clear();
+	}
+	else if (_isArg)
+		_body.append(_data).append("\n");
+	// else
+	//	_isArg = true;
 }
 
 void Request::_parseIncomingRequest(const std::string& _buffer)
@@ -283,7 +308,7 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 	// std::cout << _buffer << std::endl;
 	// std::cout << "END" << std::endl;
 	// std::cout << "len = " << _lenArg << "\n";
-	_printArg();
+	// _printArg();
 	// for (std::vector<Request::ArgContent>::iterator it = _aCont.begin();
 	// it != _aCont.end(); it++)
 	// {

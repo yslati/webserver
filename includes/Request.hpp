@@ -26,10 +26,13 @@ class Request {
         unsigned int _getContentLenght() const;
         const std::string& _getContentType() const;
         std::string _getHeaderContent(std::string _first);
-        ArgContent _pushDataToArg(std::string _data);
+        void _pushDataToArg(std::string _data);
+        ArgContent _pushToArg(std::string _data);
         ArgContent _getArg(size_t i);
         std::vector<ArgContent> _getVecCont() const;
         void _printArg();
+        bool _isPrefix(std::string& s1, std::string& s2);
+        bool _matchBegin(std::string& _regex, std::string& _line);
     private:
         bool            _isDone;
         std::string _Host;
