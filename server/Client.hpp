@@ -4,17 +4,24 @@
 # include <sys/socket.h>
 # include <iostream>
 # include <fcntl.h>
+# include <poll.h>
 
 class Client {
     public:
         Client(int server_fd);
 
         int getConnection();
-        bool readConnection();
+        int readConnection();
         std::string getContent() const;
+        bool getReady();
+        void setReady(bool x);
+
+        struct pollfd getPfd();
     private:
         int _conn;
         struct sockaddr_in addr;
+        bool _ready;
         std::string content;
+        struct pollfd pfd;
 };
 #endif

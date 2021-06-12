@@ -118,19 +118,20 @@ void    Server::init_poll(std::vector<struct pollfd>& fds) {
     c_it = _clients.begin();
     while (c_it != _clients.end())
     {
-        fds.push_back((struct pollfd){c_it->getConnection(), POLLIN});
+        fds.push_back(c_it->getPfd());
         c_it++;
     }
 }
 
 void Server::acceptIncomingConnection(std::vector<struct pollfd>& fds) {
     for(int i = 0; i < _http_servers.size(); i++) {
-        if (fds[i].revents == POLLIN) {
+        if (fds[i].revents & POLLIN) {
             std::cout << "Got a new connection" << std::endl;
             try
             {
                 Client c(fds[i].fd);
                 _clients.push_back(c);
+                // std::cout << _clients.size() << std::endl;
             }
             catch(const std::exception& e)
             {
@@ -141,32 +142,33 @@ void Server::acceptIncomingConnection(std::vector<struct pollfd>& fds) {
 }
 
 void   Server::handle_read(std::vector<struct pollfd>& fds) {
-    int i = _http_servers.size() - 1;
-    while (i < fds.size()) {
-        if (fds[i].revents & POLLIN) {
-          try
-          {
-            if (!_clients[i].readConnection()) {
-                std::cout << "Client ready" << std::endl;
-            } else {
-                std::cout << _clients[i].getContent();
-            }
-          }
-          catch(const std::exception& e)
-          {
-              std::cerr << e.what() << '\n';
-          }
-          
-        }
-    }
+  
 }
 
 void Server::poll_handle(std::vector<struct pollfd>& fds) {
+    std::cout << _clients.size() << std::endl;
     int n = poll(&(*fds.begin()), fds.size(), 3000);
     if (n == 0) {
+
         std::cout << "Timeout" << std::endl;
     } else if (n > 0) {
         acceptIncomingConnection(fds);
+        // handle_read(fds);
+        std::vector<Client>::iterator c_it;
+        c_it = _clients.begin();
+        while (c_it != _clients.end())
+        {
+                std::cout << "rd" << std::endl;
+            if (c_it->getPfd().revents & POLLOUT) {
+                if (c_it->readConnection()) {
+                    std::cout << "END" << std::endl;
+                    c_it->setReady(true);
+                }
+            }
+            fds.push_back(c_it->getPfd());
+            c_it++;
+        }
+        
     }
 }
 

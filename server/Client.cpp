@@ -2,15 +2,33 @@
 
 Client::Client(int server_fd) {
     int len = sizeof(addr);
+    _ready = false;
     _conn = accept(server_fd, (struct sockaddr*)&addr, (socklen_t*)&len);
     if (_conn < 0) {
         throw std::runtime_error("accept failed");
     }
     fcntl(_conn, F_SETFL, O_NONBLOCK);
+    pfd.events = POLLIN;
+}
+
+bool Client::getReady() {
+        return this->_ready;
+}
+
+void Client::setReady(bool x) {
+        if (x)
+                pfd.events = POLLOUT;
+        else
+                pfd.events = POLLIN;
+        this->_ready = x;
 }
 
 int Client::getConnection() {
     return this->_conn;
+}
+
+struct pollfd Client::getPfd() {
+        return this->pfd;
 }
 
 int checkEnd(const std::string& str, const std::string& end)
@@ -28,12 +46,14 @@ int checkEnd(const std::string& str, const std::string& end)
         return (0);
 }
 
-bool Client::readConnection() {
- std::cout << "OK" << std::endl;
+int Client::readConnection() {
     char buffer[1028];
     int r = recv(_conn, buffer, 128, 0);
-    std::cout << r << std::endl;
-    if (r == 0 || r == -1) {
+//     std::cout << r << std::endl;
+    if (r == -1) {
+            return (1);
+    }
+    if (r == 0) {
             throw std::runtime_error("Closed");
     }
     else {
@@ -78,3 +98,6 @@ bool Client::readConnection() {
 std::string Client::getContent() const {
     return this->content;
 }
+
+// POST /filename HTTP/1.1
+// 
