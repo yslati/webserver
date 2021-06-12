@@ -68,12 +68,8 @@ int		pars::parsLocation(int i, int end, HttpServer& srv) {
 			tmp.setRedirectUrl(_conf[i].substr(_conf[i].find("=") + 1));
 		}
 	}
-
 	if (tmp.getIsRedirect() == true && (tmp.getStatusCode() == -1 || tmp.getRedirectUrl() == ""))
 		throw "you need to setup redirect code and index";
-	// if (tmp.getAutoIndex() == true && tmp.getIndex() == "")
-	// 	throw "you need to setup the index, or change auto index to off";
-
 	srv.addLocation(tmp);
 	return (i);
 }
@@ -87,6 +83,14 @@ void	pars::_check_missing(HttpServer &srv) {
 		throw "syntax err: Root Not found!";
 }
 
+bool pars::_isNumber(const std::string& str)
+{
+    for (int i = 0; i < str.length(); i++) {
+        if (std::isdigit(str[i]) == 0) return false;
+    }
+    return true;
+}
+
 void	pars::parsServer(int n) {
 
 	int i = 		_servBegin[n];
@@ -98,6 +102,8 @@ void	pars::parsServer(int n) {
 		if (_conf[i].compare(0, 4, "port") == 0) {
 			if (_httpServers.getPort() != -1)
 				throw "Syntax Error: 'Port' duplicated";
+			if (!_isNumber(_conf[i].substr(_conf[i].find(":") + 1)))
+				throw "Port must be number ";
 			_httpServers.setPort(atoi(_conf[i].substr(_conf[i].find(":") + 1).c_str()));
 		}
 		else if (_conf[i].compare(0, 11, "server_name") == 0) {

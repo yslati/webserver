@@ -1,9 +1,10 @@
 #ifndef HTTP_SERVER_HPP
 # define HTTP_SERVER_HPP
+
 # include <iostream>
-#include <vector>
-#include <map>
-#include <iterator>
+# include <vector>
+# include <map>
+# include <iterator>
 # include "ErrorPage.hpp"
 # include "Location.hpp"
 
@@ -20,7 +21,7 @@ class HttpServer {
 
 
 		// ---------------------------CHECKERS--------------------------
-		void	checkVal() const;
+		void	checkVal();
 
 		// ----------------------------GETTERS--------------------------
 		std::string const& getServerName() const;

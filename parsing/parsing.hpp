@@ -26,6 +26,7 @@ class pars {
 		std::vector<std::string>	_split(std::string const &str, char sep);
 		bool						_checkbool(std::string str);
 		void						_check_missing(HttpServer &srv);
+		bool						_isNumber(const std::string& str);
 
 	public:
 		pars(std::string fileName);

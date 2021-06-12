@@ -24,6 +24,18 @@
 //   }
 // }
 
+#include <dirent.h>
+
+bool isDirectory(const std::string &s)
+{
+    DIR *dir;
+
+    if ((dir = opendir(s.c_str())) == NULL) {
+        return 0;
+    }
+    return 1;
+}
+
 int main()
 {
 	try {
@@ -45,5 +57,7 @@ int main()
 	// {
 	// 	std::cout << "arr[" << i << "] = " << arr[i] << std::endl;
 	// }
+
+	// std::cout << isDirectory("server/test.cpp") << std::endl;
 	return 0;
 }
