@@ -231,10 +231,10 @@ int main()
         << " ctype = " << arg._Ctype << " data = " << arg._data << "\n";
     }
 
-    // std::string _Cdisp = "form-data; name=\"myfile\"; filename=\"commanf.txt\"";
+    std::string _Cdisp = "form-data; name=\"myfile\"; filename=\"commanf.txt\"";
     // std::string p = g.substr(0, g.find("filename") + 11);
     // std::string type = _Cdisp.substr(_Cdisp.find("filename=\"") + 10,
-	//	_Cdisp.length() - _Cdisp.substr(0, _Cdisp.find("filename") + 11).length());
+	// _Cdisp.length() - _Cdisp.substr(0, _Cdisp.find("filename") + 11).length());
     // std::cout << "size = " << g.length() - p.length() << std::endl;
     // std::cout << "size = " << p << std::endl;
     // std::cout << type << std::endl;
