@@ -38,34 +38,47 @@ int main()
         body.append(_line).append("\n");
     
     std::cout << body;*/
-    std::vector<struct Arg> v;
+    // std::vector<struct Arg> v;
 
-    struct Arg f;
-    struct Arg f1;
+    // struct Arg f;
+    // struct Arg f1;
 
-    f.Cdisp = "Content-Decposition: text/plain; charset=ascii";
-    f.Ctype = "Content-Type: text/html";
-    f.Ftype = "form-data";
+    // f.Cdisp = "Content-Decposition: text/plain; charset=ascii";
+    // f.Ctype = "Content-Type: text/html";
+    // f.Ftype = "form-data";
 
-    f1.Cdisp = "Content-Decposition: text/html; charset=utf-8";
-    f1.Ctype = "Content-Type: image/png";
-    f1.Ftype = "json";
-    v.push_back(f);
-    v.push_back(f1);
+    // f1.Cdisp = "Content-Decposition: text/html; charset=utf-8";
+    // f1.Ctype = "Content-Type: image/png";
+    // f1.Ftype = "json";
+    // v.push_back(f);
+    // v.push_back(f1);
 
-    std::vector<struct Arg>::iterator it = v.begin();
+    // std::vector<struct Arg>::iterator it = v.begin();
 
-    for (; it != v.end(); it++)
-    {
-        std::cout << "Cdisp = " << it->Cdisp << "\n";
-    }
+    // for (; it != v.end(); it++)
+    // {
+    //     std::cout << "Cdisp = " << it->Cdisp << "\n";
+    // }
 
-    std::string t = "";
-    t += "--------------------------eb32ead89fa23a33\r\n";
-    t += "Content-Disposition: form-data; name=\"fname\"\r\n";
-    t += "\r\n";
-    t += "ayoub\r\n";
-    t += "--------------------------eb32ead89fa23a33--\r\n";
+    // std::string t = "";
+    // t += "--------------------------eb32ead89fa23a33\r\n";
+    // t += "Content-Disposition: form-data; name=\"fname\"\r\n";
+    // t += "\r\n";
+    // t += "ayoub\r\n";
+    // // t += "--------------------------eb32ead89fa23a33--\r\n";
+    // t += "--------------------------eb32ead89fa23a33\r\n";
+    // t += "Content-Disposition: form-data; filename=\"fname.txt\"\r\n";
+    // t += "\r\n";
+    // t += "ayoub hjshjkdhsk\r\n";
+    // t += "--------------------------eb32ead89fa23a33--\r\n";
 
-    std::cout << "t.length() = " << t.length() << std::endl;
+    // std::cout << "t.length() = " << t.length() << std::endl;
+
+    std::string _Cdisp = "form-data; name=\"myfile\"; filename=\"commanf.txt\"";
+    // std::string p = g.substr(0, g.find("filename") + 11);
+    std::string type = _Cdisp.substr(_Cdisp.find("filename=\"") + 10,
+		_Cdisp.length() - _Cdisp.substr(0, _Cdisp.find("filename") + 11).length());
+    // std::cout << "size = " << g.length() - p.length() << std::endl;
+    // std::cout << "size = " << p << std::endl;
+    std::cout << type << std::endl;
 }

@@ -9,35 +9,12 @@
 # include <string>
 
 class Request {
-    private:
-        struct ArgContent {
-            std::string _Cdisp;
-            std::string _Ctype;
-            std::string _Ftype;
-            size_t      _arglen;
-            std::string _data;
-        };
-        std::string _Host;
-        std::string _method;
-        std::string _uri;
-        std::string _protocol;
-        std::string _Server;
-        std::string _Date;
-        std::string _Ctype;
-        std::string _Atype;
-        std::string _Cdisp;
-        unsigned int _Clen;
-        std::string _Lmodified;
-        std::string _Conn;
-        std::string _Etag;
-        std::string _Aranges;
-        std::string _boundary;
-        std::vector<std::string> _parse;
-        std::map<std::string, std::string> _rmap;
-        std::vector<struct ArgContent> _aCont;
-        bool _isArg;
-        std::string _argBody;
     public:
+        struct ArgContent {
+			std::string _Cdisp;
+			std::string _Ctype;
+			std::string _data;
+        };
         Request();
         ~Request();
         int _fd;
@@ -49,7 +26,29 @@ class Request {
         unsigned int _getContentLenght() const;
         const std::string& _getContentType() const;
         std::string _getHeaderContent(std::string _first);
-        void _pushDataToArg(std::string _data);
+        ArgContent _pushDataToArg(std::string _data);
+        ArgContent _getArg(size_t i);
+        std::vector<ArgContent> _getVecCont() const;
+        void _printArg();
+    private:
+        bool            _isDone;
+        std::string _Host;
+        std::string _method;
+        std::string _uri;
+        std::string _protocol;
+        std::string _Server;
+        std::string _Ctype;
+        std::string _Atype;
+        std::string _Cdisp;
+        unsigned int _Clen;
+        std::string _Conn;
+        std::vector<std::string> _parse;
+        std::map<std::string, std::string> _rmap;
+        std::vector<ArgContent> _aCont;
+        bool            _isArg;
+        std::string     _argBody;
+        int _lenArg;
+        std::string _boundary;
 };
 
 #endif

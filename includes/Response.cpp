@@ -75,11 +75,37 @@ void Response::_applyGetMethod()
     	_readFile(path);
 }
 
+std::string Response::_getFileNameFromDisp(std::string disp)
+{
+	std::string path = disp.substr(disp.find("filename=") + 1,
+	disp.find_last_of("\"") - 1);
+	std::cout << "hh = " << path << std::endl;
+	return "hey";
+}
+
 void Response::_applyPostMethod()
 {
     // get the path of the file
     // put the data of the post method in the file
-    // then if success print File Upload
+    // for (size_t i = 0; i < 2; i++)
+    // {
+    //     Request::ArgContent arg = _request._getArg(i);
+    //     std::string filename = _getFileNameFromDisp(arg._Cdisp);
+    //     // std::string dir = _getDir().append("/").append(filename);
+    //     // std::fstream file(dir);
+    //     // file << arg._data;
+    //     // file.close();
+    // }
+	// for (std::vector<Request::ArgContent>::iterator it = _request._getVecCont().begin();
+	// it != _request._getVecCont().end(); it++)
+	// {
+	// 	Request::ArgContent arg = *it;
+	// 	std::cout << arg._Ctype << std::endl;
+	// 	std::cout << arg._Cdisp << std::endl;
+	// 	std::cout << arg._data << std::endl;
+	// }
+    _body += "File uploaded";
+    _status = S_OK;
 }
 
 int Response::_checkPermission(std::string path, int mode)
@@ -137,8 +163,6 @@ void Response::_applyMethod()
         _applyDeleteMethod();
     else
         _status = S_NOT_IMPLEMENTED;
-    if (!_status)
-        _status = S_OK;
 }
 
 void Response::_makeStatus()

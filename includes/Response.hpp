@@ -60,6 +60,7 @@ class Response {
         void _readFile(const std::string& file);
         // POST METHOD member
         void _applyPostMethod();
+        std::string _getFileNameFromDisp(std::string disp);
         // DELETE METHOD member
         void _applyDeleteMethod();
         void _handleError();
