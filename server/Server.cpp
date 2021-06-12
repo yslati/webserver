@@ -261,7 +261,8 @@ void Server::acceptConnections() {
                             //     std::cout << buffer;
                             // }
                             if (!_clients[i - _http_servers.size()].readConnection()) {
-                                std::cout << "End";
+                                _clients[i - _http_servers.size()].setReady(true);
+                                std::cout << "End" << std::endl;
                             }
                         }
                         catch(const std::exception& e)
@@ -270,6 +271,10 @@ void Server::acceptConnections() {
                         }
                         
                     }
+                } else if (fds[i].revents & POLLOUT) {
+                    std::string content = "HTTP/1.1 200 OK\r\nContent-Length: 10\r\n\r\nhello world";
+                    std::cout << "Write" << std::endl;
+                    _clients[i - _http_servers.size()].setReady(false);
                 }
             }
         }

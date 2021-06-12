@@ -20,7 +20,10 @@ void Client::setReady(bool x) {
         if (x)
                 pfd.events = POLLOUT;
         else
+        {
+                this->content = "";
                 pfd.events = POLLIN;
+        }
         this->_ready = x;
 }
 
@@ -45,6 +48,16 @@ int checkEnd(const std::string& str, const std::string& end)
                         return (1);
         }
         return (0);
+}
+
+std::string ReplaceString(std::string subject, const std::string& search,
+                          const std::string& replace) {
+    size_t pos = 0;
+    while ((pos = subject.find(search, pos)) != std::string::npos) {
+         subject.replace(pos, search.length(), replace);
+         pos += replace.length();
+    }
+    return subject;
 }
 
 int Client::readConnection() {
@@ -76,7 +89,10 @@ int Client::readConnection() {
                             // check if there is chunked
                             if (content.find("Transfer-Encoding: chunked") != std::string::npos) {
                                     if (checkEnd(content, "0\r\n\r\n") == 0)
+                                    {
+                                            std::cout << "End" << std::endl;
                                             return (0);
+                                    }
                                     else
                                             return (1);
                             }
@@ -85,11 +101,10 @@ int Client::readConnection() {
                     }
                     size_t  len = std::atoi(content.substr(content.find("Content-Length: ") + 16, 10).c_str());
                 //     size_t pos = content.find("\r\n\r\n");
-                    if (content.size() >= len + j + 4)
-                    {
-                            std::cout << "kahkjfdhsa" << std::endl;
+                    std::string tmp = content.substr(j + 4);
+                    tmp = ReplaceString(tmp, "\r\n", "");
+                    if (tmp.size() >= len)
                             return (0);
-                    }
                     else
                             return (1);
             }
