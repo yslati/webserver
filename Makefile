@@ -6,14 +6,15 @@
 #    By: aaqlzim <aaqlzim@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/06/09 13:26:06 by aaqlzim           #+#    #+#              #
-#    Updated: 2021/06/10 16:05:57 by aaqlzim          ###   ########.fr        #
+#    Updated: 2021/06/13 15:59:55 by aaqlzim          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME := webserv
 
-SRCS := ./server/test.cpp ./includes/Request.cpp \
-		./includes/Response.cpp ./server/ServerSocket.cpp
+SRCS := Mainer.cpp ./includes/Request.cpp ./server/Client.cpp ./server/HttpServer.cpp \
+		./includes/Response.cpp ./server/ServerSocket.cpp ./parsing/parsing.cpp ./server/Location.cpp \
+		./server/Server.cpp
 OBJS := $(SRCS:.cpp=.o)
 CXX := g++
 CXXFLAGS :=

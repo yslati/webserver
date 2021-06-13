@@ -1,8 +1,9 @@
 #ifndef PARSING_H
 #define PARSING_H
 
-#include "HttpServer.hpp"
-#include "Location.hpp"
+#include "../server/HttpServer.hpp"
+#include "../server/Location.hpp"
+#include "../server/Server.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -11,6 +12,8 @@
 #include <vector>
 #include <cctype>
 #include <sstream>
+#include <exception>
+#include <stdexcept>
 
 
 class pars {
@@ -18,11 +21,11 @@ class pars {
 		std::vector<std::string>	_conf;
 		std::vector<int>			_servBegin;
 		std::vector<int>			_servEnd;
-		HttpServer					_httpServers;
-		std::vector<Location>		_location;
+		Server						&_Servers;
 
 		std::vector<std::string>	_split(std::string const &str, char sep);
 		bool						_checkbool(std::string str);
+		void						_check_missing(HttpServer &srv);
 
 	public:
 		pars(std::string fileName);
@@ -30,8 +33,8 @@ class pars {
 
 		void	checkServer();
 		void	parsServer(int i);
-		int		parsLocation(int i, int end);
-	
+		int		parsLocation(int i, int end, HttpServer& srv);
+
 };
 
 #endif
