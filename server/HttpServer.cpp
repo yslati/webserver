@@ -126,7 +126,7 @@ void    HttpServer::start_listen()
     if (bind(_fd, (struct sockaddr*)&_addr, (socklen_t)sizeof(_addr)) == -1) {
             throw std::runtime_error("bind failed");
     }
-    if (listen(_fd, 1024) == -1) {
+    if (listen(_fd, 2000) == -1) {
             throw std::runtime_error("listen failed");
     }
 }

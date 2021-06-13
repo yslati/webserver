@@ -5,6 +5,7 @@
 # include <iostream>
 # include <fcntl.h>
 # include <poll.h>
+# include <unistd.h>
 
 class Client {
     public:
@@ -12,15 +13,19 @@ class Client {
 
         int getConnection();
         int readConnection();
+	void writeConnection();
         std::string getContent() const;
         bool getReady();
         void setReady(bool x);
 
         struct pollfd getPfd();
+	~Client();
     private:
+	int sended;
         int _conn;
         struct sockaddr_in addr;
         bool _ready;
+	std::string responseContent;
         std::string content;
         struct pollfd pfd;
 };

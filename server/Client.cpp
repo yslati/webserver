@@ -1,4 +1,5 @@
 #include "Client.hpp"
+#include <cstdlib>
 
 Client::Client(int server_fd) {
     int len = sizeof(addr);
@@ -10,6 +11,7 @@ Client::Client(int server_fd) {
     fcntl(_conn, F_SETFL, O_NONBLOCK);
     pfd.events = POLLIN;
     pfd.fd = _conn;
+    responseContent = "HTTP/1.1 200 OK\r\nContent-Length: 11\r\n\r\nhello world";
 }
 
 bool Client::getReady() {
@@ -18,8 +20,11 @@ bool Client::getReady() {
 
 void Client::setReady(bool x) {
         if (x)
-                pfd.events = POLLOUT;
-        else
+	{
+		sended = 0;
+		pfd.events = POLLOUT;
+	}
+	else
         {
                 this->content = "";
                 pfd.events = POLLIN;
@@ -60,11 +65,27 @@ std::string ReplaceString(std::string subject, const std::string& search,
     return subject;
 }
 
+void Client::writeConnection() {
+	if (sended < content.size()) {
+		setReady(false);
+		return;
+	}
+	std::string toSend = responseContent.substr(sended, 128); 
+	int r = send(_conn, toSend.c_str(), 128, 0); 
+	if (r == 0 || r == -1) {
+		throw std::runtime_error("should close the connection");
+	}
+	else if (r > 0) {
+		sended += 128;
+	}
+}
+
+Client::~Client() {
+}
 int Client::readConnection() {
     char buffer[1028];
     int r = recv(_conn, buffer, 128, 0);
 //     return 0;
-    std::cout << r << std::endl;
     if (r == -1) {
             return 1;
     }
@@ -76,7 +97,6 @@ int Client::readConnection() {
             buffer[r] = '\0';
             tmp.assign(buffer);
             content += tmp;
-            std::cout << tmp;
             // std::cout << i << " " << content.size() << std::endl;
             // std::cout << "ENDOK" << std::endl;
             size_t j = content.find("\r\n\r\n", 0);
@@ -102,7 +122,7 @@ int Client::readConnection() {
                     size_t  len = std::atoi(content.substr(content.find("Content-Length: ") + 16, 10).c_str());
                 //     size_t pos = content.find("\r\n\r\n");
                     std::string tmp = content.substr(j + 4);
-                    tmp = ReplaceString(tmp, "\r\n", "");
+                //     tmp = ReplaceString(tmp, "\r\n", "");
                     if (tmp.size() >= len)
                             return (0);
                     else
