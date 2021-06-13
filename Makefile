@@ -6,7 +6,7 @@
 #    By: aaqlzim <aaqlzim@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/06/09 13:26:06 by aaqlzim           #+#    #+#              #
-#    Updated: 2021/06/13 15:59:55 by aaqlzim          ###   ########.fr        #
+#    Updated: 2021/06/13 18:44:05 by aaqlzim          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,7 @@ SRCS := Mainer.cpp ./includes/Request.cpp ./server/Client.cpp ./server/HttpServe
 		./server/Server.cpp
 OBJS := $(SRCS:.cpp=.o)
 CXX := g++
-CXXFLAGS :=
+CXXFLAGS := -std=c++98
 
 all: $(NAME)
 $(NAME): $(OBJS)

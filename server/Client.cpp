@@ -1,8 +1,7 @@
 #include "Client.hpp"
 #include <cstdlib>
 #include "Server.hpp"
-#include "../includes/Request.hpp"
-#include "../includes/Response.hpp"
+
 
 Client::Client(int server_fd) {
     int len = sizeof(addr);
@@ -17,45 +16,51 @@ Client::Client(int server_fd) {
     responseContent = "HTTP/1.1 200 OK\r\nContent-Length: 11\r\n\r\nhello world";
 }
 
-bool Client::getReady() {
-        return this->_ready;
+bool	Client::getReady()
+{
+    return this->_ready;
 }
 
-void Client::setReady(bool x) {
-        if (x)
+void	Client::_handleResponse(Request req)
+{
+	Response res;
+
+	res._setRequest(req);
+	res._startResponse();
+
+	responseContent = res._getResContent();
+}
+
+void Client::_handleRequest(std::vector<HttpServer>::iterator it)
+{
+	Request req;
+
+	std::cout << content << std::endl;
+	req._parseIncomingRequest(content);
+	_handleResponse(req);
+}
+
+void	Client::setReady(bool x) {
+    if (x)
 	{
-                // handle request
-                Server& srv = Server::getInstance();
-                std::vector<HttpServer> s = srv.getHttpServers();
-                std::vector<HttpServer>::iterator sit = s.begin();
-                while (sit != s.end()) {
-                        std::cout << "Server Name: " << sit->getServerName() << std::endl;
-                        std::cout << "Locations size: " << sit->getLocations().size() << std::endl;
-                        sit++;
-                }
-
-
-                // _conn = sit->getFd();
-                // Request req;
-                // Response res;
-
-                // req._parseIncomingRequest(content);
-
-                std::cout << "content = " << content << std::endl;
-                // res._setRequest(req);
-                // res._startResponse();
-                // std::string ContRes = res._getResContent();
-
-                responseContent = "HTTP/1.1 200 OK\r\nContent-Length: 11\r\n\r\nhello world";
+		// handle request
+		Server& srv = Server::getInstance();
+		std::vector<HttpServer> s = srv.getHttpServers();
+		std::vector<HttpServer>::iterator it = s.begin();
+		while (it != s.end())
+		{
+			_handleRequest(it);
+			it++;
+		}
 		sended = 0;
 		pfd.events = POLLOUT;
 	}
 	else
-        {
-                this->content = "";
-                pfd.events = POLLIN;
-        }
-        this->_ready = x;
+	{
+		this->content = "";
+		pfd.events = POLLIN;
+	}
+		this->_ready = x;
 }
 
 int Client::getConnection() {

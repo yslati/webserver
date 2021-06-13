@@ -1,4 +1,5 @@
 #include "Response.hpp"
+#include <regex>
 
 Response::Response()
 {
@@ -77,16 +78,28 @@ void Response::_applyGetMethod()
 
 std::string Response::_getFileNameFromDisp(std::string disp)
 {
-	std::string path = disp.substr(disp.find("filename=\"") + 10,
-    disp.length() - disp.substr(0, disp.find("filename") + 11).length());
-	std::cout << "hh = " << path << std::endl;
-	return "hey";
+    std::string path = "";
+    std::regex re("filename=\"");
+    std::smatch match;
+    if (disp.length())
+    {
+        std::regex_search(disp, match, re);
+        if (!match.empty())
+        {
+            path = match.suffix();
+            path = path.substr(0, path.find("\""));
+        }
+		// path = disp.substr(disp.find("filename=\"") + 10,
+		// disp.length() - disp.substr(0, disp.find("filename") + 11).length());
+    }
+	return path;
 }
 
 void Response::_applyPostMethod()
 {
-    std::string _filename;
-    std::string _dir;
+    std::string _filename = "";
+    std::string _dir = "";
+    std::string _line = "";
     // get the path of the file
     // put the data of the post method in the file
     // for (size_t i = 0; i < 2; i++)
@@ -98,15 +111,21 @@ void Response::_applyPostMethod()
     //     // file << arg._data;
     //     // file.close();
     // }
-    // for (size_t i = 0; i < _request._getVecCont().size(); i++)
-    // {
-    //     Request::ArgContent arg = _request._getArg(i);
-    //     _filename = _getFileNameFromDisp(arg._Cdisp);
-    //     _dir = _getDir().append("/").append(_filename);
-    //     std::fstream _file(_dir);
-    //     _file << arg._data;
-    //     _file.close();
-    // }
+    for (size_t i = 0; i < _request._getVecCont().size(); i++)
+    {
+        Request::ArgContent arg = _request._getArg(i);
+        _filename = _getFileNameFromDisp(arg._Cdisp);
+        _dir = _getDir().append("/").append(_filename);
+        std::ofstream _file(_dir);
+		// std::cout << "_data = " << arg._data; 
+        // _file << arg._data;
+        std::istringstream ss(arg._data);
+
+        while (getline(ss, _line)) {
+            _file << _line.substr(0, _line.find("\r\n")).append("\n");
+        }
+        _file.close();
+    }
     _body += "File uploaded";
     _status = S_OK;
 }
@@ -166,6 +185,8 @@ void Response::_applyMethod()
         _applyDeleteMethod();
     else
         _status = S_NOT_IMPLEMENTED;
+    if (_status != S_OK)
+        _status = S_OK;
 }
 
 void Response::_makeStatus()

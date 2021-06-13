@@ -30,6 +30,7 @@ Request::~Request()
 	this->_Cdisp = "";
 	this->_Clen = 0;
 	this->_Conn = "";
+	_body = "";
 	_aCont.clear();
 }
 
@@ -98,7 +99,7 @@ bool Request::_matchBegin(std::string& _regex, std::string& _line)
 
 void	Request::_printArg()
 {
-	// std::cout << "s = " << _aCont.size() << "\n";
+	std::cout << "s = " << _aCont.size() << "\n";
 	for (int i = 0; i < _aCont.size(); i++)
 	{
 		ArgContent arg = _aCont[i];
@@ -109,12 +110,14 @@ void	Request::_printArg()
 
 Request::ArgContent Request::_pushToArg(std::string _data)
 {
+
 	std::string _line;
 	// _data.pop_back();
 	std::istringstream _read(_data);
 	ArgContent arg = {};
 
-	while (getline(_read, _line, '\r'))
+	bool is_info = false;
+	while (getline(_read, _line))
 	{
 		// std::smatch match;
 		// std::regex re("boundary");
@@ -126,12 +129,19 @@ Request::ArgContent Request::_pushToArg(std::string _data)
 		if (_line.find("Content-Type") != std::string::npos)
 			arg._Ctype = _line.substr(_line.find(":") + 2);
 		else if (_line.find("Content-Disposition") != std::string::npos)
-			arg._Cdisp = _line.substr(_line.find(":") + 2);
-		else if (_line.length() && _line[0] != '\r')
 		{
-			if (arg._data.length())
-				arg._data.append("\n");
-			arg._data = arg._data.append(_line);
+			arg._Cdisp = _line.substr(_line.find(":") + 2);
+			is_info = true;
+		}
+		else
+		{
+			if (is_info) {
+				is_info = false;
+				continue;
+			}
+			// if (arg._data.length())
+			// 	arg._data += "\n";
+			arg._data.append(_line);
 		}
 	}
 	/*if (_isArg)
@@ -146,23 +156,21 @@ Request::ArgContent Request::_pushToArg(std::string _data)
 void	Request::_pushDataToArg(std::string _data)
 {
 	std::string _regex = "--" + _boundary;
-	std::cout << "_match = " << _matchBegin(_regex, _data) << std::endl;
-	std::cout << "c = " << _data << std::endl;
-	std::cout << "r = " << _regex << std::endl;
+	// std::cout << "_match = " << _matchBegin(_regex, _data) << std::endl;
+	// std::cout << "c = " << _data << std::endl;
+	// std::cout << "r = " << _regex << std::endl;
 
-	_data.pop_back();
-	std::string _body = "";
-	// _isArg = true;
-	// if (_regex.length() && _matchBegin(_regex, _data))
-	// {
-	// 	// if (!_isArg)
-	// 	// 	_isArg = true;
-	// 	_aCont.push_back(_pushToArg(_body));
-	// 	_body.clear();
-	// }
-	// else if (_isArg)
-	_body.append(_data).append("\n");
-	std::cout << "_body = " << _body << std::endl;
+	// _data.pop_back();
+	if (_regex.length() && _matchBegin(_regex, _data))
+	{
+		if (!_isArg)
+			_isArg = true;
+		_aCont.push_back(_pushToArg(_body));
+		_body.clear();
+	}
+	else if (_isArg)
+		_body.append(_data).append("\n");
+	// std::cout << "_body = " << _body << std::endl;
 	// else
 		// _isArg = true;
 }
@@ -190,6 +198,9 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 			this->_rmap["method"] = _parse[0];
 			this->_rmap["uri"] = _parse[1];
 			this->_rmap["protocol"] = _parse[2];
+			// this->_rmap["method"].pop_back();
+			// this->_rmap["uri"].pop_back();
+			this->_rmap["protocol"].pop_back();
 			// this->_method = _parse[0];
 			// this->_uri = _parse[1];
 			// this->_protocol = _parse[2];

@@ -6,6 +6,9 @@
 # include <fcntl.h>
 # include <poll.h>
 # include <unistd.h>
+# include "HttpServer.hpp"
+# include "../includes/Request.hpp"
+# include "../includes/Response.hpp"
 
 class Client {
     public:
@@ -20,6 +23,8 @@ class Client {
 
         struct pollfd getPfd();
         std::string getResponseContent();
+        void _handleRequest(std::vector<HttpServer>::iterator it);
+        void _handleResponse(Request req);
 	~Client();
     private:
 	int sended;

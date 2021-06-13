@@ -52,6 +52,7 @@ class Request {
         std::string     _argBody;
         int _lenArg;
         std::string _boundary;
+        std::string _body;
 };
 
 #endif

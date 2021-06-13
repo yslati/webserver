@@ -132,6 +132,14 @@ void _addToVec(std::string content)
         _isArg = true;
 }
 
+std::string _getFile(std::string disp)
+{
+    std::string path;
+    if (disp.length())
+        path = disp.substr(disp.find("filename=\"") + 10, disp.length() - disp.substr(0, disp.find("filename") + 11).length());
+    return (path);
+}
+
 int main()
 {
     // std::string t = "Content-Type: text/html; charset=UTF-8";
@@ -224,11 +232,20 @@ int main()
         // std::cout << "_line = " << _line << "\n";
     }
     std::cout << "s = " << _vec.size() << std::endl;
+    std::regex re("filename=\"");
+    std::smatch match;
     for (int i = 0; i < _vec.size(); i++)
     {
         Arg arg = _vec[i];
-        std::cout << "i = " << i << " cdisp = " << arg._Cdisp
-        << " ctype = " << arg._Ctype << " data = " << arg._data << "\n";
+        std::regex_search(arg._Cdisp, match, re);
+        if (!match.empty())
+         {
+             std::string _file = match.suffix();
+             _file = _file.substr(0, _file.find("\""));
+             std::cout << _file << std::endl;
+         }
+        // std::string _file = _getFile(arg._Cdisp);
+        // std::cout << "filename = " << _file << std::endl;
     }
 
     std::string _Cdisp = "form-data; name=\"myfile\"; filename=\"commanf.txt\"";
