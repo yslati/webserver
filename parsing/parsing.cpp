@@ -1,5 +1,4 @@
 #include "parsing.hpp"
-# include <string.h>
 
 bool	pars::_checkbool(std::string str) {
 	if (str == "on")

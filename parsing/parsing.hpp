@@ -5,15 +5,17 @@
 #include "Location.hpp"
 #include "Server.hpp"
 
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <cstring>
-#include <vector>
-#include <cctype>
-#include <sstream>
-#include <exception>
-#include <stdexcept>
+# include <iostream>
+# include <fstream>
+# include <string>
+# include <cstring>
+# include <vector>
+# include <cctype>
+# include <sstream>
+# include <exception>
+# include <stdexcept>
+# include <string.h>
+# include <dirent.h>
 
 
 class pars {
