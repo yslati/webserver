@@ -10,6 +10,7 @@ int		main()
 		srv.acceptConnections();
 	} catch (char const *e) {
 		std::cout << e << std::endl;
+		return (1);
 	}
 	return (0);	
 }

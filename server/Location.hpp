@@ -32,10 +32,10 @@ class Location {
 		std::string _uri;
 		std::string _root;
 		std::string _index;
-		std::string _redirect_url;
 		std::vector<std::string> _allowed_methods;
 		bool _auto_index;
 		bool _is_redirect;
+		std::string _redirect_url;
 		int _status_code; // 301 302 redirect code
 };
 

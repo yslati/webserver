@@ -1,5 +1,6 @@
 #include "Client.hpp"
 #include <cstdlib>
+#include "Server.hpp"
 
 Client::Client(int server_fd) {
     int len = sizeof(addr);
@@ -21,6 +22,9 @@ bool Client::getReady() {
 void Client::setReady(bool x) {
         if (x)
 	{
+                // handle request
+                // Server& srv = Server::getInstance();
+                // srv.getHttpServers();
 		sended = 0;
 		pfd.events = POLLOUT;
 	}
@@ -82,6 +86,7 @@ void Client::writeConnection() {
 
 Client::~Client() {
 }
+
 int Client::readConnection() {
     char buffer[1028];
     int r = recv(_conn, buffer, 128, 0);
