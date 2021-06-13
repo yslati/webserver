@@ -98,13 +98,12 @@ bool Request::_matchBegin(std::string& _regex, std::string& _line)
 
 void	Request::_printArg()
 {
-	for (int i = 0; i < _lenArg; i++)
+	// std::cout << "s = " << _aCont.size() << "\n";
+	for (int i = 0; i < _aCont.size(); i++)
 	{
 		ArgContent arg = _aCont[i];
-		std::cout << "file = " << arg._Cdisp.find("filename=\"") + 10 << "\n";
-		std::string type = arg._Cdisp.substr(arg._Cdisp.find("filename=\"") + 10,
-		arg._Cdisp.length() - arg._Cdisp.substr(0, arg._Cdisp.find("filename") + 11).length());
-		std::cout << "type = " << type << std::endl;
+		std::cout << "i = " << i << " _Cdisp = " << arg._Cdisp
+		<< " _Ctype = " << arg._Ctype << " _data = " << arg._data << std::endl;
 	}
 }
 
@@ -114,15 +113,6 @@ Request::ArgContent Request::_pushToArg(std::string _data)
 	// _data.pop_back();
 	std::istringstream _read(_data);
 	ArgContent arg = {};
-	std::string _endline = "--";
-	_endline += _boundary;
-	_endline += "--";
-
-	// // int f = _data[_data.length() - 1];
-	// // std::cout << "l = " << f << "\n";
-	// // std::cout<< "START" << std::endl;
-	// // std::cout<< "bdr = " << _endline << std::endl;
-	// // std::cout<< "END" << std::endl;
 
 	while (getline(_read, _line, '\r'))
 	{
@@ -130,9 +120,9 @@ Request::ArgContent Request::_pushToArg(std::string _data)
 		// std::regex re("boundary");
 
 		// std::regex_search(_line, match, re);
-		if (_line.length() == 0) {
+		// _line.pop_back();
+		if (!_line.length())
 			continue;
-		}
 		if (_line.find("Content-Type") != std::string::npos)
 			arg._Ctype = _line.substr(_line.find(":") + 2);
 		else if (_line.find("Content-Disposition") != std::string::npos)
@@ -141,7 +131,7 @@ Request::ArgContent Request::_pushToArg(std::string _data)
 		{
 			if (arg._data.length())
 				arg._data.append("\n");
-			arg._data.append(_line);
+			arg._data = arg._data.append(_line);
 		}
 	}
 	/*if (_isArg)
@@ -155,21 +145,26 @@ Request::ArgContent Request::_pushToArg(std::string _data)
 
 void	Request::_pushDataToArg(std::string _data)
 {
+	std::string _regex = "--" + _boundary;
+	std::cout << "_match = " << _matchBegin(_regex, _data) << std::endl;
+	std::cout << "c = " << _data << std::endl;
+	std::cout << "r = " << _regex << std::endl;
+
 	_data.pop_back();
-	std::string _regex = _boundary;
 	std::string _body = "";
 	// _isArg = true;
-
-	if (_regex.length() && _matchBegin(_regex, _data))
-	{
-		_isArg = false;
-		_aCont.push_back(_pushToArg(_body));
-		_body.clear();
-	}
-	else if (_isArg)
-		_body.append(_data).append("\n");
+	// if (_regex.length() && _matchBegin(_regex, _data))
+	// {
+	// 	// if (!_isArg)
+	// 	// 	_isArg = true;
+	// 	_aCont.push_back(_pushToArg(_body));
+	// 	_body.clear();
+	// }
+	// else if (_isArg)
+	_body.append(_data).append("\n");
+	std::cout << "_body = " << _body << std::endl;
 	// else
-	//	_isArg = true;
+		// _isArg = true;
 }
 
 void Request::_parseIncomingRequest(const std::string& _buffer)

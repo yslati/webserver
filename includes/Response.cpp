@@ -77,7 +77,7 @@ void Response::_applyGetMethod()
 
 std::string Response::_getFileNameFromDisp(std::string disp)
 {
-	std::string path = disp.substr(disp.substr(disp.find("filename=\"") + 10,
+	std::string path = disp.substr(disp.find("filename=\"") + 10,
     disp.length() - disp.substr(0, disp.find("filename") + 11).length());
 	std::cout << "hh = " << path << std::endl;
 	return "hey";
@@ -98,15 +98,15 @@ void Response::_applyPostMethod()
     //     // file << arg._data;
     //     // file.close();
     // }
-    for (size_t i = 0; i < _request._getVecCont().size(); i++)
-    {
-        Request::ArgContent arg = _request._getArg(i);
-        _filename = _getFileNameFromDisp(arg._Cdisp);
-        _dir = _getDir().append("/").append(_filename);
-        std::fstream _file(_dir);
-        _file << arg._data;
-        _file.close();
-    }
+    // for (size_t i = 0; i < _request._getVecCont().size(); i++)
+    // {
+    //     Request::ArgContent arg = _request._getArg(i);
+    //     _filename = _getFileNameFromDisp(arg._Cdisp);
+    //     _dir = _getDir().append("/").append(_filename);
+    //     std::fstream _file(_dir);
+    //     _file << arg._data;
+    //     _file.close();
+    // }
     _body += "File uploaded";
     _status = S_OK;
 }
