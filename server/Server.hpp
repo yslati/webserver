@@ -5,7 +5,8 @@
 # include "HttpServer.hpp"
 # include "ServerSocket.hpp"
 # include <algorithm>
-// # include "RequestReader.hpp"
+# include <set>
+# include "Client.hpp"
 
 class Server {
 	public:
@@ -26,18 +27,28 @@ class Server {
 		void	acceptConnections();
 
 		void addServerSocketsToSet();
+		void start_servers();
+		void poll_loop();
+		void poll_handle(std::vector<struct pollfd>& fds);
+		// void acceptIncomingConnection(std::vector<struct pollfd>& fds);
+		void   handle_read(std::vector<struct pollfd>& fds);
+		void acceptIncomingConnection(std::vector<struct pollfd>& fds, std::vector<Client>& clients);
+
 		std::vector<ServerSocket>::iterator isServerSocket(int fd);
 	private:
 		Server();
 		static Server* _instance;
 		std::vector<HttpServer> _http_servers;
 		std::vector<ServerSocket> _sockets;
+		std::vector<Client> _clients;
 		fd_set worker_set;
 		fd_set master_set;
 		fd_set response_set;
 
 		// add socket
 		void addSocket(ServerSocket const& ss);
+		// initialize the poll fds for each loop
+		void    init_poll(std::vector<struct pollfd>& fds);
 };
 
 

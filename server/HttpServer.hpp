@@ -2,11 +2,22 @@
 # define HTTP_SERVER_HPP
 
 # include <iostream>
+<<<<<<< HEAD
 # include <vector>
 # include <map>
 # include <iterator>
 # include "ErrorPage.hpp"
+=======
+#include <vector>
+#include <map>
+#include <iterator>
+# include <sys/socket.h>
+# include <netinet/in.h>
+# include <unistd.h>
+# include <arpa/inet.h>
+>>>>>>> 6c36d99f9b634cedf6933af9567491da8c4b058c
 # include "Location.hpp"
+# include <fcntl.h>
 
 #define log std::cout << 
 #define line << std::endl
@@ -34,6 +45,8 @@ class HttpServer {
 		int const& getPort() const;
 
 		int const& getMaxBodySize() const;
+
+		int getFd() const;
 		// -----------------------------SETTERS-------------------------
 		void	setServerName(std::string const& x);
 
@@ -51,6 +64,8 @@ class HttpServer {
 
 		void	addErrorPage(int statusCode, std::string path);
 
+		void	start_listen();
+
 	private:
 		int							_port;
 		int							_maxBodySize;
@@ -60,6 +75,8 @@ class HttpServer {
 		std::vector<std::string>	_allowed_methods;
 		std::vector<Location> 		_locations;
 		std::map<int, std::string>	_errors;
+		int							_fd;
+		struct sockaddr_in			_addr;
 
 		// std::vector<ErrorPage>	_error_pages;
 };

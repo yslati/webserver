@@ -1,2 +1,2 @@
 all:
-	@clang++ */*cpp -I server -I parsing
+	@clang++ *cpp */*cpp -I server -I parsing

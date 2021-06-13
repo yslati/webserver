@@ -75,8 +75,15 @@ int main()
 	} catch (char const *e) {
 		std::cout << e << std::endl;
 	}
+// int main()
+// {
+// 	try {
+// 		pars ser("./parsing/file.conf");
+// 	} catch (char const *e) {
+// 		std::cout << e << std::endl;
+// 	}
 
-	// Server& srv = Server::getInstance();
+// 	// Server& srv = Server::getInstance();
 
 	// for(int i = 0; i < srv.getHttpServers().size(); i++) {
 	// 	std::cout << "Server " << i + 1 << std::endl;
@@ -93,3 +100,16 @@ int main()
 	// std::cout << isDirectory("./parsing") << std::endl;
 	return 0;
 }
+// 	// for(int i = 0; i < srv.getHttpServers().size(); i++) {
+// 	// 	std::cout << "Server " << i + 1 << std::endl;
+// 	// 	std::cout << "Methods Size: " << srv.getHttpServers()[i]._allowed_methods.size() << std::endl;
+// 	// 	std::cout << "Location Size: " << srv.getHttpServers()[i]._locations.size() << std::endl;
+// 	// } 
+// 	// allMethod("GET,PUT,HEAD,POST");
+// 	// 	std::vector<std::string> arr=_split("GET	 	 	 	PUT 	 	 HEAD POST    Something");
+// 	// for (size_t i = 0; i < arr.size(); i++)
+// 	// {
+// 	// 	std::cout << "arr[" << i << "] = " << arr[i] << std::endl;
+// 	// }
+// 	return 0;
+// }
