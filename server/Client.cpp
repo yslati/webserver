@@ -121,6 +121,7 @@ int Client::readConnection() {
                     }
                     size_t  len = std::atoi(content.substr(content.find("Content-Length: ") + 16, 10).c_str());
                 //     size_t pos = content.find("\r\n\r\n");
+                    std::cout << "Content-Length: " << len << "==" << content.substr(j + 4).size() << std::endl;
                     std::string tmp = content.substr(j + 4);
                 //     tmp = ReplaceString(tmp, "\r\n", "");
                     if (tmp.size() >= len)
