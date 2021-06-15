@@ -225,15 +225,15 @@ void Server::acceptConnections() {
             c_it++;
         }
 
-	std::vector<Client>::iterator it_c;
-	it_c = _clients.begin();
-	std::cout << "Fds: ";
-	while (it_c != _clients.end())
-	{
-		std::cout << it_c->getConnection() << " ";
-		it_c++;
-	}
-	std::cout << std::endl;
+	// std::vector<Client>::iterator it_c;
+	// it_c = _clients.begin();
+	// std::cout << "Fds: ";
+	// while (it_c != _clients.end())
+	// {
+	// 	std::cout << it_c->getConnection() << " ";
+	// 	it_c++;
+	// }
+	// std::cout << std::endl;
     int n = poll(&(*fds.begin()), fds.size(), -1);
     std::vector<Client> new_clients;
     std::set<int> toRemove;
@@ -241,14 +241,14 @@ void Server::acceptConnections() {
 	if (n == 0) {
             std::cout << "Timeout" << std::endl;
     } else if (n > 0) {
-        std::cout << "Poll n: " << n << std::endl;
+        // std::cout << "Poll n: " << n << std::endl;
         for (int i = 0; i < fds.size(); i++) {
             if (fds[i].revents & POLLIN) {
                 if (i < _http_servers.size()) {
                     try
                     {
                         Client c(fds[i].fd);
-                        std::cout << "new" << std::endl;
+                        // std::cout << "new" << std::endl;
                         new_clients.push_back(c);
                     }
                     catch(const std::exception& e)
@@ -302,16 +302,16 @@ void Server::acceptConnections() {
         }
     }
 	std::set<int>::iterator it_set = toRemove.begin();
-    std::cout << "OK1" << std::endl;
-    std::cout << toRemove.size() << std::endl;
-    std::cout << _clients.size() << std::endl;
-    std::cout << "set remove: ";
-    while(it_set != toRemove.end())
-    {
-        std::cout << *it_set << " ";
-        it_set++;
-    }
-    std::cout << std::endl;
+    // std::cout << "OK1" << std::endl;
+    // std::cout << toRemove.size() << std::endl;
+    // std::cout << _clients.size() << std::endl;
+    // std::cout << "set remove: ";
+    // while(it_set != toRemove.end())
+    // {
+    //     std::cout << *it_set << " ";
+    //     it_set++;
+    // }
+    // std::cout << std::endl;
     it_set = toRemove.begin();
     std::vector<Client> tmp;
 	for (size_t i = 0; i < _clients.size(); i++)

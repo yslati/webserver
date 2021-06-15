@@ -13,6 +13,5 @@ int mlib::HexConvertor::to_decimal(std::string const& x) const {
         res += digit * std::pow(16, power);
         power++;
     }
-    
     return (res);
 }
