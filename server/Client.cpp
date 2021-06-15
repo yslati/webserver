@@ -1,6 +1,7 @@
 #include "Client.hpp"
 #include <cstdlib>
 #include "Server.hpp"
+#include "ChunkedHandler.hpp"
 
 Client::Client(int server_fd) {
     int len = sizeof(addr);
@@ -25,6 +26,7 @@ void Client::setReady(bool x) {
                 // handle request
                 // Server& srv = Server::getInstance();
                 // srv.getHttpServers();
+                // ChunkedHandler::handle(content);
 		sended = 0;
 		pfd.events = POLLOUT;
 	}
