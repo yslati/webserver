@@ -9,7 +9,8 @@
 # include "HttpServer.hpp"
 # include "../includes/Request.hpp"
 # include "../includes/Response.hpp"
-
+// class Request;
+// class Response;
 class Client {
     public:
         Client(int server_fd);

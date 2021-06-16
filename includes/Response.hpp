@@ -54,31 +54,32 @@ class Response {
         ~Response();
 
         // THE RESPONSE CODE GOES HERE
+        bool _matchBegin(std::string _regex, std::string _line);
         void _setRequest(Request& req);
         void _setLocation(Location& location);
         Location _getLocation() const;
         void _startResponse();
         void _applyMethod();
+        int _checkAllowedMethod(std::string method);
         std::string _getResContent() const;
         void _makeStatus();
         int _checkPermission(std::string path, int mode);
-        std::string _getFilePath(std::string& uri);
+        std::string _getFilePath(std::string uri);
         std::string _getErrorPagePath(std::string filename);
         std::string _getFileNameFromUri(std::string uri);
         std::string _getDir(void);
         std::string _generateHtmlTemplate();
-        std::string _getHrefLink(std::string& dirname);
-        void		_applyAutoIndexing();
-		int			_isDir(std::string& dirname);
+        std::string _getHrefLink(std::string dirname);
+        void		_applyAutoIndexing(std::string _dir);
+		int			_isDir(std::string dirname);
         // GET METHOD member
         void _applyGetMethod();
-        void _readFile(const std::string& file);
+        void _readFile(std::string file);
         // POST METHOD member
         void _applyPostMethod();
         std::string _getFileNameFromDisp(std::string disp);
         // DELETE METHOD member
         void _applyDeleteMethod();
-        void _handleError();
 		void _generateErrorPage();
         void _deleteFile(std::string _file) {}
 

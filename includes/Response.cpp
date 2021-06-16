@@ -33,7 +33,7 @@ std::string Response::_getDir(void)
 {
     char buff[1024];
     std::string dir = "";
-	std::vector<HttpServer>::iterator it = _request._getIterator();
+	// std::vector<HttpServer>::iterator it = _request._getIterator();
 
     if (!getcwd(buff, sizeof(buff)))
         std::cerr << "getcwd failed" << std::endl;
@@ -41,19 +41,29 @@ std::string Response::_getDir(void)
 	{
         dir = std::string(buff);
 		// if there is a location path
-		// dir.append(location.getRoot());
-		// else
-		// dir.append(defaultLocation);
+		if (_location.getRoot().length())
+		{
+			if (_location.getRoot().front() != '/')
+				dir += "/";
+			dir.append(_location.getRoot());
+		}
+		else
+		{
+			std::cout << "rootDefault = " <<
+			_request._getIterator()->getRoot() << "\n";
+			if (_request._getIterator()->getRoot().length() &&
+			_request._getIterator()->getRoot().front() != '/')
+				dir += "/";
+			dir.append(_request._getIterator()->getRoot());
+		}
 	}
     return (dir);
 }
 
-std::string Response::_getFilePath(std::string& uri)
+std::string Response::_getFilePath(std::string uri)
 {
     std::string path = ""; 
     path = _getDir();
-	if (uri.front() != "/")
-		uri = "/" + uri;
     path.append(uri);
     return (path);
 }
@@ -61,12 +71,27 @@ std::string Response::_getFilePath(std::string& uri)
 std::string Response::_getFileNameFromUri(std::string uri)
 {
 	// Parse filename from uri
+	std::string filename;
+	int _exist = 0;
+	if (uri.find("?") != std::string::npos)
+		filename = uri.substr(0, uri.find("?"));
+	else
+	{
+		if (uri.back() != '/')
+			uri += "/";
+		filename = uri;
+	}
 	// then check if filename match any of locations spicified in the config file
+	if (_location.getUri().compare(filename) == 0)
+		// if (filename.append(_location.getIndex()) == is_exist)
+		_exist = 1;
 	// if true break and return the filename
-    return "/index.html";
+	// if (_exist)
+		// return (filename);
+    return (filename.append(_location.getIndex()));
 }
 
-void Response::_readFile(const std::string& file)
+void Response::_readFile(std::string file)
 {
     std::string _line;
     std::string body = "";
@@ -97,15 +122,20 @@ void Response::_applyGetMethod()
 	//	_handleError();
 	// else
     //	_readFile(path);
+	// if (DEBUG_MODE)
+	// 	path.append("file.html");
+	// path = "/dir/";
+	std::cout << "path = " << path << std::endl;
 	if (_isDir(path))
 	{
-		// check if loaction->autoIndex == true
-			// _applyAutoIndexin();
-		// else
-			// _status = ST_NOT_FOUND;
+		if (_location.getAutoIndex())
+			_applyAutoIndexing(path);
+		else
+			_status = S_NOT_FOUND;
 	}
-	else
+	else if (!_checkPermission(path, R_OK))
 		_readFile(path);
+	std::cout << _body << std::endl;
 }
 
 std::string Response::_getFileNameFromDisp(std::string disp)
@@ -134,15 +164,6 @@ void Response::_applyPostMethod()
     std::string _line = "";
     // get the path of the file
     // put the data of the post method in the file
-    // for (size_t i = 0; i < 2; i++)
-    // {
-    //     Request::ArgContent arg = _request._getArg(i);
-    //     std::string filename = _getFileNameFromDisp(arg._Cdisp);
-    //     // std::string dir = _getDir().append("/").append(filename);
-    //     // std::fstream file(dir);
-    //     // file << arg._data;
-    //     // file.close();
-    // }
     for (size_t i = 0; i < _request._getVecCont().size(); i++)
     {
         Request::ArgContent arg = _request._getArg(i);
@@ -151,8 +172,6 @@ void Response::_applyPostMethod()
         {
 			_dir = _getDir().append("/").append(_filename);
 			std::ofstream _file(_dir);
-			// std::cout << "_data = " << arg._data; 
-			// _file << arg._data;
 			std::istringstream ss(arg._data);
 
 			while (getline(ss, _line)) {
@@ -180,28 +199,31 @@ int Response::_checkPermission(std::string path, int mode)
     return (0);
 }
 
-void Response::_handleError()
+void	Response::_generateErrorPage()
 {
 	_body += "<html>\r\n";
 	_body += "<head>\r\n";
-	_body += "	<title>405 Not Allowed</title>\r\n";
+	_body += "	<title>$1</title>\r\n";
 	_body += "</head>\r\n";
 	_body += "<body>\r\n";
 	_body += "	<center>\r\n";
-	_body += "		<h1>405 Not Allowed</h1>\r\n";
+	_body += "		<h1>$1</h1>\r\n";
 	_body += "	</center>\r\n";
 	_body += "	<hr>\r\n";
 	_body += "	<center>webserv/0.0</center>\r\n";
 	_body += "</body>\r\n";
 	_body += "</html>\r\n";
-	_status = S_METHOD_NOT_ALLOWED;
+	_body.replace(_body.find("$1"), 2, _stResp[_status]);
 }
 
 void Response::_applyDeleteMethod()
 {
     std::string path = _getFilePath(_request._getHeaderContent("uri"));
     if (_checkPermission(path, W_OK))
-        _handleError();
+	{
+		_status = S_METHOD_NOT_ALLOWED;
+        _generateErrorPage();
+	}
     else
     {
 		remove(path.c_str());
@@ -238,7 +260,7 @@ std::string Response::_generateHtmlTemplate()
 </html>\n";
 }
 
-std::string Response::_getHrefLink(std::string& dirname)
+std::string Response::_getHrefLink(std::string dirname)
 {
 	std::stringstream ss;
 
@@ -246,18 +268,19 @@ std::string Response::_getHrefLink(std::string& dirname)
 	return ss.str();
 }
 
-int Response::_isDir(std::string& dirname)
+int Response::_isDir(std::string dirname)
 {
-	std::string _dir = _getDir();
-	if (dirname.front() != '/')
-		_dir += "/";
-	_dir += dirname;
-	if (!(opendir(_dir.c_str())))
+	// std::string dir = _getDir();
+	// if (dirname.front() != '/')
+	// 	dir += "/";
+	// dir += dirname;
+	// std::cout << "dir = " << dir << "\n";
+	if (!(opendir(dirname.c_str())))
 		return 0;
 	return 1;
 }
 
-void	Response::_applyAutoIndexing()
+void	Response::_applyAutoIndexing(std::string _dir)
 {
 	DIR *dir;
 	struct dirent *pDirent;
@@ -265,11 +288,12 @@ void	Response::_applyAutoIndexing()
 	std::string _name = "";
 	std::string _uri = "/";
 	std::string _data = "";
+	// std::string _dir = "/Users/aaqlzim/Desktop/webserv/webserver/website/dir";
 	std::string _index = "<h1>Index of: " + _uri + "</h1>\n\t\t<hr/>";
 
 	_body.append(_generateHtmlTemplate());
 	_body.replace(_body.find("$2"), 2, _index);
-	if ((dir = opendir(_request._getHeaderContent("uri").c_str())))
+	if ((dir = opendir(_dir.c_str())))
 	{
 		while ((pDirent = readdir(dir)))
 		{
@@ -292,6 +316,27 @@ void	Response::_applyAutoIndexing()
 			file << std::endl;
 		}
 	}
+	std::cout << _body << std::endl;
+}
+
+bool	Response::_matchBegin(std::string _regex, std::string _line)
+{
+	std::string _r = _regex;
+	_r.pop_back();
+
+	return _line.compare(0, _r.size(), _r) == 0;
+}
+
+int		Response::_checkAllowedMethod(std::string method)
+{
+	std::vector<std::string> v = _location.getAllowedMethod();
+
+	for (size_t i = 0; i < v.size(); i++)
+	{
+		if (method.compare(v[i]) == 0)
+			return (1);
+	}
+	return (0);
 }
 
 void	Response::_applyMethod()
@@ -303,17 +348,24 @@ void	Response::_applyMethod()
     {
         // if the uri match one of the paths in location
         // setLocation(*lit);
+        if (_matchBegin(_request._getHeaderContent("uri"), lit->getUri()))
+            _setLocation(*lit);
+        // if (_request._getHeaderContent("uri").compare(lit->getUri()) == 0)
     }
-    if (_request._getHeaderContent("method").compare("GET") == 0)
-        _applyGetMethod();
-    else if (_request._getHeaderContent("method").compare("POST") == 0)
-        _applyPostMethod();
-    else if (_request._getHeaderContent("method").compare("DELETE") == 0)
-        _applyDeleteMethod();
-    else
-        _status = S_NOT_IMPLEMENTED;
-    if (_status != S_OK)
-        _status = S_OK;
+	// std::cout << "uri = " << _getLocation().getUri() << std::endl;
+	// std::cout << "my_uri = " << _request._getHeaderContent("uri") << std::endl;
+	if (_request._getHeaderContent("method").compare("GET") == 0)
+		_applyGetMethod();
+	// else if (_request._getHeaderContent("method").compare("POST") == 0
+	// && _checkAllowedMethod("POST"))
+	// 	_applyPostMethod();
+	// else if (_request._getHeaderContent("method").compare("DELETE") == 0
+	// && _checkAllowedMethod("DELETE"))
+	// 	_applyDeleteMethod();
+	else
+		_status = S_NOT_IMPLEMENTED;
+	if (_status != S_OK)
+		_status = S_OK;
 }
 
 void Response::_makeStatus()

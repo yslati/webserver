@@ -13,7 +13,7 @@ Client::Client(int server_fd) {
     fcntl(_conn, F_SETFL, O_NONBLOCK);
     pfd.events = POLLIN;
     pfd.fd = _conn;
-    responseContent = "HTTP/1.1 200 OK\r\nContent-Length: 11\r\n\r\nhello world";
+//     responseContent = "HTTP/1.1 200 OK\r\nContent-Length: 11\r\n\r\nhello world";
 }
 
 bool	Client::getReady()
@@ -33,8 +33,9 @@ void	Client::_handleResponse(Request req)
 
 void Client::_handleRequest(std::vector<HttpServer>::iterator it)
 {
-	Request req(it);
+	Request req;
 
+        req._setIterator(it);
 	std::cout << content << std::endl;
 	req._parseIncomingRequest(content);
 	_handleResponse(req);

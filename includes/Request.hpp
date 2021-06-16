@@ -7,7 +7,8 @@
 # include <sstream>
 # include <map>
 # include <string>
-# include "../server/Client.hpp"
+// # include "../server/Client.hpp"
+#include "../server/HttpServer.hpp"
 
 class Request {
     public:
@@ -16,9 +17,10 @@ class Request {
 			std::string _Ctype;
 			std::string _data;
         };
-        Request(std::vector<HttpServer>::iterator it);
+        Request();
         ~Request();
         int _fd;
+        void _setIterator(std::vector<HttpServer>::iterator it);
         void _parseIncomingRequest(const std::string& _buffer);
         void _parseLine(const std::string& _line);
         const std::string& _getMethod() const;
