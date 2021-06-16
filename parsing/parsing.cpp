@@ -36,7 +36,7 @@ int		pars::parsLocation(int i, int end, HttpServer& srv) {
 				throw "Syntax Error: location: 'root' duplicated";
 			tmp.setRoot(_conf[i].substr(_conf[i].find("=") + 1));
 		}
-		else if (_conf[i].compare(0, 7, "index") == 0) {
+		else if (_conf[i].compare(0, 5, "index") == 0) {
 			if (tmp.getIndex() != "")
 				throw "Syntax Error: location: 'index' duplicated";
 			tmp.setIndex(_conf[i].substr(_conf[i].find("=") + 1));

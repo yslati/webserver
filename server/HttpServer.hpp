@@ -2,12 +2,6 @@
 # define HTTP_SERVER_HPP
 
 # include <iostream>
-<<<<<<< HEAD
-# include <vector>
-# include <map>
-# include <iterator>
-# include "ErrorPage.hpp"
-=======
 #include <vector>
 #include <map>
 #include <iterator>
@@ -15,7 +9,6 @@
 # include <netinet/in.h>
 # include <unistd.h>
 # include <arpa/inet.h>
->>>>>>> 6c36d99f9b634cedf6933af9567491da8c4b058c
 # include "Location.hpp"
 # include <fcntl.h>
 
