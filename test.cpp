@@ -4,6 +4,9 @@
 #include <sstream>
 #include <vector>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <dirent.h>
 #include <regex>
 // #include <bits/stdc++.h>
 #include <algorithm>
@@ -140,8 +143,9 @@ std::string _getFile(std::string disp)
     return (path);
 }
 
-int main()
-{
+
+// int main()
+// {
     // std::string t = "Content-Type: text/html; charset=UTF-8";
     // std::string b = "Content-Type: multipart/form-data; boundary=---------------------------974767299852498929531610575";
     // std::string k = "";
@@ -190,7 +194,7 @@ int main()
     //     std::cout << "Cdisp = " << it->Cdisp << "\n";
     // }
 
-    std::string t = "\r\n";
+    /*std::string t = "\r\n";
     t += "----------------------------eb32ead89fa23a33\r\n";
     _regex = "----------------------------eb32ead89fa23a33\r\n";
     _regex.pop_back();
@@ -214,7 +218,7 @@ int main()
     {
         // _appendToVec(_line);
         _addToVec(_line);
-        /*std::regex re(s);
+        std::regex re(s);
         std::smatch match;
 
         std::regex_search(t, match, re);
@@ -228,7 +232,7 @@ int main()
 
         std::regex_search(t, m, r);
         if (m.prefix().length())
-            std::cout << "preffix = " << m.prefix() << "\n";*/
+            std::cout << "preffix = " << m.prefix() << "\n";
         // std::cout << "_line = " << _line << "\n";
     }
     std::cout << "s = " << _vec.size() << std::endl;
@@ -248,11 +252,99 @@ int main()
         // std::cout << "filename = " << _file << std::endl;
     }
 
-    std::string _Cdisp = "form-data; name=\"myfile\"; filename=\"commanf.txt\"";
+    std::string _Cdisp = "form-data; name=\"myfile\"; filename=\"commanf.txt\"";*/
     // std::string p = g.substr(0, g.find("filename") + 11);
     // std::string type = _Cdisp.substr(_Cdisp.find("filename=\"") + 10,
 	// _Cdisp.length() - _Cdisp.substr(0, _Cdisp.find("filename") + 11).length());
     // std::cout << "size = " << g.length() - p.length() << std::endl;
     // std::cout << "size = " << p << std::endl;
     // std::cout << type << std::endl;
+    /*DIR *dir;
+    struct dirent *pDirent;
+
+    if (!(dir = opendir(_getCurrentDir().c_str())))
+        std::cout << "hey\n";
+    while ((pDirent = readdir(dir)) != NULL)
+    {
+		if (pDirent->d_type == DT_DIR)
+			std::cout << pDirent->d_name << "/" << std::endl;
+		else
+        	std::cout << pDirent->d_name << std::endl;
+    }
+
+    closedir(dir);*/
+//}
+
+
+std::string _getCurrentDir()
+{
+	char buff[1024];
+
+	getcwd(buff, sizeof(buff));
+
+	return buff;
+}
+
+std::string _generateHtml()
+{
+	return "<!DOCTYPE html>\n\
+<html lang=\"en\">\n\
+<head>\n\
+    <meta charset=\"UTF-8\">\n\
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n\
+    <title>WebServer</title>\n\
+</head>\n\
+<body>\n\
+		$2\n\
+        $1\n\
+</body>\n\
+</html>\n\
+";
+}
+
+std::string _getLink(std::string& dirname)
+{
+	std::stringstream ss;
+
+	ss << "<p><a href=\"" << dirname + "\">" + dirname + "</a></p>\n\t\t";
+	return ss.str();
+}
+
+int main()
+{
+	DIR *dir;
+	struct dirent *pDirent;
+	std::string _data = "";
+	std::string _name = "";
+	std::string _body = "";
+	std::string _uri = "/";
+	std::string _line = "";
+	std::string _index = "<h1>Index of: " + _uri + "</h1>\n\t\t</pre><hr/>";
+
+	_body.append(_generateHtml());
+	_body.replace(_body.find("$2"), 2, _index);
+	// _body.append("<h1>Index of: " + _uri + "</h1>\n<hr />\n<pre>");
+	dir = opendir(_getCurrentDir().c_str());
+	if (dir)
+	{
+		while ((pDirent = readdir(dir)))
+		{
+			_name = pDirent->d_name;
+			if (pDirent->d_type == DT_DIR)
+				_name += "/";
+			_data.append(_getLink(_name));
+		}
+	}
+	// _data.pop_back();
+	_data.append("</pre><hr />");
+	_body.replace(_body.find("$1"), 2, _data);
+
+	std::ofstream file("test.html");
+	std::istringstream ss(_body);
+	while (getline(ss, _line))
+	{
+		file << _line;
+		file << std::endl;
+	}
+	std::cout << _getCurrentDir().back() << std::endl;
 }

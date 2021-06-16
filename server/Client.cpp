@@ -33,7 +33,7 @@ void	Client::_handleResponse(Request req)
 
 void Client::_handleRequest(std::vector<HttpServer>::iterator it)
 {
-	Request req;
+	Request req(it);
 
 	std::cout << content << std::endl;
 	req._parseIncomingRequest(content);

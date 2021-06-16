@@ -19,28 +19,51 @@ void Response::_setRequest(Request& req)
     _request = req;
 }
 
+void Response::_setLocation(Location& location)
+{
+    _location = location;
+}
+
+Location Response::_getLocation() const
+{
+    return _location;
+}
+
 std::string Response::_getDir(void)
 {
     char buff[1024];
     std::string dir = "";
+	std::vector<HttpServer>::iterator it = _request._getIterator();
 
     if (!getcwd(buff, sizeof(buff)))
         std::cerr << "getcwd failed" << std::endl;
     else
+	{
         dir = std::string(buff);
+		// if there is a location path
+		// dir.append(location.getRoot());
+		// else
+		// dir.append(defaultLocation);
+	}
     return (dir);
 }
 
-std::string Response::_getFilePath(const std::string& uri)
+std::string Response::_getFilePath(std::string& uri)
 {
-    std::string path = "";
+    std::string path = ""; 
     path = _getDir();
-    path.append("/server/_dhtml");
-	if (uri.compare("/") == 0)
-    	path.append("/index.html");
-	else
-    	path.append(uri);
+	if (uri.front() != "/")
+		uri = "/" + uri;
+    path.append(uri);
     return (path);
+}
+
+std::string Response::_getFileNameFromUri(std::string uri)
+{
+	// Parse filename from uri
+	// then check if filename match any of locations spicified in the config file
+	// if true break and return the filename
+    return "/index.html";
 }
 
 void Response::_readFile(const std::string& file)
@@ -69,11 +92,20 @@ void Response::_readFile(const std::string& file)
 
 void Response::_applyGetMethod()
 {
-    std::string path = _getFilePath(_request._getHeaderContent("uri"));
-	if (_checkPermission(path, R_OK))
-		_handleError();
+    std::string path = _getFilePath(_getFileNameFromUri(_request._getHeaderContent("uri")));
+	// if (_checkPermission(path, R_OK))
+	//	_handleError();
+	// else
+    //	_readFile(path);
+	if (_isDir(path))
+	{
+		// check if loaction->autoIndex == true
+			// _applyAutoIndexin();
+		// else
+			// _status = ST_NOT_FOUND;
+	}
 	else
-    	_readFile(path);
+		_readFile(path);
 }
 
 std::string Response::_getFileNameFromDisp(std::string disp)
@@ -115,19 +147,26 @@ void Response::_applyPostMethod()
     {
         Request::ArgContent arg = _request._getArg(i);
         _filename = _getFileNameFromDisp(arg._Cdisp);
-        _dir = _getDir().append("/").append(_filename);
-        std::ofstream _file(_dir);
-		// std::cout << "_data = " << arg._data; 
-        // _file << arg._data;
-        std::istringstream ss(arg._data);
+        if (_filename.length())
+        {
+			_dir = _getDir().append("/").append(_filename);
+			std::ofstream _file(_dir);
+			// std::cout << "_data = " << arg._data; 
+			// _file << arg._data;
+			std::istringstream ss(arg._data);
 
-        while (getline(ss, _line)) {
-            _file << _line.substr(0, _line.find("\r\n")).append("\n");
-        }
-        _file.close();
-    }
-    _body += "File uploaded";
-    _status = S_OK;
+			while (getline(ss, _line)) {
+				_file << _line.substr(0, _line.find("\r\n")).append("\n");
+			}
+			_file.close();
+		}
+	}
+	_body = "<html>\r\n";
+	_body += "	<body>\r\n";
+	_body += "		<h1>File uploaded.</h1>\r\n";
+	_body += "	</body>\r\n";
+	_body += "</html>\r\n";
+	_status = S_OK;
 }
 
 int Response::_checkPermission(std::string path, int mode)
@@ -173,10 +212,98 @@ void Response::_applyDeleteMethod()
         _body += "</html>\r\n";
 		_status = S_OK;
     }
+	/*if (_isDir(path))
+	{
+		// _status = ST_NOT_ALLOWED
+		// throw Exeption
+	}
+	else
+		_deleteFile(path);
+	*/
 }
 
-void Response::_applyMethod()
+std::string Response::_generateHtmlTemplate()
 {
+	return "<!DOCTYPE html>\n\
+<html lang=\"en\">\n\
+<head>\n\
+    <meta charset=\"UTF-8\">\n\
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n\
+    <title>WebServer</title>\n\
+</head>\n\
+<body>\n\
+		$2\n\
+        $1\n\
+</body>\n\
+</html>\n";
+}
+
+std::string Response::_getHrefLink(std::string& dirname)
+{
+	std::stringstream ss;
+
+	ss << "<p><a href=\"" + dirname + "\">" + dirname + "</p></a>\n\t\t";
+	return ss.str();
+}
+
+int Response::_isDir(std::string& dirname)
+{
+	std::string _dir = _getDir();
+	if (dirname.front() != '/')
+		_dir += "/";
+	_dir += dirname;
+	if (!(opendir(_dir.c_str())))
+		return 0;
+	return 1;
+}
+
+void	Response::_applyAutoIndexing()
+{
+	DIR *dir;
+	struct dirent *pDirent;
+	std::string _line = "";
+	std::string _name = "";
+	std::string _uri = "/";
+	std::string _data = "";
+	std::string _index = "<h1>Index of: " + _uri + "</h1>\n\t\t<hr/>";
+
+	_body.append(_generateHtmlTemplate());
+	_body.replace(_body.find("$2"), 2, _index);
+	if ((dir = opendir(_request._getHeaderContent("uri").c_str())))
+	{
+		while ((pDirent = readdir(dir)))
+		{
+			_name = pDirent->d_name;
+			if (pDirent->d_type == DT_DIR)
+				_name += "/";
+			_data.append(_getHrefLink(_name));
+		}
+	}
+	_body.replace(_body.find("$1"), 2, _data);
+
+	if (DEBUG_MODE)
+	{
+		std::ofstream file("test.html");
+		std::istringstream ss(_body);
+
+		while (getline(ss, _line))
+		{
+			file << _line;
+			file << std::endl;
+		}
+	}
+}
+
+void	Response::_applyMethod()
+{
+    std::vector<HttpServer>::iterator it = _request._getIterator();
+    std::vector<Location> locations = it->getLocations();
+    std::vector<Location>::iterator lit = locations.begin();
+    for (; lit != locations.end(); lit++)
+    {
+        // if the uri match one of the paths in location
+        // setLocation(*lit);
+    }
     if (_request._getHeaderContent("method").compare("GET") == 0)
         _applyGetMethod();
     else if (_request._getHeaderContent("method").compare("POST") == 0)
@@ -247,22 +374,6 @@ void Response::_startResponse()
         _ResponseContent += "keep-alive";
     _ResponseContent += "\r\n\r\n";
     _ResponseContent += _body;
-    // _body
-    // _ResponseContent.append(_request._getProtocol());
-    // _ResponseContent += _request._getProtocol();
-    // // _ResponseContent.append(" ");
-    // _ResponseContent += " ";
-    // // _ResponseContent.append(std::to_string(_status));
-    // _ResponseContent += std::to_string(_status);
-    // _ResponseContent += " ";
-    // // _ResponseContent.append(_stResp[_status]);
-    // _makeStatus();
-    // _ResponseContent +=  _stResp[_status];
-    // std::cout << "p = " << _ResponseContent << "\n";
-    // std::cout << "OK\n";
-    // HTTP/1.1 
-    // _ResponseContent = "HTTP/1.1 200 OK\r\nContent-Length: 10\r\n\r\nhello worl";
-    // std::cout << _ResponseContent << std::endl;
 }
 
 std::string Response::_getResContent() const

@@ -7,6 +7,7 @@
 # include <sstream>
 # include <map>
 # include <string>
+# include "../server/Client.hpp"
 
 class Request {
     public:
@@ -15,7 +16,7 @@ class Request {
 			std::string _Ctype;
 			std::string _data;
         };
-        Request();
+        Request(std::vector<HttpServer>::iterator it);
         ~Request();
         int _fd;
         void _parseIncomingRequest(const std::string& _buffer);
@@ -33,6 +34,7 @@ class Request {
         void _printArg();
         bool _isPrefix(std::string& s1, std::string& s2);
         bool _matchBegin(std::string& _regex, std::string& _line);
+        std::vector<HttpServer>::iterator _getIterator() const;
     private:
         bool            _isDone;
         std::string _Host;
@@ -53,6 +55,7 @@ class Request {
         int _lenArg;
         std::string _boundary;
         std::string _body;
+        std::vector<HttpServer>::iterator _it;
 };
 
 #endif

@@ -1,7 +1,7 @@
 #include "Request.hpp"
 #include <regex>
 
-Request::Request()
+Request::Request(std::vector<HttpServer>::iterator it)
 {
 	this->_Host = "";
 	this->_method = "";
@@ -16,6 +16,7 @@ Request::Request()
 	_lenArg = 0;
 	_isArg = false;
 	_boundary = "";
+	_it = it;
 }
 
 Request::~Request()
@@ -32,6 +33,11 @@ Request::~Request()
 	this->_Conn = "";
 	_body = "";
 	_aCont.clear();
+}
+
+std::vector<HttpServer>::iterator Request::_getIterator() const
+{
+	return _it;
 }
 
 const std::string& Request::_getMethod() const {
