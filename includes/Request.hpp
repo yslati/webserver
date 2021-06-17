@@ -20,7 +20,7 @@ class Request {
         Request();
         ~Request();
         int _fd;
-        void _setIterator(std::vector<HttpServer>::iterator it);
+        void _setIterator(std::vector<HttpServer>::iterator& it);
         void _parseIncomingRequest(const std::string& _buffer);
         void _parseLine(const std::string& _line);
         const std::string& _getMethod() const;

@@ -36,7 +36,7 @@
 class Response {
     private:
         Request _request;
-        Location _location;
+        Location& _location;
         size_t  _status;
         std::string _body;
         std::string _ResponseContent;
@@ -50,7 +50,14 @@ class Response {
                     return "Not Implemented";
                 } 
         };
-        Response();
+        class PermissionDiend: public std::exception
+        {
+            public:
+                virtual const char* what() const throw() {
+                    return "Permission Diend";
+                } 
+        };
+        Response(Location& location);
         ~Response();
 
         // THE RESPONSE CODE GOES HERE
@@ -60,6 +67,7 @@ class Response {
         Location _getLocation() const;
         void _startResponse();
         void _applyMethod();
+        void _handleRedirect();
         int _checkAllowedMethod(std::string method);
         std::string _getResContent() const;
         void _makeStatus();
@@ -81,7 +89,7 @@ class Response {
         // DELETE METHOD member
         void _applyDeleteMethod();
 		void _generateErrorPage();
-        void _deleteFile(std::string _file) {}
+        void _deleteFile(std::string _file);
 
 };
 

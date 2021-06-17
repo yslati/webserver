@@ -21,9 +21,29 @@ bool	Client::getReady()
     return this->_ready;
 }
 
-void	Client::_handleResponse(Request req)
+bool	Client::_matchBegin(std::string _regex, std::string _line)
 {
-	Response res;
+	std::string _r = _regex;
+	_r.pop_back();
+
+	return _line.compare(0, _r.size(), _r) == 0;
+}
+
+void	Client::_handleResponse(Request req, std::vector<HttpServer>::iterator it)
+{
+	std::vector<Location> Locations = it->getLocations();
+	std::vector<Location>::iterator lit = Locations.begin();
+	Location tmp;
+	for (; lit != Locations.end(); lit++)
+	{
+		if (_matchBegin(req._getHeaderContent("uri"), lit->getUri())
+		|| (lit->getUri().length() < req._getHeaderContent("uri").length()))
+		{
+			tmp = *lit;
+			break ;
+		}
+	}
+	Response res(tmp);
 
 	res._setRequest(req);
 	res._startResponse();
@@ -38,7 +58,7 @@ void Client::_handleRequest(std::vector<HttpServer>::iterator it)
         req._setIterator(it);
 	std::cout << content << std::endl;
 	req._parseIncomingRequest(content);
-	_handleResponse(req);
+	_handleResponse(req, it);
 }
 
 void	Client::setReady(bool x) {

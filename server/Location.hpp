@@ -3,9 +3,12 @@
 # include <iostream>
 # include <vector>
 
+
 class Location {
 	public:
 		Location();
+		Location(Location const& rhs);
+		~Location();
 
 		void			setUri(std::string const& x);
 		void			setRoot(std::string const& x);

@@ -1,11 +1,12 @@
 #include "Response.hpp"
 #include <regex>
 
-Response::Response()
+Response::Response(Location& location): _location(location)
 {
     _body = "";
     _ResponseContent = "";
     _status = 0;
+	// _location = new Location();
 }
 
 Response::~Response()
@@ -88,6 +89,7 @@ std::string Response::_getFileNameFromUri(std::string uri)
 	// if true break and return the filename
 	// if (_exist)
 		// return (filename);
+	// std::cout << "index = " << _location.getIndex() << std::endl;
     return (filename.append(_location.getIndex()));
 }
 
@@ -128,6 +130,8 @@ void Response::_applyGetMethod()
 	std::cout << "path = " << path << std::endl;
 	if (_isDir(path))
 	{
+		// std::cout  << "path = " << path << "\n";
+		// std::cout  << "bool = " << _location.getAutoIndex() << "\n";
 		if (_location.getAutoIndex())
 			_applyAutoIndexing(path);
 		else
@@ -135,7 +139,7 @@ void Response::_applyGetMethod()
 	}
 	else if (!_checkPermission(path, R_OK))
 		_readFile(path);
-	std::cout << _body << std::endl;
+	// std::cout << _body << std::endl;
 }
 
 std::string Response::_getFileNameFromDisp(std::string disp)
@@ -201,48 +205,78 @@ int Response::_checkPermission(std::string path, int mode)
 
 void	Response::_generateErrorPage()
 {
-	_body += "<html>\r\n";
-	_body += "<head>\r\n";
-	_body += "	<title>$1</title>\r\n";
-	_body += "</head>\r\n";
-	_body += "<body>\r\n";
-	_body += "	<center>\r\n";
-	_body += "		<h1>$1</h1>\r\n";
-	_body += "	</center>\r\n";
-	_body += "	<hr>\r\n";
-	_body += "	<center>webserv/0.0</center>\r\n";
-	_body += "</body>\r\n";
-	_body += "</html>\r\n";
+	_body = "<html>\n";
+	_body += "<head>\n";
+	_body += "	<title>$1</title>\n";
+	_body += "</head>\n";
+	_body += "<body>\n";
+	_body += "	<center>\n";
+	_body += "		<h1>";
+	_body += "$1";
+	_body += "</h1>\n";
+	_body += "	</center>\n";
+	_body += "	<hr>\n";
+	_body += "	<center>webserv/0.0</center>\n";
+	_body += "</body>\n";
+	_body += "</html>\n";
 	_body.replace(_body.find("$1"), 2, _stResp[_status]);
+	_body.replace(_body.find("$1"), 2, _stResp[_status]);
+}
+
+void Response::_deleteFile(std::string _file)
+{
+	// if (_checkPermission(_file, W_OK))
+	// 	throw Response::PermissionDiend();
+	if (!(std::remove(_file.c_str())))
+	{
+		_status = S_METHOD_NOT_ALLOWED;
+		std::cout << "file not found\n";
+	}
+	else
+	{
+		_body = "<html>\r\n";
+		_body += "	<body>\r\n";
+		_body += "		<h1>File deleted.</h1>\r\n";
+		_body += "	</body>\r\n";
+		_body += "</html>\r\n";
+		_status = S_OK;
+	}
 }
 
 void Response::_applyDeleteMethod()
 {
     std::string path = _getFilePath(_request._getHeaderContent("uri"));
-    if (_checkPermission(path, W_OK))
+
+    // if (_checkPermission(path, W_OK))
+	// {
+	// 	_status = S_METHOD_NOT_ALLOWED;
+    //     _generateErrorPage();
+	// }
+    // else
+    // {
+	// 	remove(path.c_str());
+    //     _body = "<html>\r\n";
+    //     _body += "	<body>\r\n";
+    //     _body += "		<h1>File deleted.</h1>\r\n";
+    //     _body += "	</body>\r\n";
+    //     _body += "</html>\r\n";
+	// 	_status = S_OK;
+    // }
+	if (_isDir(path))
 	{
-		_status = S_METHOD_NOT_ALLOWED;
-        _generateErrorPage();
-	}
-    else
-    {
-		remove(path.c_str());
-        _body = "<html>\r\n";
-        _body += "	<body>\r\n";
-        _body += "		<h1>File deleted.</h1>\r\n";
-        _body += "	</body>\r\n";
-        _body += "</html>\r\n";
-		_status = S_OK;
-    }
-	/*if (_isDir(path))
-	{
-		// _status = ST_NOT_ALLOWED
-		// throw Exeption
+		_status = S_FORBIDDEN;
+		// if (file.error)
+		// 	_body = contentHtml;
+		// else
+		_generateErrorPage();
+		std::cout << _body << std::endl;
+		// if ()
 	}
 	else
 		_deleteFile(path);
-	*/
+	
 }
+
 
 std::string Response::_generateHtmlTemplate()
 {
@@ -316,7 +350,7 @@ void	Response::_applyAutoIndexing(std::string _dir)
 			file << std::endl;
 		}
 	}
-	std::cout << _body << std::endl;
+	// std::cout << _body << std::endl;
 }
 
 bool	Response::_matchBegin(std::string _regex, std::string _line)
@@ -339,29 +373,51 @@ int		Response::_checkAllowedMethod(std::string method)
 	return (0);
 }
 
+void	Response::_handleRedirect()
+{
+}
+
 void	Response::_applyMethod()
 {
-    std::vector<HttpServer>::iterator it = _request._getIterator();
-    std::vector<Location> locations = it->getLocations();
-    std::vector<Location>::iterator lit = locations.begin();
-    for (; lit != locations.end(); lit++)
-    {
-        // if the uri match one of the paths in location
-        // setLocation(*lit);
-        if (_matchBegin(_request._getHeaderContent("uri"), lit->getUri()))
-            _setLocation(*lit);
+    // std::vector<HttpServer>::iterator it = _request._getIterator();
+    // std::vector<Location> locations = it->getLocations();
+    // std::vector<Location>::iterator lit = locations.begin();
+    // for (; lit != locations.end(); lit++)
+    // {
+    //     // if the uri match one of the paths in location
+    //     // setLocation(*lit);
+    //     if (_matchBegin(_request._getHeaderContent("uri"), _location.getUri()))
+	// 	{
+    //         _setLocation(*lit);
+	// 	}
+	// 	else if (_location.getUri().length() < _request._getHeaderContent("uri").length())
+	// 	{
+	// 		// (*lit).checkVal();
+	// 		_setLocation(*lit);
+	// 	}
         // if (_request._getHeaderContent("uri").compare(lit->getUri()) == 0)
-    }
+		// {
+		// 	std::cout << "uri = " << _request._getHeaderContent("uri") << "\n";
+		// 	std::cout << "_location.uri = " << lit->getUri() << "\n";
+		// }
+    // }
+	// std::cout << "method = " << _request._getHeaderContent("method") << "\n";
+	// std::cout << "_bool = " << _checkAllowedMethod("DELETE") << "\n";
 	// std::cout << "uri = " << _getLocation().getUri() << std::endl;
 	// std::cout << "my_uri = " << _request._getHeaderContent("uri") << std::endl;
-	if (_request._getHeaderContent("method").compare("GET") == 0)
+	if (_location.getIsRedirect())
+		_handleRedirect();
+	else if (_request._getHeaderContent("method").compare("GET") == 0)
 		_applyGetMethod();
 	// else if (_request._getHeaderContent("method").compare("POST") == 0
 	// && _checkAllowedMethod("POST"))
 	// 	_applyPostMethod();
-	// else if (_request._getHeaderContent("method").compare("DELETE") == 0
-	// && _checkAllowedMethod("DELETE"))
-	// 	_applyDeleteMethod();
+	else if (_request._getHeaderContent("method").compare("DELETE") == 0
+	&& _checkAllowedMethod("DELETE"))
+	{
+		std::cout << "here" << "\n";
+		_applyDeleteMethod();
+	}
 	else
 		_status = S_NOT_IMPLEMENTED;
 	if (_status != S_OK)
@@ -390,8 +446,8 @@ void Response::_makeStatus()
 
 void Response::_startResponse()
 {
-    _applyMethod();
 	_makeStatus();
+    _applyMethod();
     std::string _data;
 
     _data = _request._getHeaderContent("protocol");

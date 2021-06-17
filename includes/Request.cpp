@@ -34,7 +34,7 @@ Request::~Request()
 	_aCont.clear();
 }
 
-void Request::_setIterator(std::vector<HttpServer>::iterator it)
+void Request::_setIterator(std::vector<HttpServer>::iterator& it)
 {
 	_it = it;
 }

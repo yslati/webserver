@@ -7,6 +7,15 @@ Location::Location() {
     _is_redirect = false;
 }
 
+Location::Location(Location const & rhs)
+{
+    *this = rhs;
+}
+
+Location::~Location() {
+    
+}
+
 void		Location::setUri(std::string const& x) {	_uri = x; }
 void		Location::setRoot(std::string const& x) {	_root = x; }
 void		Location::setIndex(std::string const& x) {	_index = x; }

@@ -25,7 +25,8 @@ class Client {
         struct pollfd getPfd();
         std::string getResponseContent();
         void _handleRequest(std::vector<HttpServer>::iterator it);
-        void _handleResponse(Request req);
+        void _handleResponse(Request req, std::vector<HttpServer>::iterator it);
+        bool	_matchBegin(std::string _regex, std::string _line);
 	~Client();
     private:
 	int sended;
