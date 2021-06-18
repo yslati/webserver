@@ -14,11 +14,18 @@ HttpServer::HttpServer(HttpServer const& src) {
     *this = src;
 }
 
+std::string HttpServer::_getErrorPages(int st)
+{
+    return _errors[st];
+}
+
 HttpServer& HttpServer::operator=(HttpServer const& rhs) {
     if (this != &rhs) {
         _port = rhs._port;
         _server_name = rhs._server_name;
         _host = rhs._host;
+        _root = rhs._root;
+        _maxBodySize = rhs._maxBodySize;
         // methods
         for(int i = 0; i < rhs._allowed_methods.size(); i++) {
             _allowed_methods.push_back(rhs._allowed_methods[i]);
@@ -41,6 +48,7 @@ void	HttpServer::checkVal() const {
         // std::cout << _allowed_methods[0] << " ";
     std::cout << "\t\thost: " << _host << std::endl;
     std::cout << "\t\troot: " << _root << std::endl;
+    std::cout << "\t\tmax_body_size: " << _maxBodySize << std::endl;
     std::cout << "============================" << std::endl;
 }
 

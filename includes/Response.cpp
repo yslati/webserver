@@ -1,18 +1,34 @@
 #include "Response.hpp"
 #include <regex>
 
-Response::Response(Location& location): _location(location)
+Response::Response(Location& location, HttpServer& httpServ): _location(location), _httpServ(httpServ)
 {
+	std::cout << "wa si = " << _location.getRoot() << std::endl;
     _body = "";
     _ResponseContent = "";
     _status = 0;
-	// _location = new Location();
+}
+
+Response& Response::operator=(Response const & rhs)
+{
+	if (this != &rhs)
+	{
+		_location = rhs._location;
+		_httpServ = rhs._httpServ;
+	}
+	return *this;
+}
+
+Response::Response(Response const & rhs) : _location(rhs._location),  _httpServ(rhs._httpServ)
+{
+	*this = rhs;
 }
 
 Response::~Response()
 {
-    _body = "";
-    _ResponseContent = "";
+    _body.clear();
+    _ResponseContent.clear();
+	_stResp.clear();
 }
 
 void Response::_setRequest(Request& req)
@@ -30,6 +46,15 @@ Location Response::_getLocation() const
     return _location;
 }
 
+int		Response::_isCGI()
+{
+	return (1);
+}
+
+void	Response::_handleCGI()
+{
+}
+
 std::string Response::_getDir(void)
 {
     char buff[1024];
@@ -42,6 +67,7 @@ std::string Response::_getDir(void)
 	{
         dir = std::string(buff);
 		// if there is a location path
+		std::cout << "hnaya = " << _location.getRoot() << "\n";
 		if (_location.getRoot().length())
 		{
 			if (_location.getRoot().front() != '/')
@@ -51,11 +77,11 @@ std::string Response::_getDir(void)
 		else
 		{
 			std::cout << "rootDefault = " <<
-			_request._getIterator()->getRoot() << "\n";
-			if (_request._getIterator()->getRoot().length() &&
-			_request._getIterator()->getRoot().front() != '/')
+			_httpServ.getRoot() << "\n";
+			if (_httpServ.getRoot().length() &&
+			_httpServ.getRoot().front() != '/')
 				dir += "/";
-			dir.append(_request._getIterator()->getRoot());
+			dir.append(_httpServ.getRoot());
 		}
 	}
     return (dir);
@@ -262,15 +288,18 @@ void Response::_applyDeleteMethod()
     //     _body += "</html>\r\n";
 	// 	_status = S_OK;
     // }
+	std::cout << "dir = " << path << "\n";
 	if (_isDir(path))
 	{
 		_status = S_FORBIDDEN;
-		// if (file.error)
-		// 	_body = contentHtml;
-		// else
-		_generateErrorPage();
+		if (_httpServ._getErrorPages(_status).length())
+		{
+			std::cout << "path_err = " << _httpServ._getErrorPages(_status) << "\n";
+			_readFile(_httpServ._getErrorPages(_status));
+		}
+		else
+			_generateErrorPage();
 		std::cout << _body << std::endl;
-		// if ()
 	}
 	else
 		_deleteFile(path);
@@ -375,6 +404,8 @@ int		Response::_checkAllowedMethod(std::string method)
 
 void	Response::_handleRedirect()
 {
+	_status = S_MOVED_PERM;
+
 }
 
 void	Response::_applyMethod()
@@ -405,14 +436,25 @@ void	Response::_applyMethod()
 	// std::cout << "_bool = " << _checkAllowedMethod("DELETE") << "\n";
 	// std::cout << "uri = " << _getLocation().getUri() << std::endl;
 	// std::cout << "my_uri = " << _request._getHeaderContent("uri") << std::endl;
-	if (_location.getIsRedirect())
-		_handleRedirect();
-	else if (_request._getHeaderContent("method").compare("GET") == 0)
-		_applyGetMethod();
+	// if (_location.getIsRedirect())
+	// 	_handleRedirect();
+	// else if (_request._getError())
+	// {
+	// 	_status = S_BAD_REQ;
+	// }
+	// else if (_httpServ.getMaxBodySize() != -1
+	// && _request._getContentLen() > _httpServ.getMaxBodySize())
+	// {
+	// 	_status = S_PAY_LOAD_TOO_LARGE;
+	// }
+	// else if (_isCGI())
+	// 	_handleCGI();
+	// else if (_request._getHeaderContent("method").compare("GET") == 0)
+	// 	_applyGetMethod();
 	// else if (_request._getHeaderContent("method").compare("POST") == 0
 	// && _checkAllowedMethod("POST"))
 	// 	_applyPostMethod();
-	else if (_request._getHeaderContent("method").compare("DELETE") == 0
+	if (_request._getHeaderContent("method").compare("DELETE") == 0
 	&& _checkAllowedMethod("DELETE"))
 	{
 		std::cout << "here" << "\n";
@@ -463,25 +505,30 @@ void Response::_startResponse()
     _ResponseContent += " ";
 	_ResponseContent += _stResp[_status];
 	_ResponseContent += "\r\n";
-	_ResponseContent += "Server: ";
-	_ResponseContent += " webserv/0.0\r\n";
-	if (_request._getHeaderContent("Content-Type").length())
-		_ResponseContent += _request._getHeaderContent("Content-Type");
+	if (_location.getIsRedirect())
+		_ResponseContent += _location.getRedirectUrl();
 	else
-		_ResponseContent += "Content-Type: text/html";
-	_ResponseContent += "\r\n";
-    _ResponseContent += "Content-Length: ";
-    _ResponseContent += std::to_string(_body.length());
-	_ResponseContent += "\r\n";
-	_ResponseContent += "Connection: ";
-	if (_request._getHeaderContent("Connection").length())
-		_ResponseContent += _request._getHeaderContent("Connection");
-	else if (_status != S_OK)
-		_ResponseContent += "close";
-    else
-        _ResponseContent += "keep-alive";
-    _ResponseContent += "\r\n\r\n";
-    _ResponseContent += _body;
+	{
+		_ResponseContent += "Server: ";
+		_ResponseContent += " webserv/0.0\r\n";
+		if (_request._getHeaderContent("Content-Type").length())
+			_ResponseContent += _request._getHeaderContent("Content-Type");
+		else
+			_ResponseContent += "Content-Type: text/html";
+		_ResponseContent += "\r\n";
+		_ResponseContent += "Content-Length: ";
+		_ResponseContent += std::to_string(_body.length());
+		_ResponseContent += "\r\n";
+		_ResponseContent += "Connection: ";
+		if (_request._getHeaderContent("Connection").length())
+			_ResponseContent += _request._getHeaderContent("Connection");
+		else if (_status != S_OK)
+			_ResponseContent += "close";
+		else
+			_ResponseContent += "keep-alive";
+		_ResponseContent += "\r\n\r\n";
+		_ResponseContent += _body;
+	}
 }
 
 std::string Response::_getResContent() const

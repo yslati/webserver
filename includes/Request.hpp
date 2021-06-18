@@ -20,7 +20,6 @@ class Request {
         Request();
         ~Request();
         int _fd;
-        void _setIterator(std::vector<HttpServer>::iterator& it);
         void _parseIncomingRequest(const std::string& _buffer);
         void _parseLine(const std::string& _line);
         const std::string& _getMethod() const;
@@ -36,7 +35,9 @@ class Request {
         void _printArg();
         bool _isPrefix(std::string& s1, std::string& s2);
         bool _matchBegin(std::string& _regex, std::string& _line);
-        std::vector<HttpServer>::iterator _getIterator() const;
+        int _getContentLen();
+        int _getError();
+        std::string _getCgiUriFile() const { return "hey"; }
     private:
         bool            _isDone;
         std::string _Host;
@@ -58,6 +59,7 @@ class Request {
         std::string _boundary;
         std::string _body;
         std::vector<HttpServer>::iterator _it;
+        int _error;
 };
 
 #endif

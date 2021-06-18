@@ -41,6 +41,7 @@ class HttpServer {
 		int getFd() const;
 
 		std::vector<Location> getLocations();
+		std::string _getErrorPages(int st);
 		// -----------------------------SETTERS-------------------------
 		void	setServerName(std::string const& x);
 

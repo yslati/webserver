@@ -3,46 +3,47 @@
 
 Request::Request()
 {
-	this->_Host = "";
-	this->_method = "";
-	this->_uri = "";
-	this->_protocol = "";
-	this->_Server = "";
-	this->_Ctype = "";
-	this->_Atype = "";
-	this->_Cdisp = "";
-	this->_Clen = 0;
-	this->_Conn = "";
+	_Host = "";
+	_method = "";
+	_uri = "";
+	_protocol = "";
+	_Server = "";
+	_Ctype = "";
+	_Atype = "";
+	_Cdisp = "";
+	_Clen = 0;
+	_Conn = "";
 	_lenArg = 0;
 	_isArg = false;
 	_boundary = "";
+	_error = 0;
 }
 
 Request::~Request()
 {
-	this->_Host = "";
-	this->_method = "";
-	this->_uri = "";
-	this->_protocol = "";
-	this->_Server = "";
-	this->_Ctype = "";
-	this->_Atype = "";
-	this->_Cdisp = "";
-	this->_Clen = 0;
-	this->_Conn = "";
-	_body = "";
+	_Host.clear();
+	_method.clear();
+	_uri.clear();
+	_protocol.clear();
+	_Server.clear();
+	_Ctype.clear();
+	_Atype.clear();
+	_Cdisp.clear();
+	_Conn.clear();
+	_body.clear();
 	_aCont.clear();
 }
 
-void Request::_setIterator(std::vector<HttpServer>::iterator& it)
+int		Request::_getError()
 {
-	_it = it;
+	return _error;
 }
 
-std::vector<HttpServer>::iterator Request::_getIterator() const
+int		Request::_getContentLen()
 {
-	return _it;
+	return (_Clen);
 }
+
 
 const std::string& Request::_getMethod() const {
     return this->_method;

@@ -36,14 +36,21 @@ void	Client::_handleResponse(Request req, std::vector<HttpServer>::iterator it)
 	Location tmp;
 	for (; lit != Locations.end(); lit++)
 	{
-		if (_matchBegin(req._getHeaderContent("uri"), lit->getUri())
-		|| (lit->getUri().length() < req._getHeaderContent("uri").length()))
+		if (_matchBegin(req._getHeaderContent("uri"), lit->getUri()))
 		{
+                        std::cout << "machi hna\n";
 			tmp = *lit;
 			break ;
 		}
+                else if (lit->getUri().length() < req._getHeaderContent("uri").length())
+                {
+                        std::cout << "hna = " << req._getHeaderContent("uri") << "\n";
+                        tmp = *lit;
+			break ;
+                }
 	}
-	Response res(tmp);
+	Response res = Response(tmp, *it);
+
 
 	res._setRequest(req);
 	res._startResponse();
@@ -55,7 +62,6 @@ void Client::_handleRequest(std::vector<HttpServer>::iterator it)
 {
 	Request req;
 
-        req._setIterator(it);
 	std::cout << content << std::endl;
 	req._parseIncomingRequest(content);
 	_handleResponse(req, it);

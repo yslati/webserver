@@ -37,6 +37,7 @@ class Response {
     private:
         Request _request;
         Location& _location;
+        HttpServer& _httpServ;
         size_t  _status;
         std::string _body;
         std::string _ResponseContent;
@@ -57,10 +58,14 @@ class Response {
                     return "Permission Diend";
                 } 
         };
-        Response(Location& location);
+        Response(Location& location, HttpServer& httpServ);
+        Response(Response const & rhs);
+        Response& operator=(Response const & rhs);
         ~Response();
 
         // THE RESPONSE CODE GOES HERE
+        void _handleCGI();
+        int _isCGI();
         bool _matchBegin(std::string _regex, std::string _line);
         void _setRequest(Request& req);
         void _setLocation(Location& location);
