@@ -10,6 +10,7 @@
 #include <regex>
 // #include <bits/stdc++.h>
 #include <algorithm>
+#include <cstdlib>
 
 struct Arg {
     std::string _Cdisp;
@@ -57,6 +58,7 @@ bool _IsSuffix(std::string s1, std::string s2)
 			return false;
 	return true;
 }
+
 
 bool _IsPreffix(std::string s1, std::string s2)
 {
@@ -113,6 +115,17 @@ bool _matchBegin(std::string _regex, std::string _line)
     return _line.compare(0, _r.length(), _r) == 0;
 }
 
+bool _matchEnd(std::string s1, std::string s2)
+{
+    int n1 = s1.length(), n2 = s2.length();
+	if (n1 > n2 || !s1.length() || !s2.length())
+		return false;
+	for (int i = 0; i < n1; i++)
+		if (s1[n1 - i - 1] != s2[n2 - i - 1])
+			return false;
+	return true;
+}
+
 void _addToVec(std::string content)
 {
     /*if (_regex.length() && _IsSuffix(_regex, content))
@@ -143,6 +156,23 @@ std::string _getFile(std::string disp)
     return (path);
 }
 
+std::string _getContentType(std::string uri, std::string u)
+{
+    if (_matchEnd(".html", uri))
+        return "text/html";
+    else if (_matchEnd(".css", uri))
+        return "text/css";
+    else if (_matchEnd(".js", uri))
+        return "text/js";
+    else if (_matchEnd(".json", uri))
+        return "application/json";
+    else if (_matchEnd(".xml", uri))
+        return "application/xml";
+    else if (u.compare("some") == 0)
+        return u;
+    else
+        return "text/plain";
+}
 
 // int main()
 // {
@@ -310,6 +340,48 @@ std::string _getLink(std::string& dirname)
 	return ss.str();
 }
 
+int getPostLength(std::string data, std::string boundary)
+{
+	std::string _line = "";
+	std::string body = "";
+	std::istringstream _reader(data);
+	int len = 0;
+	bool _isEmpty = false;
+
+	while (getline(_reader, _line))
+	{
+		if (!_isEmpty && _line.length() == 1)
+			_isEmpty = true;
+		else if (_isEmpty)
+		{
+			if (_line.length())
+				len += _line.length() + 1;
+		}
+	}
+	if (!boundary.length())
+		len--;
+	return (len);
+}
+
+int getLength(std::string data, std::string boundary)
+{
+	std::string _line = "";
+	std::string body = "";
+	std::istringstream _reader(data);
+	bool _isEmpty = false;
+
+	while (getline(_reader, _line))
+	{
+		if (!_isEmpty && _line.length() == 1)
+			_isEmpty = true;
+		else if (_isEmpty)
+			body.append(_line).append("\n");
+	}
+	if (!boundary.length())
+		body.pop_back();
+	return (body.length());
+}
+
 int main()
 {
 	// DIR *dir;
@@ -347,31 +419,92 @@ int main()
 	// 	file << std::endl;
 	// }
 	// std::cout << _getCurrentDir().back() << std::endl;
-    std::string s[3] = {"/", "/dir/", "/d"};
-    std::string uri = "/dir/test";
+    std::string s[3] = {"/d/", "/dir/", "/"};
+    std::string uri = "/";
 	std::string u;
+	std::string path = "";
+	std::string l = uri.substr(0, uri.find_last_of("/"));
 
+	/*std::cout << "l = " << l << "\n";
 	if (uri.compare("/") == 0)
 		u = uri;
-	else
+	else if (uri.back() != '/' && _matchBegin(uri, l))
+		u = uri;
+	else if (uri.back() == '/')
 		u = uri.substr(0, uri.find_last_of("/"));
-	std::cout << u << std::endl;
+	else
+	{
+		int j = 0;
+		for (size_t i = 0; i < uri.size(); i++)
+		{
+			if (uri[i] == '/')
+				j++;
+		}
+		if (j != 0 && j != 1)
+			u = uri.substr(0, uri.find_last_of("/"));
+		else
+			u = uri;
+	}
+	std::cout << "u = " << u << std::endl;*/
     for (size_t i = 0; i < 3; i++)
     {
-        if (s[i].compare(u) == 0)
-        {
+        //if (s[i].compare(u) == 0)
+        //{
             // if (s[i].length() < s[i + 1].length())
-                std::cout << s[i] << "\n";
+                // std::cout << "s[i] = " << s[i] << "\n";
+				//break ;
             // if (i)
-        }
+        //}
+		if (_matchBegin(s[i], uri))
+		{
+			if (s[i].compare(uri) == 0)
+			{
+				path = s[i];
+				break ;
+			}
+			if (path.length() == 0)
+				path = s[i];
+			else if (path.length() < s[i].length())
+				path = s[i];
+		}
     }
+	std::cout << "path = " << path  << "\n";
 
-    std::string body = "HTTP/1.1 200 OK\r\n\
-Server: webserv/0.0\r\n\
-Content-Type: text/html\r\n\
-Content-Length: 501\r\n\
-Connection: keep-alive\r\n\r";
+	std::string t = "\r\n";
+    t += "----------------------------eb32ead89fa23a33\r\n";
+    t += "Content-Disposition: form-data; name=\"fname\"\r\n";
+    t += "\r\n";
+    t += "Content-Type: text/plain\r\n";
+    t += "ayoub\r\n";
+    t += "----------------------------eb32ead89fa23a33\r\n";
+    t += "Content-Disposition: form-data; filename=\"fname.txt\"\r\n";
+    t += "\r\n";
+    t += "Content-Type: text/ob-stream\r\n";
+    t += "lodush=hayar\r\n";
+    // t += "\r\n";
+    t += "----------------------------eb32ead89fa23a33--\r\n";
+	std::cout << "t.len = " << t.length() << std::endl;
+	std::cout << "t.len1 = " << getPostLength(t, "a") << std::endl;
+	std::cout << "t.len2 = " << getLength(t, "b") << std::endl;
 
+	// std::ofstream ofp;
+	// std::ifstream ifp;
 
-std::cout << "s = " << body.size() << "\n";
+	/*ifp.open("Viva la Vida by Coldplay lyrics - YouTube.mp4", std::ios::binary);
+	ofp.open("myimage.mp4", std::ios::out);
+
+	char buffer;
+
+	if (ifp.is_open())
+	{
+		while (!ifp.eof())
+		{
+			ifp >> std::noskipws >> buffer;
+			std::cout << buffer << std::endl;
+			ofp << buffer;
+		}
+	}
+	ifp.close();
+	ofp.close();
+	*/
 }
