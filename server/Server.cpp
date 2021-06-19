@@ -282,9 +282,9 @@ void Server::acceptConnections() {
                     
                 }
             } else if (fds[i].revents & POLLOUT) {
-                std::string content = "HTTP/1.1 200 OK\r\nContent-Length: 10\r\n\r\nhello world";
+                // std::string content = "HTTP/1.1 200 OK\r\nContent-Length: 10\r\n\r\nhello world";
                 std::cout << "Write" << std::endl;
-                std::cout << _clients[i - _http_servers.size()].getResponseContent() << std::endl;
+                // std::cout << _clients[i - _http_servers.size()].getResponseContent() << std::endl;
                 send(_clients[i - _http_servers.size()].getConnection(),
                 _clients[i - _http_servers.size()].getResponseContent().c_str(),
                 _clients[i - _http_servers.size()].getResponseContent().size(), 0);

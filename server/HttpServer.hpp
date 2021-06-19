@@ -24,7 +24,7 @@ class HttpServer {
 
 
 		// ---------------------------CHECKERS--------------------------
-		void	checkVal() const;
+		void	checkVal();
 
 		// ----------------------------GETTERS--------------------------
 		std::string const& getServerName() const;
@@ -70,6 +70,7 @@ class HttpServer {
 		std::vector<std::string>	_allowed_methods;
 		std::vector<Location> 		_locations;
 		std::map<int, std::string>	_errors;
+		int 						_stcode;
 		int							_fd;
 		struct sockaddr_in			_addr;
 

@@ -18,9 +18,13 @@ class Location {
 		void			setIsRedirect(bool x);
 		void			setStatusCode(int x);
 		void			setRedirectUrl(std::string const& x);
+		void			setIsUploadEnable(bool x);
+		void			setUploadDir(std::string dir);
 
 		bool			getAutoIndex() const;
 		bool			getIsRedirect() const;
+		bool			getIsUploadEnable() const;
+		std::string 	getUploadDir() const;
 		int				getStatusCode() const;
 		std::string		getUri() const;
 		std::string		getRoot() const;
@@ -32,6 +36,8 @@ class Location {
 		void	checkVal();
 
 	private:
+		bool _isUploadEnable;
+		std::string _uploadDir;
 		std::string _uri;
 		std::string _root;
 		std::string _index;

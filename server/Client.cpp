@@ -29,26 +29,81 @@ bool	Client::_matchBegin(std::string _regex, std::string _line)
 	return _line.compare(0, _r.size(), _r) == 0;
 }
 
+bool Client::_isPrefix(std::string& s1, std::string& s2)
+{
+	size_t n1 = s1.length();
+	size_t n2 = s2.length();
+	if (!n1 || !n2)
+		return false;
+	for (int i = 0; i < n1; i++)
+	{
+		if (s1[i] != s2[i])
+		{
+			if (i + 1 == n1)
+				return true;
+			return false;
+		}
+	}
+	return true;
+}
+
+bool 	Client::_isSuffix(std::string s1, std::string s2)
+{
+	int n1 = s1.length(), n2 = s2.length();
+	if (n1 > n2 || !s1.length() || !s2.length())
+		return false;
+	for (int i = 0; i < n1; i++)
+		if (s1[n1 - i - 1] != s2[n2 - i - 1])
+			return false;
+	return true;
+}
+
 void	Client::_handleResponse(Request req, std::vector<HttpServer>::iterator it)
 {
-	std::vector<Location> Locations = it->getLocations();
+    std::vector<Location> Locations = it->getLocations();
 	std::vector<Location>::iterator lit = Locations.begin();
 	Location tmp;
+	std::string u;
+	std::string uri = req._getHeaderContent("uri");
+
+	if (uri.compare("/") == 0)
+		u = req._getHeaderContent("uri");
+	else
+	{
+		u = uri.substr(0, uri.find_last_of("/"));
+		std::cout << "u = " << u << "\n";
+	}
 	for (; lit != Locations.end(); lit++)
 	{
-		if (_matchBegin(req._getHeaderContent("uri"), lit->getUri()))
+		std::string t = lit->getUri();
+		// if (_isPrefix(t, l))
+		// {
+		// if (_matchBegin(req._getHeaderContent("uri"), lit->getUri()))
+		// if (_isSuffix(t, l))
+		// {
+		// 	std::cout << "o-dir = " << lit->getUri() << std::endl;
+		// 	std::cout << "machi hna\n";
+		// 	tmp = *lit;
+		// 	break ;
+		// }
+		// else if (lit->getUri().length() < req._getHeaderContent("uri").length())
+		// {
+		// 	std::cout << "hna = " << req._getHeaderContent("uri") << "\n";
+		// 	std::cout << "hnamydir = " << lit->getUri() << std::endl;
+		// 	tmp = *lit;
+		// 	break ;
+		// }
+		std::cout << "uri = " << uri << "\n";
+		std::cout << "aweldi = " << u << "\n";
+		std::cout << "atanod = " << t << "\n";
+		if (t.compare(u) == 0)
 		{
-                        std::cout << "machi hna\n";
 			tmp = *lit;
 			break ;
 		}
-                else if (lit->getUri().length() < req._getHeaderContent("uri").length())
-                {
-                        std::cout << "hna = " << req._getHeaderContent("uri") << "\n";
-                        tmp = *lit;
-			break ;
-                }
+		// }
 	}
+
 	Response res = Response(tmp, *it);
 
 
@@ -78,6 +133,7 @@ void	Client::setReady(bool x) {
 		{
 			_handleRequest(it);
 			it++;
+			break ;
 		}
 		sended = 0;
 		pfd.events = POLLOUT;

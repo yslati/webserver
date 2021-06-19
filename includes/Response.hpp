@@ -67,6 +67,7 @@ class Response {
         void _handleCGI();
         int _isCGI();
         bool _matchBegin(std::string _regex, std::string _line);
+        bool _isSuffix(std::string s1, std::string s2);
         void _setRequest(Request& req);
         void _setLocation(Location& location);
         Location _getLocation() const;

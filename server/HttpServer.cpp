@@ -3,6 +3,7 @@
 HttpServer::HttpServer() {
     _port = -1;
     _maxBodySize = -1;
+    _stcode = -1;
 }
 
 HttpServer::HttpServer(int port, std::string server_name) {
@@ -26,6 +27,8 @@ HttpServer& HttpServer::operator=(HttpServer const& rhs) {
         _host = rhs._host;
         _root = rhs._root;
         _maxBodySize = rhs._maxBodySize;
+        _stcode = rhs._stcode;
+        _errors = rhs._errors;
         // methods
         for(int i = 0; i < rhs._allowed_methods.size(); i++) {
             _allowed_methods.push_back(rhs._allowed_methods[i]);
@@ -41,14 +44,17 @@ HttpServer& HttpServer::operator=(HttpServer const& rhs) {
 
 
 // ---------------------------CHECKERS--------------------------
-void	HttpServer::checkVal() const {
+void	HttpServer::checkVal() {
     std::cout << "server_name: \t" << _server_name << "\tPort: " << _port << std::endl;
     // std::cout << "allowed_methods: ";
     // for (int i = 0; i < _allowed_methods.size(); i++)
         // std::cout << _allowed_methods[0] << " ";
+
     std::cout << "\t\thost: " << _host << std::endl;
     std::cout << "\t\troot: " << _root << std::endl;
     std::cout << "\t\tmax_body_size: " << _maxBodySize << std::endl;
+    std::cout << "\t\t_stcode = : " << _stcode << std::endl;
+    std::cout << "\t\terr = : " << _errors[_stcode] << std::endl;
     std::cout << "============================" << std::endl;
 }
 
@@ -117,7 +123,10 @@ void	HttpServer::addLocation(Location const& loc) {
 // ----------------------------OVERLOADS-----------------------
 
 void	HttpServer::addErrorPage(int statusCode, std::string path) {
+    _stcode = statusCode;
     _errors.insert(std::pair<int, std::string>(statusCode, path));
+    std::cout << "_val = " << _stcode << "\n";
+	std::cout << "_err = " <<  _errors[_stcode] << "\n";
     // ErrorPage ep(statusCode, path);
     // _error_pages.push_back(ep);
 }

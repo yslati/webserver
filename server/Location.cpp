@@ -5,6 +5,7 @@ Location::Location() {
     _status_code = -1;
     _auto_index = false;
     _is_redirect = false;
+    _isUploadEnable = false;
 }
 
 Location::Location(Location const & rhs)
@@ -15,7 +16,8 @@ Location::Location(Location const & rhs)
 Location::~Location() {
     
 }
-
+void        Location::setIsUploadEnable(bool x) { _isUploadEnable = x; }
+void        Location::setUploadDir(std::string dir) { _uploadDir = dir; }
 void		Location::setUri(std::string const& x) {	_uri = x; }
 void		Location::setRoot(std::string const& x) {	_root = x; }
 void		Location::setIndex(std::string const& x) {	_index = x; }
@@ -33,6 +35,8 @@ void		Location::setRedirectUrl(std::string const& x) {	_redirect_url = x; }
 
 bool		Location::getAutoIndex() const { return (_auto_index); }
 bool		Location::getIsRedirect() const { return (_is_redirect); }
+bool		Location::getIsUploadEnable() const { return (_isUploadEnable); }
+std::string		Location::getUploadDir() const { return (_uploadDir); }
 int			Location::getStatusCode() const { return (_status_code); }
 std::string	Location::getUri() const { return (_uri); }
 std::string	Location::getRoot() const { return (_root); }

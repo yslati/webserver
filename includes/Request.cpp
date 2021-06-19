@@ -239,6 +239,9 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 			_line = "Host";
 			_rmap[_line] = _data.substr(_line.length() + 2
 			, _data.length() - 1);
+			_rmap["port"] = _rmap[_line].substr(_rmap[_line].find(":") + 1,
+			_rmap[_line].length() - 1);
+			_rmap["port"].pop_back();
 			// this->_Host = _data.substr(f + _line.length() + 1
 			// , _data.length() - 1);
 		}
@@ -266,6 +269,7 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 			_line = "Connection";
 			_rmap[_line] = _data.substr(_line.length() + 2,
 			_data.length() - 1);
+			_rmap[_line].pop_back();
 			// this->_Conn = _data.substr(f + _line.length() + 1,
 			// _data.length() - 1);
 		}
@@ -357,15 +361,3 @@ std::vector<Request::ArgContent> Request::_getVecCont() const
 {
 	return _aCont;
 }
-
-// POST / HTTP/1.1
-// Host: localhost
-// Transfer-Encoding: chunked
-
-// A
-// ssssssssss
-// 0
-
-
-// DELETE / HTTP/1.1
-// Host: localhost

@@ -67,6 +67,16 @@ int		pars::parsLocation(int i, int end, HttpServer& srv) {
 				throw "Syntax Error: location: 'redirect_path' duplicated";
 			tmp.setRedirectUrl(_conf[i].substr(_conf[i].find("=") + 1));
 		}
+		else if (_conf[i].compare(0, 13, "upload_enable") == 0) {
+			if (tmp.getIsUploadEnable())
+				throw "Syntax Error: location: 'upload_enable' duplicated";
+			tmp.setIsUploadEnable(true);
+		}
+		else if (_conf[i].compare(0, 12, "upload_store") == 0) {
+			if (tmp.getUploadDir() != "")
+				throw "Syntax Error: location: 'upload_store' duplicated";
+			tmp.setUploadDir(_conf[i].substr(_conf[i].find("=") + 1));
+		}
 	}
 
 	if (tmp.getIsRedirect() == true && (tmp.getStatusCode() == -1 || tmp.getRedirectUrl() == ""))

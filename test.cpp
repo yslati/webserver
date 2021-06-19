@@ -312,39 +312,66 @@ std::string _getLink(std::string& dirname)
 
 int main()
 {
-	DIR *dir;
-	struct dirent *pDirent;
-	std::string _data = "";
-	std::string _name = "";
-	std::string _body = "";
-	std::string _uri = "/";
-	std::string _line = "";
-	std::string _index = "<h1>Index of: " + _uri + "</h1>\n\t\t</pre><hr/>";
+	// DIR *dir;
+	// struct dirent *pDirent;
+	// std::string _data = "";
+	// std::string _name = "";
+	// std::string _body = "";
+	// std::string _uri = "/";
+	// std::string _line = "";
+	// std::string _index = "<h1>Index of: " + _uri + "</h1>\n\t\t</pre><hr/>";
 
-	_body.append(_generateHtml());
-	_body.replace(_body.find("$2"), 2, _index);
-	// _body.append("<h1>Index of: " + _uri + "</h1>\n<hr />\n<pre>");
-	dir = opendir(_getCurrentDir().c_str());
-	if (dir)
-	{
-		while ((pDirent = readdir(dir)))
-		{
-			_name = pDirent->d_name;
-			if (pDirent->d_type == DT_DIR)
-				_name += "/";
-			_data.append(_getLink(_name));
-		}
-	}
-	// _data.pop_back();
-	_data.append("</pre><hr />");
-	_body.replace(_body.find("$1"), 2, _data);
+	// _body.append(_generateHtml());
+	// _body.replace(_body.find("$2"), 2, _index);
+	// // _body.append("<h1>Index of: " + _uri + "</h1>\n<hr />\n<pre>");
+	// dir = opendir(_getCurrentDir().c_str());
+	// if (dir)
+	// {
+	// 	while ((pDirent = readdir(dir)))
+	// 	{
+	// 		_name = pDirent->d_name;
+	// 		if (pDirent->d_type == DT_DIR)
+	// 			_name += "/";
+	// 		_data.append(_getLink(_name));
+	// 	}
+	// }
+	// // _data.pop_back();
+	// _data.append("</pre><hr />");
+	// _body.replace(_body.find("$1"), 2, _data);
 
-	std::ofstream file("test.html");
-	std::istringstream ss(_body);
-	while (getline(ss, _line))
-	{
-		file << _line;
-		file << std::endl;
-	}
-	std::cout << _getCurrentDir().back() << std::endl;
+	// std::ofstream file("test.html");
+	// std::istringstream ss(_body);
+	// while (getline(ss, _line))
+	// {
+	// 	file << _line;
+	// 	file << std::endl;
+	// }
+	// std::cout << _getCurrentDir().back() << std::endl;
+    std::string s[3] = {"/", "/dir/", "/d"};
+    std::string uri = "/dir/test";
+	std::string u;
+
+	if (uri.compare("/") == 0)
+		u = uri;
+	else
+		u = uri.substr(0, uri.find_last_of("/"));
+	std::cout << u << std::endl;
+    for (size_t i = 0; i < 3; i++)
+    {
+        if (s[i].compare(u) == 0)
+        {
+            // if (s[i].length() < s[i + 1].length())
+                std::cout << s[i] << "\n";
+            // if (i)
+        }
+    }
+
+    std::string body = "HTTP/1.1 200 OK\r\n\
+Server: webserv/0.0\r\n\
+Content-Type: text/html\r\n\
+Content-Length: 501\r\n\
+Connection: keep-alive\r\n\r";
+
+
+std::cout << "s = " << body.size() << "\n";
 }
