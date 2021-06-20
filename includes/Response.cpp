@@ -111,6 +111,7 @@ std::string Response::_getFileNameFromUri(std::string uri)
 {
 	// Parse filename from uri
 	std::string filename;
+	std::string u = uri;
 	int _exist = 0;
 	if (uri.find("?") != std::string::npos)
 		filename = uri.substr(0, uri.find("?"));
@@ -130,7 +131,7 @@ std::string Response::_getFileNameFromUri(std::string uri)
 	// std::cout << "index = " << _location.getIndex() << std::endl;
 	if (_exist)
     	return (filename.append(_location.getIndex()));
-	return (uri);
+	return (u);
 }
 
 bool	Response::_isSuffix(std::string s1, std::string s2)
@@ -244,7 +245,7 @@ void Response::_applyPostMethod()
     {
         Request::ArgContent arg = _request._getArg(i);
         _filename = _getFileNameFromDisp(arg._Cdisp);
-		std::cout << "data : " << arg._Cdisp << "\n";
+
         if (_filename.length())
         {
 			// _dir = _getDir().append("/").append(_filename);
@@ -255,10 +256,12 @@ void Response::_applyPostMethod()
 			}
 			std::cout << "upload_dir = " << _dir << "\n";
 			std::ofstream _file(_dir);
+			// std::cout << arg._data << "\n";
+			// _file << arg._data;
 			std::istringstream ss(arg._data);
 
 			while (getline(ss, _line))
-				_file << _line.substr(0, _line.find("\r\n")).append("\n");
+				_file << _line.substr(0, _line.find("\r")).append("\n");
 			_file.close();
 		}
 	}

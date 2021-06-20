@@ -146,8 +146,8 @@ Request::ArgContent Request::_pushToArg(std::string _data)
 	while (getline(_read, _line))
 	{
 
-		if (!_line.length())
-			continue;
+		// if (!_line.length())
+		// 	continue;
 		if (_line.find("Content-Type") != std::string::npos)
 			arg._Ctype = _line.substr(_line.find(":") + 2);
 		else if (_line.find("Content-Disposition") != std::string::npos)
@@ -162,7 +162,10 @@ Request::ArgContent Request::_pushToArg(std::string _data)
 				is_info = false;
 				continue;
 			}
-			arg._data.append(_line);
+			// if (_line.length())
+			arg._data.append(_line).append("\r\n");
+			// else
+				// arg._data.append("\r\n");
 		}
 	}
 	return (arg);
