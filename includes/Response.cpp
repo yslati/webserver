@@ -575,10 +575,6 @@ void Response::_startResponse()
 				_ResponseContent += "\r\n";
 			_ResponseContent += "\r\n";
 			_ResponseContent += _body;
-			// _ResponseContent += "\r\n\r\n";
-			std::string tmp = "HTTP/1.1 200 OK\r\nServer: webserv/0.0\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: 59\r\nConnection: keep-alive\r\n\r\n<html>\r\n<body>\r\n<h1>File uploaded.</h1>\r\n</body>\r\n</html>\r\n";
-			std::ofstream f1("oo");
-			f1 << tmp;
 		}
 	}
 }
