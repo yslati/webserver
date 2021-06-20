@@ -27,6 +27,7 @@ class Client {
         void _handleRequest(std::vector<HttpServer>::iterator it);
         void _handleResponse(Request req, std::vector<HttpServer>::iterator it);
         bool	_matchBegin(std::string _regex, std::string _line);
+		void _readHeader(std::string con);
         bool    _isPrefix(std::string& s1, std::string& s2);
         bool 	_isSuffix(std::string s1, std::string s2);
 	~Client();
@@ -35,6 +36,7 @@ class Client {
         int _conn;
         struct sockaddr_in addr;
         bool _ready;
+		std::string _req;
 	std::string responseContent;
         std::string content;
         struct pollfd pfd;

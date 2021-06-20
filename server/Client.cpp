@@ -13,6 +13,7 @@ Client::Client(int server_fd) {
     fcntl(_conn, F_SETFL, O_NONBLOCK);
     pfd.events = POLLIN;
     pfd.fd = _conn;
+	_req = "";
 //     responseContent = "HTTP/1.1 200 OK\r\nContent-Length: 11\r\n\r\nhello world";
 }
 
@@ -64,18 +65,40 @@ void	Client::_handleResponse(Request req, std::vector<HttpServer>::iterator it)
 	std::vector<Location>::iterator lit = Locations.begin();
 	Location tmp;
 	std::string u;
+	std::string path = "";
 	std::string uri = req._getHeaderContent("uri");
 
-	if (uri.compare("/") == 0)
-		u = req._getHeaderContent("uri");
-	else
-	{
-		u = uri.substr(0, uri.find_last_of("/"));
-		std::cout << "u = " << u << "\n";
-	}
+	// if (uri.compare("/") == 0)
+	// 	u = req._getHeaderContent("uri");
+	// else
+	// {
+	// 	u = uri.substr(0, uri.find_last_of("/"));
+	// 	std::cout << "u = " << u << "\n";
+	// }
 	for (; lit != Locations.end(); lit++)
 	{
-		std::string t = lit->getUri();
+		if (_matchBegin(lit->getUri(), uri))
+		{
+			if (lit->getUri().compare(uri) == 0)
+			{
+				tmp = *lit;
+				break ;
+			}
+			if (path.length() == 0)
+			{
+				path = lit->getUri();
+				tmp = *lit;
+			}
+			else if (path.length() < lit->getUri().length())
+			{
+				path = lit->getUri();
+				tmp = *lit;
+			}
+		}
+	}
+	// for (; lit != Locations.end(); lit++)
+	// {
+	// 	std::string t = lit->getUri();
 		// if (_isPrefix(t, l))
 		// {
 		// if (_matchBegin(req._getHeaderContent("uri"), lit->getUri()))
@@ -93,16 +116,16 @@ void	Client::_handleResponse(Request req, std::vector<HttpServer>::iterator it)
 		// 	tmp = *lit;
 		// 	break ;
 		// }
-		std::cout << "uri = " << uri << "\n";
-		std::cout << "aweldi = " << u << "\n";
-		std::cout << "atanod = " << t << "\n";
-		if (t.compare(u) == 0)
-		{
-			tmp = *lit;
-			break ;
-		}
-		// }
-	}
+	// 	std::cout << "uri = " << uri << "\n";
+	// 	std::cout << "aweldi = " << u << "\n";
+	// 	std::cout << "atanod = " << t << "\n";
+	// 	if (t.compare(u) == 0)
+	// 	{
+	// 		tmp = *lit;
+	// 		break ;
+	// 	}
+	// 	// }
+	// }
 
 	Response res = Response(tmp, *it);
 
@@ -113,11 +136,26 @@ void	Client::_handleResponse(Request req, std::vector<HttpServer>::iterator it)
 	responseContent = res._getResContent();
 }
 
+void	Client::_readHeader(std::string con)
+{
+	std::string _line;
+	std::istringstream _read(con);
+
+	while (getline(_read, _line))
+	{
+		if (_line.find("Host") != std::string::npos)
+		{
+			_req = _line.substr(_line.find("Host:") + 6);
+			_req.pop_back();
+		}
+	}
+}
+
 void Client::_handleRequest(std::vector<HttpServer>::iterator it)
 {
 	Request req;
 
-	std::cout << content << std::endl;
+	// std::cout << content << std::endl;
 	req._parseIncomingRequest(content);
 	_handleResponse(req, it);
 }
@@ -131,10 +169,15 @@ void	Client::setReady(bool x) {
 		std::vector<HttpServer>::iterator it = s.begin();
 		while (it != s.end())
 		{
-			_handleRequest(it);
+			_readHeader(content);
+			std::string p = std::to_string(it->getPort());
+			std::string h = it->getServerName();
+			h.append(":").append(p);
+			if (_req.compare(h) == 0)
+				break ;
 			it++;
-			break ;
 		}
+		_handleRequest(it);
 		sended = 0;
 		pfd.events = POLLOUT;
 	}

@@ -25,7 +25,7 @@ class Request {
         const std::string& _getMethod() const;
         const std::string& _getUri() const;
         std::string _getProtocol() const;
-        unsigned int _getContentLenght() const;
+        unsigned int _getPostLenght(std::string data, std::string boundary);
         const std::string& _getContentType() const;
         std::string _getHeaderContent(std::string _first);
         void _pushDataToArg(std::string _data);
@@ -37,29 +37,29 @@ class Request {
         bool _matchBegin(std::string& _regex, std::string& _line);
         int _getContentLen();
         int _getError();
-        std::string _getCgiUriFile() const { return "hey"; }
+        std::string _getCgiUriFile();
     private:
-        bool            _isDone;
-        std::string _Host;
-        std::string _method;
-        std::string _uri;
-        std::string _protocol;
-        std::string _Server;
-        std::string _Ctype;
-        std::string _Atype;
-        std::string _Cdisp;
-        unsigned int _Clen;
-        std::string _Conn;
-        std::vector<std::string> _parse;
-        std::map<std::string, std::string> _rmap;
-        std::vector<ArgContent> _aCont;
-        bool            _isArg;
-        std::string     _argBody;
-        int _lenArg;
-        std::string _boundary;
-        std::string _body;
-        std::vector<HttpServer>::iterator _it;
-        int _error;
+		bool            _isDone;
+		std::string     _Host;
+		std::string     _method;
+		std::string     _uri;
+		std::string     _protocol;
+		std::string     _Server;
+		std::string     _Ctype;
+		std::string     _Atype;
+		std::string     _Cdisp;
+		unsigned int    _Clen;
+		std::string     _Conn;
+		std::vector<std::string> _parse;
+		std::map<std::string, std::string> _rmap;
+		std::vector<ArgContent> _aCont;
+		bool            _isArg;
+		std::string     _argBody;
+		int             _lenArg;
+		std::string _boundary;
+		std::string _body;
+		std::vector<HttpServer>::iterator _it;
+		int _error;
 };
 
 #endif

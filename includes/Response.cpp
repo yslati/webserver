@@ -9,7 +9,6 @@ Response::Response(Location& location, HttpServer& httpServ): _location(location
     _status = 0;
 }
 
-
 Response& Response::operator=(Response const & rhs)
 {
 	if (this != &rhs)
@@ -88,6 +87,18 @@ std::string Response::_getDir(void)
     return (dir);
 }
 
+std::string Response::_getUploadDir()
+{
+	std::string dir = _getDir();
+	if (dir.back() != '/')
+		dir.append("/");
+	std::string _uploadDir = dir.append(_location.getUploadDir());
+	if (_uploadDir.back() != '/')
+		_uploadDir.append("/");
+
+	return (_uploadDir);
+}
+
 std::string Response::_getFilePath(std::string uri)
 {
     std::string path = ""; 
@@ -117,7 +128,9 @@ std::string Response::_getFileNameFromUri(std::string uri)
 	// if (_exist)
 		// return (filename);
 	// std::cout << "index = " << _location.getIndex() << std::endl;
-    return (filename.append(_location.getIndex()));
+	if (_exist)
+    	return (filename.append(_location.getIndex()));
+	return (uri);
 }
 
 bool	Response::_isSuffix(std::string s1, std::string s2)
@@ -131,28 +144,35 @@ bool	Response::_isSuffix(std::string s1, std::string s2)
     return true;
 }
 
+void	Response::_readErrorPageFile(std::string file)
+{
+	std::string _line;
+	std::string body = "";
+	std::ifstream input_file(file);
+
+	while (getline(input_file, _line))
+		body.append(_line).append("\n");
+	_body = body.append("\r\n");
+}
+
 void Response::_readFile(std::string file)
 {
-    std::string _line;
-    std::string body = "";
-    std::ifstream input_file(file);
+	std::string _line;
+	std::string body = "";
+	std::ifstream input_file(file);
 
-    if (input_file.fail())
-    {
-        _status = S_NOT_FOUND;
-        std::string path = _getFilePath("/ErrorPage.html");
-        std::ifstream error_file(path);
-
-        if (error_file.fail())
-            std::cerr << "Error occured = " << path << "\n";
-        while (getline(error_file, _line))
-            body.append(_line).append("\n");
-        _body = body;
-        return ;
-    }
-    while (getline(input_file, _line))
-        body.append(_line).append("\n");
-    _body = body;
+	if (input_file.fail())
+	{
+		_status = S_NOT_FOUND;
+		if (_httpServ._getErrorPages(_status).length())
+			_readErrorPageFile(_httpServ._getErrorPages(_status));
+		else
+			_generateErrorPage();
+		return ;
+	}
+	while (getline(input_file, _line))
+		body.append(_line).append("\n");
+	_body = body.append("\r\n");
 	_status = S_OK;
 }
 
@@ -166,6 +186,18 @@ void Response::_applyGetMethod()
 	// if (DEBUG_MODE)
 	// 	path.append("file.html");
 	// path = "/dir/";
+	// if (path.back() == '/')
+	// 	path.pop_back();
+	// std::cout << "path1 = " << path << "\n";
+	// std::cout << "uri = " << _request._getHeaderContent("uri").substr(1, _request._getHeaderContent("uri").length()) << "\n";
+	// std::cout << "uri1 = " << _location.getIndex() << "\n";
+	// if (_location.getIndex().length() &&
+	// _request._getHeaderContent("uri").substr(1, _request._getHeaderContent("uri").length()).compare(_location.getIndex()))
+	// {
+	// 	if (path.back() != '/')
+	// 		path.append("/");
+	// 	path.append(_location.getIndex());
+	// }
 	std::cout << "path = " << path << std::endl;
 	if (_isDir(path))
 	{
@@ -178,13 +210,9 @@ void Response::_applyGetMethod()
 		}
 		else
 			_status = S_NOT_FOUND;
-		std::cout << _body << "\n";
 	}
 	else if (!_checkPermission(path, R_OK))
-	{
 		_readFile(path);
-		_status = S_OK;
-	}
 	// std::cout << _body << std::endl;
 }
 
@@ -201,8 +229,6 @@ std::string Response::_getFileNameFromDisp(std::string disp)
             path = match.suffix();
             path = path.substr(0, path.find("\""));
         }
-		// path = disp.substr(disp.find("filename=\"") + 10,
-		// disp.length() - disp.substr(0, disp.find("filename") + 11).length());
     }
 	return path;
 }
@@ -218,22 +244,28 @@ void Response::_applyPostMethod()
     {
         Request::ArgContent arg = _request._getArg(i);
         _filename = _getFileNameFromDisp(arg._Cdisp);
+		std::cout << "data : " << arg._Cdisp << "\n";
         if (_filename.length())
         {
-			_dir = _getDir().append("/").append(_filename);
+			// _dir = _getDir().append("/").append(_filename);
+			if (_location.getIsUploadEnable())
+			{
+				_dir = _getUploadDir();
+				_dir.append(_filename);
+			}
+			std::cout << "upload_dir = " << _dir << "\n";
 			std::ofstream _file(_dir);
 			std::istringstream ss(arg._data);
 
-			while (getline(ss, _line)) {
+			while (getline(ss, _line))
 				_file << _line.substr(0, _line.find("\r\n")).append("\n");
-			}
 			_file.close();
 		}
 	}
 	_body = "<html>\r\n";
-	_body += "	<body>\r\n";
-	_body += "		<h1>File uploaded.</h1>\r\n";
-	_body += "	</body>\r\n";
+	_body += "<body>\r\n";
+	_body += "<h1>File uploaded.</h1>\r\n";
+	_body += "</body>\r\n";
 	_body += "</html>\r\n";
 	_status = S_OK;
 }
@@ -251,20 +283,23 @@ int Response::_checkPermission(std::string path, int mode)
 
 void	Response::_generateErrorPage()
 {
-	_body = "<html>\n";
-	_body += "<head>\n";
-	_body += "	<title>$1</title>\n";
-	_body += "</head>\n";
-	_body += "<body>\n";
-	_body += "	<center>\n";
-	_body += "		<h1>";
+	_body = "<html>\r\n";
+	_body += "<head>\r\n";
+	_body += "\t<meta charset=\"UTF-8\">\r\n";
+	_body += "\t<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\r\n";
+	_body += "\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\r\n";
+	_body += "\t<title>$1</title>\r\n";
+	_body += "</head>\r\n";
+	_body += "<body>\r\n";
+	_body += "\t<center>\r\n";
+	_body += "\t\t<h1>";
 	_body += "$1";
-	_body += "</h1>\n";
-	_body += "	</center>\n";
-	_body += "	<hr>\n";
-	_body += "	<center>webserv/0.0</center>\n";
-	_body += "</body>\n";
-	_body += "</html>\n";
+	_body += "</h1>\r\n";
+	_body += "\t</center>\r\n";
+	_body += "	<hr>\r\n";
+	_body += "\t<center>webserv/0.0</center>\r\n";
+	_body += "</body>\r\n";
+	_body += "</html>\r\n\r\n";
 	_body.replace(_body.find("$1"), 2, _stResp[_status]);
 	_body.replace(_body.find("$1"), 2, _stResp[_status]);
 }
@@ -410,7 +445,6 @@ int		Response::_checkAllowedMethod(std::string method)
 void	Response::_handleRedirect()
 {
 	_status = S_MOVED_PERM;
-
 }
 
 void	Response::_applyMethod()
@@ -441,24 +475,24 @@ void	Response::_applyMethod()
 	// std::cout << "_bool = " << _checkAllowedMethod("DELETE") << "\n";
 	// std::cout << "uri = " << _getLocation().getUri() << std::endl;
 	// std::cout << "my_uri = " << _request._getHeaderContent("uri") << std::endl;
-	if (_location.getIsRedirect())
-		_handleRedirect();
-	else if (_request._getError())
+	if (_request._getError())
 		_status = S_BAD_REQ;
 	else if (_httpServ.getMaxBodySize() != -1
-	&& _request._getContentLen() > _httpServ.getMaxBodySize())
+	&& _request._getContentLen() > _httpServ.getMaxBodySize() * 1024 * 1024)
 		_status = S_PAY_LOAD_TOO_LARGE;
 	else if (_isCGI())
 		_handleCGI();
 	else if (_request._getHeaderContent("method").compare("GET") == 0
 	&& _checkAllowedMethod("GET"))
 	{
-		_applyGetMethod();
-		std::cout << "status = " << _status << "\n";
+		if (_location.getIsRedirect())
+			_handleRedirect();
+		else
+			_applyGetMethod();
 	}
-	// else if (_request._getHeaderContent("method").compare("POST") == 0
-	// && _checkAllowedMethod("POST"))
-	// 	_applyPostMethod();
+	else if (_request._getHeaderContent("method").compare("POST") == 0
+	&& _checkAllowedMethod("POST"))
+		_applyPostMethod();
 	else if (_request._getHeaderContent("method").compare("DELETE") == 0
 	&& _checkAllowedMethod("DELETE"))
 		_applyDeleteMethod();
@@ -494,7 +528,6 @@ void Response::_startResponse()
 	{
 		_makeStatus();
 		_applyMethod();
-		std::cout << "st = " << _status << "\n";
 		std::string _data;
 
 		_data = _request._getHeaderContent("protocol");
@@ -511,16 +544,20 @@ void Response::_startResponse()
 		_ResponseContent += _stResp[_status];
 		_ResponseContent += "\r\n";
 		if (_location.getIsRedirect())
+		{
+			_ResponseContent += "Location: ";
 			_ResponseContent += _location.getRedirectUrl();
+			_ResponseContent += "\r\n\r\n";
+		}
 		else
 		{
 			_ResponseContent += "Server: webserv/0.0\r\n";
-			// _ResponseContent += " webserv/0.0\r\n";
-			if (_request._getHeaderContent("Content-Type").length())
-				_ResponseContent += _request._getHeaderContent("Content-Type");
-			else
-				_ResponseContent += "Content-Type: text/html";
-			_ResponseContent += "\r\n";
+			_ResponseContent += "Content-Type: text/html; charset=UTF-8\r\n";
+			// if (_request._getHeaderContent("Content-Type").length())
+				// _ResponseContent += _request._getHeaderContent("Content-Type");
+			// else
+			// _ResponseContent += "Content-Type: text/html\r\n";
+			// _ResponseContent += "\r\n";
 			_ResponseContent += "Content-Length: ";
 			_ResponseContent += std::to_string(_body.length());
 			_ResponseContent += "\r\n";
@@ -531,9 +568,14 @@ void Response::_startResponse()
 				_ResponseContent += "close\r\n";
 			else
 				_ResponseContent += "keep-alive\r\n";
-			_ResponseContent += "\r\n\r\n";
+			if (_request._getHeaderContent("method").compare("GET") == 0)
+				_ResponseContent += "\r\n";
+			_ResponseContent += "\r\n";
 			_ResponseContent += _body;
 			// _ResponseContent += "\r\n\r\n";
+			std::string tmp = "HTTP/1.1 200 OK\r\nServer: webserv/0.0\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: 59\r\nConnection: keep-alive\r\n\r\n<html>\r\n<body>\r\n<h1>File uploaded.</h1>\r\n</body>\r\n</html>\r\n";
+			std::ofstream f1("oo");
+			f1 << tmp;
 		}
 	}
 }
