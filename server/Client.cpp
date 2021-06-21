@@ -68,15 +68,22 @@ void	Client::_handleResponse(Request req, std::vector<HttpServer>::iterator it)
 	std::string path = "";
 	std::string uri = req._getHeaderContent("uri");
 
-	// if (uri.compare("/") == 0)
-	// 	u = req._getHeaderContent("uri");
-	// else
-	// {
-	// 	u = uri.substr(0, uri.find_last_of("/"));
-	// 	std::cout << "u = " << u << "\n";
-	// }
+
 	for (; lit != Locations.end(); lit++)
 	{
+		if (lit->getFastcgiPass().length())
+		{
+			std::string _match = uri.substr(uri.find("."), uri.length());
+			if (_match.find("?") != std::string::npos)
+				_match = _match.substr(0, _match.find("?"));
+			if ((lit->getPhpCGI() && !_match.compare(".php"))
+			|| (lit->getPyCGI() && !_match.compare(".py"))
+			|| (lit->getNodeCGI() && !_match.compare(".js")))
+			{
+				tmp = *lit;
+				break ;
+			}
+		}
 		if (_matchBegin(lit->getUri(), uri))
 		{
 			if (lit->getUri().compare(uri) == 0)
@@ -96,36 +103,6 @@ void	Client::_handleResponse(Request req, std::vector<HttpServer>::iterator it)
 			}
 		}
 	}
-	// for (; lit != Locations.end(); lit++)
-	// {
-	// 	std::string t = lit->getUri();
-		// if (_isPrefix(t, l))
-		// {
-		// if (_matchBegin(req._getHeaderContent("uri"), lit->getUri()))
-		// if (_isSuffix(t, l))
-		// {
-		// 	std::cout << "o-dir = " << lit->getUri() << std::endl;
-		// 	std::cout << "machi hna\n";
-		// 	tmp = *lit;
-		// 	break ;
-		// }
-		// else if (lit->getUri().length() < req._getHeaderContent("uri").length())
-		// {
-		// 	std::cout << "hna = " << req._getHeaderContent("uri") << "\n";
-		// 	std::cout << "hnamydir = " << lit->getUri() << std::endl;
-		// 	tmp = *lit;
-		// 	break ;
-		// }
-	// 	std::cout << "uri = " << uri << "\n";
-	// 	std::cout << "aweldi = " << u << "\n";
-	// 	std::cout << "atanod = " << t << "\n";
-	// 	if (t.compare(u) == 0)
-	// 	{
-	// 		tmp = *lit;
-	// 		break ;
-	// 	}
-	// 	// }
-	// }
 
 	Response res = Response(tmp, *it);
 

@@ -31,6 +31,77 @@ Response::~Response()
 	_stResp.clear();
 }
 
+
+
+int Response::_runCgi()
+{
+	int fds2[2];
+	char **_env;
+	char **args;
+
+	std::string tmp = "SCRIPT_FILENAME=" + _scriptFileName;
+	std::string PATH = "PATH='/usr/bin/:/Users/yslati/goinfre/.brew/bin'";
+	std::string query_string = "QUERY_STRING=" + _request._getHeaderContent("query_string");
+	std::string method = "REQUEST_METHOD=" + _request._getHeaderContent("method");
+	std::string st = "REDIRECT_STATUS=" + std::to_string(_status);
+
+	_env = (char **)malloc(sizeof(char *) * 7);
+	_env[0] = strdup(tmp.c_str());
+	_env[1] = strdup(PATH.c_str());
+	_env[2] = strdup(query_string.c_str());
+	_env[3] = strdup(method.c_str());
+	_env[4] = strdup(st.c_str());
+	_env[5] = NULL;
+
+	if (_location.getPhpCGI())
+	{
+		args = (char**)malloc(sizeof(char *) * 2);
+		args[0] = strdup(_location.getFastcgiPass().c_str());
+		args[1] = NULL;
+	}
+	// else if (_location.getNodeCGI())
+	// {
+	// 	args = (char**)malloc(sizeof(char *) * 3);
+	// 	args[0] = strdup("/Users/yslati/goinfre/.brew/bin/node");
+	// 	args[1] = strdup(_scriptFileName.c_str());
+	// 	args[2] = NULL;
+	// }
+	// else if (_location.getPyCGI())
+	// {
+	// 	args = (char**)malloc(sizeof(char *) * 3);
+	// 	args[0] = strdup("/usr/bin/python");
+	// 	args[1] = strdup(_scriptFileName.c_str());
+	// 	args[2] = NULL;
+	// }
+
+	pipe(fds2);
+	pid_t pid = fork();
+	if (!pid)
+	{
+		close(fds2[0]);
+		dup2(fds2[1], 1);
+		execve(args[0], args, _env);
+		exit(0);
+	}
+	else
+	{
+		close(fds2[1]);
+		// waitpid(pid, 0, 0);
+	}
+	return (fds2[0]);
+}
+
+// int main(int ac, char **av, char **env) {
+// 	int fd = runCgi(env);
+
+// 	int r;
+// 	char c;
+
+// 	while ((r = read(fd, &c, 1)) > 0)
+// 		write(1, &c, 1);
+// 	return 0;
+// }
+
 void Response::_setRequest(Request& req)
 {
     _request = req;
@@ -48,11 +119,24 @@ Location Response::_getLocation() const
 
 int		Response::_isCGI()
 {
+	if (_location.getFastcgiPass().length())
+		return (1);
 	return (0);
 }
 
 void	Response::_handleCGI()
 {
+	int fd = _runCgi();
+
+	char buffer[1024];
+	int r;
+
+	while ((r = read(fd, buffer, 1024)) > 0)
+	{
+		buffer[r] = '\0';
+		std::cout << buffer << std::endl;
+	}
+	
 }
 
 std::string Response::_getDir(void)
@@ -145,11 +229,17 @@ bool	Response::_isSuffix(std::string s1, std::string s2)
     return true;
 }
 
+std::string Response::_getScriptFileName() const
+{
+	return _scriptFileName;
+}
+
 void	Response::_readErrorPageFile(std::string file)
 {
 	std::string _line;
 	std::string body = "";
 	std::ifstream input_file(file);
+
 
 	while (getline(input_file, _line))
 		body.append(_line).append("\n");
@@ -335,12 +425,8 @@ void Response::_applyDeleteMethod()
 	if (_isDir(path))
 	{
 		_status = S_FORBIDDEN;
-		std::cout << "path_err = " << _httpServ._getErrorPages(_status) << "\n";
 		if (_httpServ._getErrorPages(_status).length())
-		{
-			_readFile(_httpServ._getErrorPages(_status));
-			std::cout << _body << std::endl;
-		}
+			_readErrorPageFile(_httpServ._getErrorPages(_status));
 		else
 			_generateErrorPage();
 	}
@@ -452,32 +538,11 @@ void	Response::_handleRedirect()
 
 void	Response::_applyMethod()
 {
-    // std::vector<HttpServer>::iterator it = _request._getIterator();
-    // std::vector<Location> locations = it->getLocations();
-    // std::vector<Location>::iterator lit = locations.begin();
-    // for (; lit != locations.end(); lit++)
-    // {
-    //     // if the uri match one of the paths in location
-    //     // setLocation(*lit);
-    //     if (_matchBegin(_request._getHeaderContent("uri"), _location.getUri()))
-	// 	{
-    //         _setLocation(*lit);
-	// 	}
-	// 	else if (_location.getUri().length() < _request._getHeaderContent("uri").length())
-	// 	{
-	// 		// (*lit).checkVal();
-	// 		_setLocation(*lit);
-	// 	}
-        // if (_request._getHeaderContent("uri").compare(lit->getUri()) == 0)
-		// {
-		// 	std::cout << "uri = " << _request._getHeaderContent("uri") << "\n";
-		// 	std::cout << "_location.uri = " << lit->getUri() << "\n";
-		// }
-    // }
-	// std::cout << "method = " << _request._getHeaderContent("method") << "\n";
-	// std::cout << "_bool = " << _checkAllowedMethod("DELETE") << "\n";
-	// std::cout << "uri = " << _getLocation().getUri() << std::endl;
-	// std::cout << "my_uri = " << _request._getHeaderContent("uri") << std::endl;
+	_scriptFileName = _getFilePath(_getFileNameFromUri(_request._getHeaderContent("uri")));
+
+	if (_scriptFileName.find("?") != std::string::npos)
+		_scriptFileName = _scriptFileName.substr(0, _scriptFileName.find("?"));
+
 	if (_request._getError())
 		_status = S_BAD_REQ;
 	else if (_httpServ.getMaxBodySize() != -1
@@ -526,12 +591,12 @@ void Response::_makeStatus()
 void Response::_startResponse()
 {
 	std::string _port = std::to_string(_httpServ.getPort());
+	std::string _data;
 
 	if (_request._getHeaderContent("port").compare(_port) == 0)
 	{
 		_makeStatus();
 		_applyMethod();
-		std::string _data;
 
 		_data = _request._getHeaderContent("protocol");
 		if (_data.compare("HTTP/1.1") == 0)
@@ -569,9 +634,11 @@ void Response::_startResponse()
 				_ResponseContent += _request._getHeaderContent("Connection");
 			else if (_status != S_OK)
 				_ResponseContent += "close\r\n";
-			else
+			else if (_request._getHeaderContent("method").compare("POST") == 0)
 				_ResponseContent += "keep-alive\r\n";
-			if (_request._getHeaderContent("method").compare("GET") == 0)
+			_ResponseContent += "\r\n";
+			if (_request._getHeaderContent("method").compare("GET") == 0 ||
+			_request._getHeaderContent("method").compare("DELETE") == 0)
 				_ResponseContent += "\r\n";
 			_ResponseContent += "\r\n";
 			_ResponseContent += _body;

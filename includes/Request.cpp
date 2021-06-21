@@ -3,17 +3,7 @@
 
 Request::Request()
 {
-	_Host = "";
-	_method = "";
-	_uri = "";
-	_protocol = "";
-	_Server = "";
-	_Ctype = "";
-	_Atype = "";
-	_Cdisp = "";
 	_Clen = 0;
-	_Conn = "";
-	_lenArg = 0;
 	_isArg = false;
 	_boundary = "";
 	_error = 0;
@@ -22,15 +12,6 @@ Request::Request()
 
 Request::~Request()
 {
-	_Host.clear();
-	_method.clear();
-	_uri.clear();
-	_protocol.clear();
-	_Server.clear();
-	_Ctype.clear();
-	_Atype.clear();
-	_Cdisp.clear();
-	_Conn.clear();
 	_body.clear();
 	_aCont.clear();
 }
@@ -43,19 +24,6 @@ int		Request::_getError()
 int		Request::_getContentLen()
 {
 	return (_Clen);
-}
-
-
-const std::string& Request::_getMethod() const {
-    return this->_method;
-}
-
-const std::string& Request::_getUri() const {
-    return this->_uri;
-}
-
-std::string Request::_getProtocol() const {
-    return this->_protocol;
 }
 
 unsigned int Request::_getPostLenght(std::string data, std::string boundary)
@@ -77,9 +45,6 @@ unsigned int Request::_getPostLenght(std::string data, std::string boundary)
     return body.length();
 }
 
-const std::string& Request::_getContentType() const {
-    return this->_Ctype;
-}
 
 void Request::_parseLine(const std::string& _line)
 {
@@ -145,9 +110,6 @@ Request::ArgContent Request::_pushToArg(std::string _data)
 	bool is_info = false;
 	while (getline(_read, _line))
 	{
-
-		// if (!_line.length())
-		// 	continue;
 		if (_line.find("Content-Type") != std::string::npos)
 			arg._Ctype = _line.substr(_line.find(":") + 2);
 		else if (_line.find("Content-Disposition") != std::string::npos)
@@ -162,10 +124,7 @@ Request::ArgContent Request::_pushToArg(std::string _data)
 				is_info = false;
 				continue;
 			}
-			// if (_line.length())
 			arg._data.append(_line).append("\r\n");
-			// else
-				// arg._data.append("\r\n");
 		}
 	}
 	return (arg);
@@ -184,6 +143,12 @@ void	Request::_pushDataToArg(std::string _data)
 	}
 	else if (_isArg)
 		_body.append(_data).append("\n");
+}
+
+void Request::_parseQueryString(std::string uri)
+{
+	if (uri.find("?") != std::string::npos)
+		_rmap["query_string"] = uri.substr(uri.find("?") + 1, uri.length());
 }
 
 void Request::_parseIncomingRequest(const std::string& _buffer)
@@ -205,9 +170,8 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 			_parseLine(_data);
 			this->_rmap["method"] = _parse[0];
 			this->_rmap["uri"] = _parse[1];
+			_parseQueryString(_rmap["uri"]);
 			this->_rmap["protocol"] = _parse[2];
-			// this->_rmap["method"].pop_back();
-			// this->_rmap["uri"].pop_back();
 			this->_rmap["protocol"].pop_back();
 		}
 		else if (!_rmap["Content-Type"].length() && _data.find("Content-Type:") != std::string::npos)
@@ -262,27 +226,25 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 			_line = "Transfer-Encoding";
 			_rmap[_line] = _data.substr(_data.find(_line) + 2 + _line.length());
 		}
-		// else if (_Clen && !_rmap["boundary"].length())
-		// {
-		// 	std::cout << "bdr = " << _data << std::endl;
-		// 	if (_isArg)
-		// 	{
-		// 		_argBody.append(_data);
-		// 		std::cout << "_argBody = " << arg._data.length() << std::endl;
-		// 		if (_argBody.length() == _Clen)
-		// 		{
-		//			Arg arg = {};
-		// 			arg._data = _argBody;
-		// 			_aCont.push_back(arg);
-		// 			_argBody.clear();
-		// 			_isArg = false;
-		// 		}
-		// 		else
-		// 			_argBody.append("\n");
-		// 	}
-		// 	else
-		// 		_isArg = true;
-		// }
+		else if (_Clen && !_rmap["boundary"].length())
+		{
+			if (_isArg)
+			{
+				_argBody.append(_data);
+				if (_argBody.length())
+				{
+					ArgContent arg = {};
+					arg._data = _argBody;
+					_argBody.clear();
+					_aCont.push_back(arg);
+					_isArg = false;
+				}
+				else
+					_argBody.append("\n");
+			}
+			else
+				_isArg = true;
+		}
 		else if (_rmap["Content-Length"].length())
 			_pushDataToArg(_data);
     }

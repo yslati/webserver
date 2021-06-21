@@ -18,10 +18,8 @@ bool	pars::_setCGI(Location &src) {
 		src.setPhpCGI(true);
 	else if (src.getUri() == "*.js")
 		src.setNodeCGI(true);
-	else if (src.getUri() == "*.py") {
-		std::cout << "here" << std::endl;
+	else if (src.getUri() == "*.py")
 		src.setPyCGI(true);
-	}
 	else
 		return false;
 	return true;
@@ -98,18 +96,18 @@ int		pars::parsLocation(int i, int end, HttpServer& srv) {
 			tmp.setUploadDir(_conf[i].substr(_conf[i].find("=") + 1));
 		}
 		else if (_conf[i].compare(0, 12, "fastcgi_pass") == 0) {
-			if (tmp.getFastcgiPass() == true)
+			if (tmp.getFastcgiPass().length())
 				throw "Syntax Error: location: 'fastcgi_pass' duplicated";
 			if (_setCGI(tmp) == false)
 				throw "Syntax Error: location: CGI extension not Allowed";
-			tmp.setFastcgiPass(_checkbool(_conf[i].substr(_conf[i].find("=") + 1)));
+			tmp.setFastcgiPass(_conf[i].substr(_conf[i].find("=") + 1));
 		}
 	}
 
 	if (tmp.getIsRedirect() == true && (tmp.getStatusCode() == -1 || tmp.getRedirectUrl() == ""))
 		throw "you need to setup redirect code and index";
-	std::cout << "py_CGI: " << tmp.getPyCGI() << "\tnode_CGI: " << tmp.getNodeCGI() << "\tphp_CGI: " << tmp.getPhpCGI() << std::endl;
-	if ((tmp.getUri() == "*.php" || tmp.getUri() == "*.js" || tmp.getUri() == "*.py") && !tmp.getFastcgiPass())
+	// std::cout << "py_CGI: " << tmp.getPyCGI() << "\tnode_CGI: " << tmp.getNodeCGI() << "\tphp_CGI: " << tmp.getPhpCGI() << std::endl;
+	if ((tmp.getUri() == "*.php" || tmp.getUri() == "*.js" || tmp.getUri() == "*.py") && !tmp.getFastcgiPass().length())
 		throw "your CGI extension need to be like this: `fastcgi_pass = on`";
 
 	// if (tmp.getAutoIndex() == true && tmp.getIndex() == "")

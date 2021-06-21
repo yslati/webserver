@@ -42,6 +42,7 @@ class Response {
         std::string _body;
         std::string _ResponseContent;
         std::map<int, std::string> _stResp;
+        std::string _scriptFileName;
     public:
         std::map<std::string, std::string> _headers;
         class MethodNotFound: public std::exception
@@ -95,7 +96,11 @@ class Response {
         void _applyDeleteMethod();
 		void _generateErrorPage();
         void _deleteFile(std::string _file);
+        std::string _getScriptFileName() const;
+        int _runCgi();
 
 };
 
 #endif
+
+// pwd/root/path/fgh.php

@@ -17,7 +17,7 @@ class Location {
 		void			setAllowedMethods(std::vector<std::string> x);
 		void			setAutoIndex(bool x);
 		void			setIsRedirect(bool x);
-		void			setFastcgiPass(bool x);
+		void			setFastcgiPass(std::string x);
 		void			setPhpCGI(bool x);
 		void			setNodeCGI(bool x);
 		void			setPyCGI(bool x);
@@ -27,10 +27,10 @@ class Location {
 		void			setUploadDir(std::string dir);
 
 		bool			getAutoIndex() const;
+		std::string		getFastcgiPass() const;
 		bool			getPhpCGI() const;
 		bool			getNodeCGI() const;
 		bool			getPyCGI() const;
-		bool			getFastcgiPass() const;
 		bool			getIsRedirect() const;
 		bool			getIsUploadEnable() const;
 		std::string 	getUploadDir() const;
@@ -57,7 +57,7 @@ class Location {
 		int _status_code; // 301 302 redirect code
 
 		// CGI
-		bool _fastcgi_pass;
+		std::string _fastcgi_pass;
 		bool _php_CGI;
 		bool _node_CGI;
 		bool _py_CGI;

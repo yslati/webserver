@@ -125,8 +125,6 @@ void	HttpServer::addLocation(Location const& loc) {
 void	HttpServer::addErrorPage(int statusCode, std::string path) {
     _stcode = statusCode;
     _errors.insert(std::pair<int, std::string>(statusCode, path));
-    std::cout << "_val = " << _stcode << "\n";
-	std::cout << "_err = " <<  _errors[_stcode] << "\n";
     // ErrorPage ep(statusCode, path);
     // _error_pages.push_back(ep);
 }
