@@ -7,6 +7,26 @@ bool	pars::_checkbool(std::string str) {
 	return (false);
 }
 
+bool	pars::_checkCGI(std::string str) {
+	if (str != "*.php" && str != "*.js" && str != "*.py")
+		return false;
+	return true;
+}
+
+bool	pars::_setCGI(Location &src) {
+	if (src.getUri() == "*.php")
+		src.setPhpCGI(true);
+	else if (src.getUri() == "*.js")
+		src.setNodeCGI(true);
+	else if (src.getUri() == "*.py") {
+		std::cout << "here" << std::endl;
+		src.setPyCGI(true);
+	}
+	else
+		return false;
+	return true;
+}
+
 std::vector<std::string> pars::_split(std::string const &str, char sep)
 {
     std::vector<std::string> wordsArr;
@@ -70,17 +90,28 @@ int		pars::parsLocation(int i, int end, HttpServer& srv) {
 		else if (_conf[i].compare(0, 13, "upload_enable") == 0) {
 			if (tmp.getIsUploadEnable())
 				throw "Syntax Error: location: 'upload_enable' duplicated";
-			tmp.setIsUploadEnable(true);
+			tmp.setIsUploadEnable(_checkbool(_conf[i].substr(_conf[i].find("=") + 1)));
 		}
 		else if (_conf[i].compare(0, 12, "upload_store") == 0) {
 			if (tmp.getUploadDir() != "")
 				throw "Syntax Error: location: 'upload_store' duplicated";
 			tmp.setUploadDir(_conf[i].substr(_conf[i].find("=") + 1));
 		}
+		else if (_conf[i].compare(0, 12, "fastcgi_pass") == 0) {
+			if (tmp.getFastcgiPass() == true)
+				throw "Syntax Error: location: 'fastcgi_pass' duplicated";
+			if (_setCGI(tmp) == false)
+				throw "Syntax Error: location: CGI extension not Allowed";
+			tmp.setFastcgiPass(_checkbool(_conf[i].substr(_conf[i].find("=") + 1)));
+		}
 	}
 
 	if (tmp.getIsRedirect() == true && (tmp.getStatusCode() == -1 || tmp.getRedirectUrl() == ""))
 		throw "you need to setup redirect code and index";
+	std::cout << "py_CGI: " << tmp.getPyCGI() << "\tnode_CGI: " << tmp.getNodeCGI() << "\tphp_CGI: " << tmp.getPhpCGI() << std::endl;
+	if ((tmp.getUri() == "*.php" || tmp.getUri() == "*.js" || tmp.getUri() == "*.py") && !tmp.getFastcgiPass())
+		throw "your CGI extension need to be like this: `fastcgi_pass = on`";
+
 	// if (tmp.getAutoIndex() == true && tmp.getIndex() == "")
 	// 	throw "you need to setup the index, or change auto index to off";
 
@@ -136,7 +167,7 @@ void	pars::parsServer(int n) {
 			_httpServers.setAllowedMethods(_split(_conf[i].substr(_conf[i].find(":") + 1), ','));
 		}
 		else if (_conf[i].compare(0, 8, "location") == 0) {
-			if (_conf[i].substr(_conf[i].find(":") + 1).compare(0, 1, "/") != 0)
+			if ((_conf[i].substr(_conf[i].find(":") + 1).compare(0, 1, "/") != 0) && !_checkCGI(_conf[i].substr(_conf[i].find(":") + 1)))
 				throw "Location URI error";
 			i = parsLocation(i++, _servEnd[n], _httpServers);
 		}
