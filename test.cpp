@@ -490,7 +490,7 @@ int main()
 	// std::ofstream ofp;
 	// std::ifstream ifp;
 
-	/*ifp.open("Viva la Vida by Coldplay lyrics - YouTube.mp4", std::ios::binary);
+	/*ifp.open("Viva la Vida by Coldplay lyrics   - YouTube.mp4", std::ios::binary);
 	ofp.open("myimage.mp4", std::ios::out);
 
 	char buffer;
