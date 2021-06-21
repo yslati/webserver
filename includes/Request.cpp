@@ -268,10 +268,10 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 		// 	if (_isArg)
 		// 	{
 		// 		_argBody.append(_data);
-		// 		arg._data = _argBody;
 		// 		std::cout << "_argBody = " << arg._data.length() << std::endl;
 		// 		if (_argBody.length() == _Clen)
 		// 		{
+		//			Arg arg = {};
 		// 			arg._data = _argBody;
 		// 			_aCont.push_back(arg);
 		// 			_argBody.clear();
