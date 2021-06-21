@@ -446,7 +446,7 @@ int main()
 			u = uri;
 	}
 	std::cout << "u = " << u << std::endl;*/
-    for (size_t i = 0; i < 3; i++)
+    /*for (size_t i = 0; i < 3; i++)
     {
         //if (s[i].compare(u) == 0)
         //{
@@ -468,7 +468,7 @@ int main()
 				path = s[i];
 		}
     }
-	std::cout << "path = " << path  << "\n";
+	std::cout << "path = " << path  << "\n";*/
 
 	std::string t = "\r\n";
     t += "----------------------------eb32ead89fa23a33\r\n";
@@ -483,9 +483,9 @@ int main()
     t += "lodush=hayar\r\n";
     // t += "\r\n";
     t += "----------------------------eb32ead89fa23a33--\r\n";
-	std::cout << "t.len = " << t.length() << std::endl;
-	std::cout << "t.len1 = " << getPostLength(t, "a") << std::endl;
-	std::cout << "t.len2 = " << getLength(t, "b") << std::endl;
+	// std::cout << "t.len = " << t.length() << std::endl;
+	// std::cout << "t.len1 = " << getPostLength(t, "a") << std::endl;
+	// std::cout << "t.len2 = " << getLength(t, "b") << std::endl;
 
 	// std::ofstream ofp;
 	// std::ifstream ifp;
@@ -507,4 +507,32 @@ int main()
 	ifp.close();
 	ofp.close();
 	*/
+	std::string tmp = "status: 200\r\n";
+	tmp += "Content-Type: text/html; charset=UTF-8\r\n";
+	tmp += "\r\n";
+	tmp += "<!DOCTYPE html>\r\n<html lang=\"en\">\r\n<head>\r\n<meta charset=\"UTF-8\">\r\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\r\n<title>WebServer</title>\r\n</head>\r\n<body>\r\n<p>Hello World</p>\r\n</body>\r\n</html>\r\n\r\n";
+	std::istringstream _read(tmp);
+	std::string l1 = "";
+	std::string body = "";
+	bool isLine = false;
+
+	while (getline(_read, l1))
+	{
+		if (l1.find("status") != std::string::npos)
+			std::cout << "st = " << l1.substr(l1.find("status: ") + 8) << std::endl;
+		else if (l1.find("Content-Type") != std::string::npos)
+			std::cout << "ct = " << l1.substr(l1.find("Content-Type: ") + 14) << std::endl;
+		else
+		{
+			if (isLine)
+			{
+				if (l1.length())
+					body.append(l1).append("\n");
+			}
+			else
+				isLine = true;
+		}
+	}
+	std::cout << "===============================\n";
+	std::cout << body << std::endl;
 }

@@ -127,16 +127,36 @@ int		Response::_isCGI()
 void	Response::_handleCGI()
 {
 	int fd = _runCgi();
-
 	char buffer[1024];
 	int r;
+	std::string body = "";
+	bool _isEmpty = false;
+	std::string _line;
+	std::string _Ctype;
+	std::string _st;
 
 	while ((r = read(fd, buffer, 1024)) > 0)
-	{
 		buffer[r] = '\0';
-		std::cout << buffer << std::endl;
+	std::istringstream _read(buffer);
+
+	while (getline(_read, _line))
+	{
+		if (_line.find("Content-Type: ") != std::string::npos)
+			_Ctype = _line.substr(_line.find("Content-Type: ") + 14);
+		else if (_line.find("Status: ") != std::string::npos)
+			_st = _line.substr(_line.find("Status: ") + 8);
+		else
+		{
+			if (_isEmpty)
+			{
+				if (_line.length())
+					body.append(_line).append("\n");
+			}
+			else
+				_isEmpty = true;
+		}
 	}
-	
+	_body = body;
 }
 
 std::string Response::_getDir(void)
@@ -356,9 +376,9 @@ void Response::_applyPostMethod()
 		}
 	}
 	_body = "<html>\r\n";
-	_body += "<body>\r\n";
-	_body += "<h1>File uploaded.</h1>\r\n";
-	_body += "</body>\r\n";
+	_body += "\t<body>\r\n";
+	_body += "\t\t<h1>File uploaded.</h1>\r\n";
+	_body += "\t</body>\r\n";
 	_body += "</html>\r\n";
 	_status = S_OK;
 }
