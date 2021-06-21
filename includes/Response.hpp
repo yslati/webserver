@@ -43,6 +43,8 @@ class Response {
         std::string _ResponseContent;
         std::map<int, std::string> _stResp;
         std::string _scriptFileName;
+        std::string _Ctype;
+        std::string _st;
     public:
         std::map<std::string, std::string> _headers;
         class MethodNotFound: public std::exception

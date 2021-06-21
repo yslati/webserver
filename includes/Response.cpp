@@ -6,6 +6,8 @@ Response::Response(Location& location, HttpServer& httpServ): _location(location
 	// std::cout << "wa si = " << _location.getRoot() << std::endl;
     _body = "";
     _ResponseContent = "";
+	_st = "";
+	_Ctype = "";
     _status = 0;
 }
 
@@ -132,8 +134,6 @@ void	Response::_handleCGI()
 	std::string body = "";
 	bool _isEmpty = false;
 	std::string _line;
-	std::string _Ctype;
-	std::string _st;
 
 	while ((r = read(fd, buffer, 1024)) > 0)
 		buffer[r] = '\0';

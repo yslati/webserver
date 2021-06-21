@@ -533,6 +533,6 @@ int main()
 				isLine = true;
 		}
 	}
-	std::cout << "===============================\n";
+	std::cout << "=================================\n";
 	std::cout << body << std::endl;
 }
