@@ -101,6 +101,7 @@ class Response {
         void _deleteFile(std::string _file);
         std::string _getScriptFileName() const;
         int _runCgi();
+        std::string _getKey(std::string ctype);
 
 };
 
