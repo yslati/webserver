@@ -8,6 +8,8 @@ Request::Request()
 	_boundary = "";
 	_error = 0;
 	_isDone = false;
+	_postBody = "";
+	_isLine = false;
 }
 
 Request::~Request()
@@ -26,18 +28,21 @@ int		Request::_getContentLen()
 	return (_Clen);
 }
 
+std::string Request::_getPostBody() const
+{
+	return _postBody;
+}
+
 unsigned int Request::_getPostLenght(std::string data, std::string boundary)
 {
 	std::string _line = "";
 	std::string body = "";
 	std::istringstream _read(data);
-	bool _isEmpty = false;
+	bool _isEmpty = true;
 
 	while (getline(_read, _line))
 	{
-		if (!_isEmpty && _line.length() == 1)
-			_isEmpty = true;
-		else if (_isEmpty)
+		if (_isEmpty)
 			body.append(_line).append("\n");
 	}
 	if (!boundary.length())
@@ -45,6 +50,22 @@ unsigned int Request::_getPostLenght(std::string data, std::string boundary)
     return body.length();
 }
 
+// unsigned int Request::_getPostLenght(std::string data, std::string boundary)
+// {
+// 	std::string _line = "";
+// 	std::string body = "";
+// 	std::istringstream _read(data);
+// 	bool _isEmpty = true;
+
+// 	while (getline(_read, _line))
+// 	{
+// 		if(_isEmpty)
+// 			body.append(_line).append("\n");
+// 	}
+// 	if (!boundary.length())
+// 		body.pop_back();
+//     return body.length();
+// }
 
 void Request::_parseLine(const std::string& _line)
 {
@@ -151,6 +172,23 @@ void Request::_parseQueryString(std::string uri)
 		_rmap["query_string"] = uri.substr(uri.find("?") + 1, uri.length());
 }
 
+void Request::_pushToPostBody(std::string _data)
+{
+	std::istringstream _read(_data);
+	std::string _line = "";
+
+	while (getline(_read, _line))
+	{
+		if (_isLine)
+		{
+			if (_line.length())
+				_postBody.append(_line).append("\n");
+		}
+		else
+			_isLine = true;
+	}
+}
+
 void Request::_parseIncomingRequest(const std::string& _buffer)
 {
     std::string _data;
@@ -228,12 +266,12 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 		}
 		else if (_Clen && !_rmap["boundary"].length())
 		{
+			_postBody.append(_data).append("\r");
 			if (_isArg)
 			{
-				_argBody.append(_data);
+				// _argBody.append(_data);
 				if (_argBody.length())
 				{
-					ArgContent arg = {};
 					arg._data = _argBody;
 					_argBody.clear();
 					_aCont.push_back(arg);
@@ -246,9 +284,18 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 				_isArg = true;
 		}
 		else if (_rmap["Content-Length"].length())
+		{
+			std::cout << "dt1 = " << _data << "\n";
+			_pushToPostBody(_data);
 			_pushDataToArg(_data);
+		}
     }
-	if (!_boundary.length() || (_Clen && _Clen == _getPostLenght(_data, _boundary)))
+	std::cout << "================================================\n";
+	std::cout << _postBody.length() << std::endl;
+	std::cout << _getPostLenght(_postBody, _boundary) << std::endl;
+	std::cout << _Clen << std::endl;
+	std::cout << "================================================\n";
+	if (!_boundary.length() || (_Clen && _Clen == _getPostLenght(_postBody, _boundary)))
 		_isDone = true;
 	if (_isDone)
 	{

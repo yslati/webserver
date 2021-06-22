@@ -571,7 +571,7 @@ void	Response::_applyMethod()
 	if (_request._getError())
 		_status = S_BAD_REQ;
 	else if (_httpServ.getMaxBodySize() != -1
-	&& _request._getContentLen() > _httpServ.getMaxBodySize() * 1024 * 1024)
+	&& _request._getContentLen() > _httpServ.getMaxBodySize())
 		_status = S_PAY_LOAD_TOO_LARGE;
 	else if (_isCGI())
 		_handleCGI();

@@ -25,6 +25,7 @@ class Request {
         unsigned int _getPostLenght(std::string data, std::string boundary);
         std::string _getHeaderContent(std::string _first);
         void _pushDataToArg(std::string _data);
+        void _pushToPostBody(std::string _data);
         ArgContent _pushToArg(std::string _data);
         ArgContent _getArg(size_t i);
         std::vector<ArgContent> _getVecCont() const;
@@ -35,6 +36,7 @@ class Request {
         int _getError();
         std::string _getCgiUriFile();
         void _parseQueryString(std::string uri);
+        std::string _getPostBody() const;
     private:
 		bool            _isDone;
 		unsigned int    _Clen;
@@ -47,6 +49,8 @@ class Request {
 		std::string     _body;
 		std::vector<HttpServer>::iterator _it;
 		int _error;
+        std::string _postBody;
+		bool            _isLine;
 };
 
 #endif
