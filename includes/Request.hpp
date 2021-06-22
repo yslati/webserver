@@ -51,6 +51,7 @@ class Request {
 		int _error;
         std::string _postBody;
 		bool            _isLine;
+		bool            _isL;
 };
 
 #endif

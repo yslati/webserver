@@ -10,6 +10,7 @@ Request::Request()
 	_isDone = false;
 	_postBody = "";
 	_isLine = false;
+	_isL = false;
 }
 
 Request::~Request()
@@ -266,7 +267,10 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 		}
 		else if (_Clen && !_rmap["boundary"].length())
 		{
-			_postBody.append(_data).append("\r");
+			if (_isL)
+				_postBody.append(_data);
+			else
+				_isL = true;
 			if (_isArg)
 			{
 				// _argBody.append(_data);
