@@ -135,8 +135,11 @@ void	Response::_handleCGI()
 	bool _isEmpty = false;
 	std::string _line;
 
-	while ((r = read(fd, buffer, 1024)) > 0)
+	while ((r = read(fd, buffer, sizeof(buffer))) > 0)
+	{
 		buffer[r] = '\0';
+	}
+		std::cout << buffer << "\n";
 	std::istringstream _read(buffer);
 
 	while (getline(_read, _line))
@@ -145,6 +148,8 @@ void	Response::_handleCGI()
 			_Ctype = _line.substr(_line.find("Content-Type: ") + 14);
 		else if (_line.find("Status: ") != std::string::npos)
 			_st = _line.substr(_line.find("Status: ") + 8);
+		else if (_line.find("Location: ") != std::string::npos)
+			_loc = _line.substr(_line.find("Location: " + 10));
 		else
 		{
 			if (_isEmpty)
