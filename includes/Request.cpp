@@ -228,6 +228,7 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 		}
 		else if (_Clen && !_rmap["boundary"].length())
 		{
+			std::cout << _data << "\n";
 			if (_isArg)
 			{
 				_argBody.append(_data);
@@ -246,7 +247,10 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 				_isArg = true;
 		}
 		else if (_rmap["Content-Length"].length())
+		{
+			std::cout << _data << "\n";
 			_pushDataToArg(_data);
+		}
     }
 	if (!_boundary.length() || (_Clen && _Clen == _getPostLenght(_data, _boundary)))
 		_isDone = true;

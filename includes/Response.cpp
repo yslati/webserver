@@ -34,19 +34,52 @@ Response::~Response()
 	_stResp.clear();
 }
 
-
+std::string		Response::_getKey(std::string ctype)
+{
+	std::string path = "";
+    std::regex re("name=\"");
+    std::smatch match;
+    if (ctype.length())
+    {
+        std::regex_search(ctype, match, re);
+        if (!match.empty())
+        {
+            path = match.suffix();
+            path = path.substr(0, path.find("\""));
+        }
+    }
+	return path;
+}
 
 int Response::_runCgi()
 {
+	int fds1[2];
 	int fds2[2];
 	char **_env;
 	char **args;
 
 	std::string tmp = "SCRIPT_FILENAME=" + _scriptFileName;
-	std::string PATH = "PATH='/usr/bin/:/Users/aaqlzim/.brew/bin/'";
+	std::string PATH = "PATH='/usr/bin/:/Users/yslati/.brew/bin/'";
 	std::string query_string = "QUERY_STRING=" + _request._getHeaderContent("query_string");
 	std::string method = "REQUEST_METHOD=" + _request._getHeaderContent("method");
 	std::string st = "REDIRECT_STATUS=" + std::to_string(200);
+	std::string cn = "Content-Length=" + _request._getHeaderContent("Content-Length");
+	std::string body = "BODY=";
+
+	// for (size_t i = 0; i < _request._getVecCont().size(); i++)
+	// {
+	// 	Request::ArgContent arg = _request._getArg(i);
+	// 	if (arg._data.length() && arg._Cdisp.length())
+	// 	{
+	// 		arg._Cdisp.pop_back();
+	// 		// arg._data.pop_back();
+	// 		std::cout << "l = " << arg._data << std::endl;
+	// 		body.append("\"" + _getKey(arg._Cdisp) + "=" + arg._data + "&");
+	// 	}
+	// }
+	// body.pop_back();
+	
+	// std::cout << "bd = " << body << std::endl;
 
 	_env = (char **)malloc(sizeof(char *) * 7);
 	_env[0] = strdup(tmp.c_str());
@@ -77,18 +110,24 @@ int Response::_runCgi()
 	// 	args[2] = NULL;
 	// }
 
+	pipe(fds1);
 	pipe(fds2);
 	pid_t pid = fork();
 	if (!pid)
 	{
+		close(fds1[1]);
 		close(fds2[0]);
 		dup2(fds2[1], 1);
+		dup2(fds1[0], 0);
 		execve(args[0], args, _env);
 		exit(0);
 	}
 	else
 	{
+		close(fds1[0]);
 		close(fds2[1]);
+		// write(fds1[1], "Hello", 5);
+        close(fds1[1]);
 		// waitpid(pid, 0, 0);
 	}
 	return (fds2[0]);
