@@ -226,7 +226,7 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 				// _rmap[_line] = _data.substr(_line.length() + 2, _data.find_first_of(';') - 14);
 				_rmap[_line] = _data.substr(_line.length() + 2);
 				_rmap[_line].pop_back();
-				std::cout << "CC = " << _rmap[_line] << std::endl;
+				// std::cout << "CC = " << _rmap[_line] << std::endl;
 				_rmap["boundary"] = _bdr.append("--").append(_data.substr(_data.find("boundary=") + 9));
 				_rmap["boundary"].pop_back();
 				_boundary = _data.substr(_data.find("boundary=") + 9);
@@ -236,7 +236,7 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 			{
 				_rmap["Content-Type"] = _data.substr(_data.find(":") + 2);
 				_rmap["Content-Type"].pop_back();
-				std::cout << "TT = " << _rmap["Content-Type"] << std::endl;
+				// std::cout << "TT = " << _rmap["Content-Type"] << std::endl;
 			}
 		}
 		else if (!_rmap["Host"].length() && _data.find("Host:") != std::string::npos)
@@ -301,28 +301,28 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 		}
 		else if (_rmap["Content-Length"].length())
 		{
-			std::cout << "dt1 = " << _data << "\n";
+			// std::cout << "dt1 = " << _data << "\n";
 			_pushToPostBody(_data);
 			_pushDataToArg(_data);
 		}
     }
-	std::cout << "================================================\n";
-	std::cout << _postBody << std::endl;
-	std::cout << _getPostLenght(_postBody, _boundary) << std::endl;
-	std::cout << _Clen << std::endl;
-	std::cout << "================================================\n";
-	if (!_boundary.length() || (_Clen && _Clen == _getPostLenght(_postBody, _boundary)))
-		_isDone = true;
-	if (_isDone)
-	{
-		if (_rmap["method"].compare("GET") && _rmap["method"].compare("POST") &&
-		_rmap["method"].compare("DELETE"))
-			_error = 1;
-		else if (!_rmap["uri"].length())
-			_error = 1;
-		else if (!_rmap["Host"].length())
-			_error = 1;
-	}
+	// std::cout << "================================================\n";
+	// std::cout << _postBody << std::endl;
+	// std::cout << _getPostLenght(_postBody, _boundary) << std::endl;
+	// std::cout << _Clen << std::endl;
+	// std::cout << "================================================\n";
+	// if (!_boundary.length() || (_Clen && _Clen == _getPostLenght(_postBody, _boundary)))
+	// 	_isDone = true;
+	// if (_isDone)
+	// {
+	// 	if (_rmap["method"].compare("GET") && _rmap["method"].compare("POST") &&
+	// 	_rmap["method"].compare("DELETE"))
+	// 		_error = 1;
+	// 	else if (!_rmap["uri"].length())
+	// 		_error = 1;
+	// 	else if (!_rmap["Host"].length())
+	// 		_error = 1;
+	// }
 }
 
 Request::ArgContent Request::_getArg(size_t i)

@@ -222,8 +222,8 @@ Client::~Client() {
 }
 
 int Client::readConnection() {
-    char buffer[1028];
-    int r = recv(_conn, buffer, 128, 0);
+    char buffer[16000];
+    int r = recv(_conn, buffer, 15999, 0);
 //     return 0;
     if (r == -1) {
             return 1;
