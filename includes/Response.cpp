@@ -8,6 +8,7 @@ Response::Response(Location& location, HttpServer& httpServ): _location(location
     _ResponseContent = "";
 	_st = "";
 	_Ctype = "";
+	_loc = "";
     _status = 0;
 }
 
@@ -42,10 +43,10 @@ int Response::_runCgi()
 	char **args;
 
 	std::string tmp = "SCRIPT_FILENAME=" + _scriptFileName;
-	std::string PATH = "PATH='/usr/bin/:/Users/yslati/goinfre/.brew/bin'";
+	std::string PATH = "PATH='/usr/bin/:/Users/aaqlzim/.brew/bin/'";
 	std::string query_string = "QUERY_STRING=" + _request._getHeaderContent("query_string");
 	std::string method = "REQUEST_METHOD=" + _request._getHeaderContent("method");
-	std::string st = "REDIRECT_STATUS=" + std::to_string(_status);
+	std::string st = "REDIRECT_STATUS=" + std::to_string(200);
 
 	_env = (char **)malloc(sizeof(char *) * 7);
 	_env[0] = strdup(tmp.c_str());
@@ -136,15 +137,13 @@ void	Response::_handleCGI()
 	std::string _line;
 
 	while ((r = read(fd, buffer, sizeof(buffer))) > 0)
-	{
 		buffer[r] = '\0';
-	}
-		std::cout << buffer << "\n";
+
 	std::istringstream _read(buffer);
 
 	while (getline(_read, _line))
 	{
-		if (_line.find("Content-Type: ") != std::string::npos)
+		if (_line.find("Content-type: ") != std::string::npos)
 			_Ctype = _line.substr(_line.find("Content-Type: ") + 14);
 		else if (_line.find("Status: ") != std::string::npos)
 			_st = _line.substr(_line.find("Status: ") + 8);
@@ -155,13 +154,14 @@ void	Response::_handleCGI()
 			if (_isEmpty)
 			{
 				if (_line.length())
-					body.append(_line).append("\n");
+					body.append(_line).append("\r\n");
 			}
 			else
 				_isEmpty = true;
 		}
 	}
-	_body = body;
+	_body = body.append("\r\n");
+	_status = S_OK;
 }
 
 std::string Response::_getDir(void)
@@ -669,6 +669,7 @@ void Response::_startResponse()
 			_ResponseContent += _body;
 		}
 	}
+	std::cout << _ResponseContent << std::endl;
 }
 
 std::string Response::_getResContent() const
