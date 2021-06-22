@@ -37,6 +37,7 @@ class Request {
         std::string _getCgiUriFile();
         void _parseQueryString(std::string uri);
         std::string _getPostBody() const;
+        std::string _getBoundary() const;
     private:
 		bool            _isDone;
 		unsigned int    _Clen;

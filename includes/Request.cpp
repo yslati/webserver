@@ -34,6 +34,11 @@ std::string Request::_getPostBody() const
 	return _postBody;
 }
 
+std::string		Request::_getBoundary() const
+{
+	return _boundary;
+}
+
 unsigned int Request::_getPostLenght(std::string data, std::string boundary)
 {
 	std::string _line = "";

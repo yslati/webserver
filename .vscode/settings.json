@@ -68,5 +68,6 @@
 		"memory_resource": "cpp",
 		"set": "cpp",
 		"regex": "cpp"
-	}
+	},
+	"python.formatting.provider": "yapf"
 }
