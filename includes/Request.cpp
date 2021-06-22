@@ -291,7 +291,7 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 		}
     }
 	std::cout << "================================================\n";
-	std::cout << _postBody.length() << std::endl;
+	std::cout << _postBody << std::endl;
 	std::cout << _getPostLenght(_postBody, _boundary) << std::endl;
 	std::cout << _Clen << std::endl;
 	std::cout << "================================================\n";

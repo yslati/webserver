@@ -59,12 +59,13 @@ int Response::_runCgi()
 	char **args;
 
 	std::string tmp = "SCRIPT_FILENAME=" + _scriptFileName;
-	std::string PATH = "PATH='/usr/bin/:/Users/yslati/.brew/bin/'";
+	std::string PATH = "PATH='/usr/bin/:/Users/aaqlzim/.brew/bin/'";
 	std::string query_string = "QUERY_STRING=" + _request._getHeaderContent("query_string");
 	std::string method = "REQUEST_METHOD=" + _request._getHeaderContent("method");
 	std::string st = "REDIRECT_STATUS=" + std::to_string(200);
-	std::string cn = "Content-Length=" + _request._getHeaderContent("Content-Length");
-	std::string body = "BODY=";
+	std::string cn = "CONTENT_LENGTH=" + _request._getHeaderContent("Content-Length");
+	std::string ctype = "CONTENT_TYPE=application/x-www-form-urlencoded";
+	std::string postdata = _request._getPostBody();
 
 	// for (size_t i = 0; i < _request._getVecCont().size(); i++)
 	// {
@@ -81,13 +82,15 @@ int Response::_runCgi()
 	
 	// std::cout << "bd = " << body << std::endl;
 
-	_env = (char **)malloc(sizeof(char *) * 7);
+	_env = (char **)malloc(sizeof(char *) * 8);
 	_env[0] = strdup(tmp.c_str());
 	_env[1] = strdup(PATH.c_str());
 	_env[2] = strdup(query_string.c_str());
 	_env[3] = strdup(method.c_str());
 	_env[4] = strdup(st.c_str());
-	_env[5] = NULL;
+	_env[5] = strdup(cn.c_str());
+	_env[6] = strdup(ctype.c_str());
+	_env[7] = NULL;
 
 	if (_location.getPhpCGI())
 	{
@@ -126,7 +129,7 @@ int Response::_runCgi()
 	{
 		close(fds1[0]);
 		close(fds2[1]);
-		// write(fds1[1], "Hello", 5);
+		write(fds1[1], postdata.c_str(), postdata.length());
         close(fds1[1]);
 		// waitpid(pid, 0, 0);
 	}
@@ -177,7 +180,7 @@ void	Response::_handleCGI()
 
 	while ((r = read(fd, buffer, sizeof(buffer))) > 0)
 		buffer[r] = '\0';
-
+	std::cout << buffer << std::endl;
 	std::istringstream _read(buffer);
 
 	while (getline(_read, _line))
