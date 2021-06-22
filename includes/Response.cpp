@@ -61,12 +61,12 @@ int Response::_runCgi()
 
 
 	std::string tmp = "SCRIPT_FILENAME=" + _scriptFileName;
-	std::string PATH = "PATH='/usr/bin/:/Users/yslati/.brew/bin/'";
+	std::string PATH = "PATH='/usr/bin/:/Users/aaqlzim/.brew/bin/'";
 	std::string query_string = "QUERY_STRING=" + _request._getHeaderContent("query_string");
 	std::string method = "REQUEST_METHOD=" + _request._getHeaderContent("method");
 	std::string st = "REDIRECT_STATUS=" + std::to_string(200);
 	std::string cn = "CONTENT_LENGTH=" + _request._getHeaderContent("Content-Length");
-	std::string ctype = "CONTENT_TYPE=application/x-www-form-urlencoded";
+	std::string ctype = "CONTENT_TYPE=" + _request._getHeaderContent("Content-Type");
 	// std::string ctype = "CONTENT_TYPE=application/json";
 	// std::string ctype = "CONTENT_TYPE=multipart/form-data; boundary=" + _request._getBoundary();
 	
@@ -105,14 +105,14 @@ int Response::_runCgi()
 		args[0] = strdup(_location.getFastcgiPass().c_str());
 		args[1] = NULL;
 	}
-	// if (_location.getNodeCGI())
-	// {
-	// 	args = (char**)malloc(sizeof(char *) * 3);
-	// 	args[0] = strdup(_location.getFastcgiPass().c_str());
-	// 	args[1] = strdup(_scriptFileName.c_str());
-	// 	args[2] = NULL;
-	// }
-	if (_location.getPyCGI())
+	else if (_location.getNodeCGI())
+	{
+		args = (char**)malloc(sizeof(char *) * 3);
+		args[0] = strdup(_location.getFastcgiPass().c_str());
+		args[1] = strdup(_scriptFileName.c_str());
+		args[2] = NULL;
+	}
+	else if (_location.getPyCGI())
 	{
 		args = (char**)malloc(sizeof(char *) * 3);
 		args[0] = strdup(_location.getFastcgiPass().c_str());

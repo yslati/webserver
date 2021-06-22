@@ -223,14 +223,21 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 			if (_data.find("boundary=") != std::string::npos)
 			{
 				_line = "Content-Type";
-				_rmap[_line] = _data.substr(_line.length() + 2, _data.find_first_of(';') - 14);
+				// _rmap[_line] = _data.substr(_line.length() + 2, _data.find_first_of(';') - 14);
+				_rmap[_line] = _data.substr(_line.length() + 2);
+				_rmap[_line].pop_back();
+				std::cout << "CC = " << _rmap[_line] << std::endl;
 				_rmap["boundary"] = _bdr.append("--").append(_data.substr(_data.find("boundary=") + 9));
 				_rmap["boundary"].pop_back();
 				_boundary = _data.substr(_data.find("boundary=") + 9);
 				_boundary.pop_back();
 			}
 			else
-				_rmap["form-data"] = _data.substr(_data.find(":") + 2);
+			{
+				_rmap["Content-Type"] = _data.substr(_data.find(":") + 2);
+				_rmap["Content-Type"].pop_back();
+				std::cout << "TT = " << _rmap["Content-Type"] << std::endl;
+			}
 		}
 		else if (!_rmap["Host"].length() && _data.find("Host:") != std::string::npos)
 		{
