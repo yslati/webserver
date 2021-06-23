@@ -28,7 +28,7 @@ class Client {
         void _handleResponse(Request req, std::vector<HttpServer>::iterator it);
         bool	_matchBegin(std::string _regex, std::string _line);
 		void _readHeader(std::string con);
-        bool    _isPrefix(std::string& s1, std::string& s2);
+        bool    _isPrefix(std::string s1, std::string s2);
         bool 	_isSuffix(std::string s1, std::string s2);
 	~Client();
     private:

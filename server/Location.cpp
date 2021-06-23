@@ -16,6 +16,7 @@ Location::Location() {
 
 Location::Location(Location const & rhs)
 {
+    this->operator=(rhs);
     *this = rhs;
 
 }

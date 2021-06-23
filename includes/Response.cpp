@@ -333,6 +333,14 @@ void	Response::_readErrorPageFile(std::string file)
 	_body = body.append("\r\n");
 }
 
+void	Response::_handleError()
+{
+	if (_httpServ._getErrorPages(_status).length())
+		_readErrorPageFile(_httpServ._getErrorPages(_status));
+	else
+		_generateErrorPage();
+}
+
 void Response::_readFile(std::string file)
 {
 	std::string _line;
@@ -342,10 +350,11 @@ void Response::_readFile(std::string file)
 	if (input_file.fail())
 	{
 		_status = S_NOT_FOUND;
-		if (_httpServ._getErrorPages(_status).length())
-			_readErrorPageFile(_httpServ._getErrorPages(_status));
-		else
-			_generateErrorPage();
+		_handleError();
+		// if (_httpServ._getErrorPages(_status).length())
+		// 	_readErrorPageFile(_httpServ._getErrorPages(_status));
+		// else
+		// 	_generateErrorPage();
 		return ;
 	}
 	while (getline(input_file, _line))
@@ -357,25 +366,14 @@ void Response::_readFile(std::string file)
 void Response::_applyGetMethod()
 {
     std::string path = _getFilePath(_getFileNameFromUri(_request._getHeaderContent("uri")));
-	// if (_checkPermission(path, R_OK))
-	//	_handleError();
-	// else
-    //	_readFile(path);
-	// if (DEBUG_MODE)
-	// 	path.append("file.html");
-	// path = "/dir/";
-	// if (path.back() == '/')
-	// 	path.pop_back();
-	// std::cout << "path1 = " << path << "\n";
-	// std::cout << "uri = " << _request._getHeaderContent("uri").substr(1, _request._getHeaderContent("uri").length()) << "\n";
-	// std::cout << "uri1 = " << _location.getIndex() << "\n";
-	// if (_location.getIndex().length() &&
-	// _request._getHeaderContent("uri").substr(1, _request._getHeaderContent("uri").length()).compare(_location.getIndex()))
-	// {
-	// 	if (path.back() != '/')
-	// 		path.append("/");
-	// 	path.append(_location.getIndex());
-	// }
+
+	if (_location.getUri().compare(_request._getHeaderContent("uri")) == 0
+	&& !_location.getAutoIndex() && _isDir(path))
+	{
+		if (path.back() != '/')
+			path += "/";
+		path.append(_location.getIndex());
+	}
 	std::cout << "path = " << path << std::endl;
 	if (_isDir(path))
 	{
@@ -387,7 +385,23 @@ void Response::_applyGetMethod()
 			_status = S_OK;
 		}
 		else
-			_status = S_NOT_FOUND;
+		{
+			_status = S_OK;
+			path.append(_location.getIndex());
+			if (!_checkPermission(path, R_OK))
+				_readFile(path);
+			else
+			{
+				_status = S_FORBIDDEN;
+				_handleError();
+			}
+			// _status = S_FORBIDDEN;
+			// _handleError();
+			// if (_httpServ._getErrorPages(_status).length())
+			// 	_readErrorPageFile(_httpServ._getErrorPages(_status));
+			// else
+			// 	_generateErrorPage();
+		}
 	}
 	else if (!_checkPermission(path, R_OK))
 		_readFile(path);
@@ -489,7 +503,7 @@ void Response::_deleteFile(std::string _file)
 	// if (_checkPermission(_file, W_OK))
 	// 	throw Response::PermissionDiend();
 	std::cout << "_file = " << _file << std::endl;
-	if (std::remove(_file.c_str()) == 0)
+	if (!_checkPermission(_file, W_OK) && std::remove(_file.c_str()) == 0)
 	{
 		_body = "<html>\r\n";
 		_body += "	<body>\r\n";
@@ -500,8 +514,8 @@ void Response::_deleteFile(std::string _file)
 	}
 	else
 	{
-		_status = S_METHOD_NOT_ALLOWED;
-		std::cout << "file not found\n";
+		_status = S_FORBIDDEN;
+		_handleError();
 	}
 }
 
@@ -509,13 +523,15 @@ void Response::_applyDeleteMethod()
 {
     std::string path = _getFilePath(_request._getHeaderContent("uri"));
 
+	std::cout << "path_del = " << path << std::endl;
 	if (_isDir(path))
 	{
 		_status = S_FORBIDDEN;
-		if (_httpServ._getErrorPages(_status).length())
-			_readErrorPageFile(_httpServ._getErrorPages(_status));
-		else
-			_generateErrorPage();
+		_handleError();
+		// if (_httpServ._getErrorPages(_status).length())
+		// 	_readErrorPageFile(_httpServ._getErrorPages(_status));
+		// else
+		// 	_generateErrorPage();
 	}
 	else
 		_deleteFile(path);
@@ -606,6 +622,26 @@ bool	Response::_matchBegin(std::string _regex, std::string _line)
 	return _line.compare(0, _r.size(), _r) == 0;
 }
 
+bool	Response::_matchEnd(std::string s1, std::string s2)
+{
+	int n1 = s1.length(), n2 = s2.length();
+	if (n1 > n2 || !s1.length() || !s2.length())
+		return false;
+	for (int i = 0; i < n1; i++)
+		if (s1[n1 - i - 1] != s2[n2 - i - 1])
+			return false;
+	return true;
+}
+
+std::string		Response::_getContentType(std::string uri)
+{
+	if (_Ctype.length())
+		return _Ctype;
+	else if (_matchEnd(".html", uri))
+		return "text/html";
+	return "text/plain";
+}
+
 int		Response::_checkAllowedMethod(std::string method)
 {
 	std::vector<std::string> v = _location.getAllowedMethod();
@@ -627,6 +663,7 @@ void	Response::_applyMethod()
 {
 	_scriptFileName = _getFilePath(_getFileNameFromUri(_request._getHeaderContent("uri")));
 
+	// std::cout << "scn = " << _scriptFileName << "\n";
 	if (_scriptFileName.find("?") != std::string::npos)
 		_scriptFileName = _scriptFileName.substr(0, _scriptFileName.find("?"));
 
@@ -640,6 +677,7 @@ void	Response::_applyMethod()
 	else if (_request._getHeaderContent("method").compare("GET") == 0
 	&& _checkAllowedMethod("GET"))
 	{
+		std::cout << "apply get method\n";
 		if (_location.getIsRedirect())
 			_handleRedirect();
 		else
@@ -647,7 +685,10 @@ void	Response::_applyMethod()
 	}
 	else if (_request._getHeaderContent("method").compare("POST") == 0
 	&& _checkAllowedMethod("POST"))
+	{
+		std::cout << "hey upload this file plz\n";
 		_applyPostMethod();
+	}
 	else if (_request._getHeaderContent("method").compare("DELETE") == 0
 	&& _checkAllowedMethod("DELETE"))
 		_applyDeleteMethod();
@@ -707,12 +748,10 @@ void Response::_startResponse()
 		else
 		{
 			_ResponseContent += "Server: webserv/0.0\r\n";
-			_ResponseContent += "Content-Type: text/html; charset=UTF-8\r\n";
-			// if (_request._getHeaderContent("Content-Type").length())
-				// _ResponseContent += _request._getHeaderContent("Content-Type");
-			// else
-			// _ResponseContent += "Content-Type: text/html\r\n";
-			// _ResponseContent += "\r\n";
+			_ResponseContent += "Content-Type: ";
+			_ResponseContent += "text/html";
+			// _ResponseContent += _getContentType(_scriptFileName);
+			_ResponseContent += "\r\n";
 			_ResponseContent += "Content-Length: ";
 			_ResponseContent += std::to_string(_body.length());
 			_ResponseContent += "\r\n";

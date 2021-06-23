@@ -30,7 +30,7 @@ bool	Client::_matchBegin(std::string _regex, std::string _line)
 	return _line.compare(0, _r.size(), _r) == 0;
 }
 
-bool Client::_isPrefix(std::string& s1, std::string& s2)
+bool Client::_isPrefix(std::string s1, std::string s2)
 {
 	size_t n1 = s1.length();
 	size_t n2 = s2.length();
@@ -64,8 +64,8 @@ void	Client::_handleResponse(Request req, std::vector<HttpServer>::iterator it)
     std::vector<Location> Locations = it->getLocations();
 	std::vector<Location>::iterator lit = Locations.begin();
 	Location tmp;
-	std::string u;
-	std::string path = "";
+	std::string _match;
+	std::string *path = new std::string("/");
 	std::string uri = req._getHeaderContent("uri");
 
 
@@ -73,7 +73,8 @@ void	Client::_handleResponse(Request req, std::vector<HttpServer>::iterator it)
 	{
 		if (lit->getFastcgiPass().length())
 		{
-			std::string _match = uri.substr(uri.find("."), uri.length());
+			if (uri.find(".") != std::string::npos)
+				_match = uri.substr(uri.find("."), uri.length());
 			if (_match.find("?") != std::string::npos)
 				_match = _match.substr(0, _match.find("?"));
 			if ((lit->getPhpCGI() && !_match.compare(".php"))
@@ -84,26 +85,36 @@ void	Client::_handleResponse(Request req, std::vector<HttpServer>::iterator it)
 				break ;
 			}
 		}
-		if (_matchBegin(lit->getUri(), uri))
+		else if (_matchBegin(lit->getUri(), uri))
 		{
 			if (lit->getUri().compare(uri) == 0)
 			{
 				tmp = *lit;
 				break ;
 			}
-			if (path.length() == 0)
+			else if (path->compare("/") == 0)
 			{
-				path = lit->getUri();
+				*path = lit->getUri();
 				tmp = *lit;
 			}
-			else if (path.length() < lit->getUri().length())
+			// else if (tmp.getUri().length() == 0)
+			// {
+			// 	// *path = lit->getUri();
+			// 	tmp = *lit;
+			// }
+			// else if (tmp.getUri().length() < lit->getUri().length())
+			// {
+			// 	// *path = lit->getUri();
+			// 	tmp = *lit;
+			// }
+			else if (tmp.getUri().length() < lit->getUri().length())
 			{
-				path = lit->getUri();
+				*path = lit->getUri();
 				tmp = *lit;
 			}
 		}
 	}
-
+	
 	Response res = Response(tmp, *it);
 
 

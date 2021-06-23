@@ -1,3 +1,4 @@
+
 #ifndef RESPONSE_HPP
 # define RESPONSE_HPP
 
@@ -31,80 +32,80 @@
 // AND SOME OTHER STATUS
 
 // DEBUG MODE
-# define DEBUG_MODE 1
+# define DEBUG_MODE 0
 
 class Response {
-    private:
-        Request _request;
-        Location& _location;
-        HttpServer& _httpServ;
-        size_t  _status;
-        std::string _body;
-        std::string _ResponseContent;
-        std::map<int, std::string> _stResp;
-        std::string _scriptFileName;
-        std::string _Ctype;
-        std::string _st;
-        std::string _loc;
-    public:
-        std::map<std::string, std::string> _headers;
-        class MethodNotFound: public std::exception
-        {
-            public:
-                virtual const char* what() const throw() {
-                    return "Not Implemented";
-                } 
-        };
-        class PermissionDiend: public std::exception
-        {
-            public:
-                virtual const char* what() const throw() {
-                    return "Permission Diend";
-                } 
-        };
-        Response(Location& location, HttpServer& httpServ);
-        Response(Response const & rhs);
-        Response& operator=(Response const & rhs);
-        ~Response();
+	private:
+		Request _request;
+		Location& _location;
+		HttpServer& _httpServ;
+		size_t  _status;
+		std::string _body;
+		std::string _ResponseContent;
+		std::map<int, std::string> _stResp;
+		std::string _scriptFileName;
+		std::string _Ctype;
+		std::string _st;
+		std::string _loc;
+	public:
+		std::map<std::string, std::string> _headers;
+		class MethodNotFound: public std::exception
+		{
+			public:
+				virtual const char* what() const throw() {
+					return "Not Implemented";
+				} 
+		};
+		class PermissionDiend: public std::exception
+		{
+			public:
+				virtual const char* what() const throw() {
+					return "Permission Diend";
+				} 
+		};
+		Response(Location& location, HttpServer& httpServ);
+		Response(Response const & rhs);
+		Response& operator=(Response const & rhs);
+		~Response();
 
 
-        void _handleCGI();
-        int _isCGI();
-        bool _matchBegin(std::string _regex, std::string _line);
-        bool _isSuffix(std::string s1, std::string s2);
-        void _setRequest(Request& req);
-        void _setLocation(Location& location);
-        Location _getLocation() const;
-        void _startResponse();
-        void _applyMethod();
-        void _handleRedirect();
-        int _checkAllowedMethod(std::string method);
-        std::string _getResContent() const;
-        void _makeStatus();
-        int _checkPermission(std::string path, int mode);
-        std::string _getFilePath(std::string uri);
-        std::string _getErrorPagePath(std::string filename);
-        std::string _getFileNameFromUri(std::string uri);
-        std::string _getDir(void);
-        std::string _getUploadDir();
-        std::string _generateHtmlTemplate();
-        std::string _getHrefLink(std::string dirname);
-        void		_applyAutoIndexing(std::string _dir);
+		void _handleCGI();
+		int _isCGI();
+		bool _matchBegin(std::string _regex, std::string _line);
+		bool _isSuffix(std::string s1, std::string s2);
+		void _setRequest(Request& req);
+		void _setLocation(Location& location);
+		Location _getLocation() const;
+		void _startResponse();
+		void _applyMethod();
+		void _handleRedirect();
+		int _checkAllowedMethod(std::string method);
+		std::string _getResContent() const;
+		void _makeStatus();
+		int _checkPermission(std::string path, int mode);
+		std::string _getFilePath(std::string uri);
+		std::string _getErrorPagePath(std::string filename);
+		std::string _getFileNameFromUri(std::string uri);
+		std::string _getDir(void);
+		std::string _getUploadDir();
+		std::string _generateHtmlTemplate();
+		std::string _getHrefLink(std::string dirname);
+		void		_applyAutoIndexing(std::string _dir);
 		int			_isDir(std::string dirname);
-        void _applyGetMethod();
-        void _readFile(std::string file);
-        void _readErrorPageFile(std::string file);
-        void _applyPostMethod();
-        std::string _getFileNameFromDisp(std::string disp);
-        void _applyDeleteMethod();
+		void _applyGetMethod();
+		void _readFile(std::string file);
+		void _readErrorPageFile(std::string file);
+		void _applyPostMethod();
+		std::string _getFileNameFromDisp(std::string disp);
+		void _applyDeleteMethod();
 		void _generateErrorPage();
-        void _deleteFile(std::string _file);
-        std::string _getScriptFileName() const;
-        int _runCgi();
-        std::string _getKey(std::string ctype);
-
+		void _deleteFile(std::string _file);
+		std::string _getScriptFileName() const;
+		int _runCgi();
+		std::string _getKey(std::string ctype);
+		std::string _getContentType(std::string uri);
+		bool        _matchEnd(std::string s1, std::string s2);
+		void        _handleError();
 };
 
 #endif
-
-// pwd/root/path/fgh.php
