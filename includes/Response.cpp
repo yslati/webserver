@@ -61,7 +61,7 @@ int Response::_runCgi()
 
 
 	std::string tmp = "SCRIPT_FILENAME=" + _scriptFileName;
-	std::string PATH = "PATH='/usr/bin/:/Users/aaqlzim/.brew/bin/'";
+	std::string PATH = "PATH='/usr/bin/:/Users/yslati/.brew/bin/'";
 	std::string query_string = "QUERY_STRING=" + _request._getHeaderContent("query_string");
 	std::string method = "REQUEST_METHOD=" + _request._getHeaderContent("method");
 	std::string st = "REDIRECT_STATUS=" + std::to_string(200);
@@ -463,7 +463,7 @@ void Response::_applyPostMethod()
 	}
 	_body = "<html>\r\n";
 	_body += "\t<body>\r\n";
-	_body += "\t\t<h1>File uploaded.</h1>\r\n";
+	_body += "\t\t<h1>Content uploaded.</h1>\r\n";
 	_body += "\t</body>\r\n";
 	_body += "</html>\r\n";
 	_status = S_OK;
@@ -641,7 +641,11 @@ bool	Response::_matchEnd(std::string s1, std::string s2)
 std::string		Response::_getContentType()
 {
 	if (_Ctype.length())
+	{
+		if (_Ctype.find(";") != std::string::npos)
+			_Ctype = _Ctype.substr(0, _Ctype.find(";"));
 		return _Ctype;
+	}
 	// else if (_matchEnd(".html", uri))
 	// 	return "text/html";
 	return "text/html";
@@ -697,7 +701,10 @@ void	Response::_applyMethod()
 	&& _checkAllowedMethod("DELETE"))
 		_applyDeleteMethod();
 	else
+	{
 		_status = S_NOT_IMPLEMENTED;
+		_handleError();
+	}
 }
 
 void Response::_makeStatus()
