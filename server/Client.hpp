@@ -31,6 +31,7 @@ class Client {
         bool    _isPrefix(std::string s1, std::string s2);
         bool 	_isSuffix(std::string s1, std::string s2);
 	~Client();
+        bool is_chunked;
     private:
 	int sended;
         int _conn;

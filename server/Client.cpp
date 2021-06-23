@@ -1,9 +1,11 @@
 #include "Client.hpp"
 #include <cstdlib>
 #include "Server.hpp"
+#include "UnchunkContent.hpp"
 
 
 Client::Client(int server_fd) {
+	is_chunked = false;
     int len = sizeof(addr);
     _ready = false;
     _conn = accept(server_fd, (struct sockaddr*)&addr, (socklen_t*)&len);
@@ -151,6 +153,24 @@ void Client::_handleRequest(std::vector<HttpServer>::iterator it)
 void	Client::setReady(bool x) {
     if (x)
 	{
+		if (is_chunked)
+		{
+			try
+			{
+				std::string tmp = UnchunkContent::loop_over_numbers(content.substr(content.find("\r\n\r\n") + 4));
+				size_t k = content.find("\r\n\r\n");
+				content = content.substr(0, k);
+				content += "\r\n\r\n";
+				content += tmp;
+				std::cout << content << std::endl;
+				// std::cout << "OKOKOK" << std::endl;
+			}
+			catch(const std::exception& e)
+			{
+				std::cerr << e.what() << '\n';
+			}
+			
+		}
 		// handle request
 		Server& srv = Server::getInstance();
 		std::vector<HttpServer> s = srv.getHttpServers();
@@ -167,6 +187,7 @@ void	Client::setReady(bool x) {
 		}
 		_handleRequest(it);
 		sended = 0;
+		is_chunked = false;
 		pfd.events = POLLOUT;
 	}
 	else
@@ -260,6 +281,7 @@ int Client::readConnection() {
                             if (content.find("Transfer-Encoding: chunked") != std::string::npos) {
                                     if (checkEnd(content, "0\r\n\r\n") == 0)
                                     {
+										is_chunked = true;
                                             std::cout << "End" << std::endl;
                                             return (0);
                                     }

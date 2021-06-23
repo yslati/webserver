@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: yslati <yslati@student.1337.ma>            +#+  +:+       +#+         #
+#    By: mymik <mymik@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/06/09 13:26:06 by aaqlzim           #+#    #+#              #
-#    Updated: 2021/06/21 19:31:24 by yslati           ###   ########.fr        #
+#    Updated: 2021/06/23 14:04:31 by mymik            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,7 @@ NAME := webserv
 
 SRCS := Mainer.cpp ./includes/Request.cpp ./server/Client.cpp ./server/HttpServer.cpp \
 		./includes/Response.cpp ./server/ServerSocket.cpp ./parsing/parsing.cpp ./server/Location.cpp \
-		./server/Server.cpp
+		./server/Server.cpp ./server/UnchunkContent.cpp ./server/HexConvertor.cpp
 OBJS := $(SRCS:.cpp=.o)
 CXX := g++
 CXXFLAGS := -std=c++98
