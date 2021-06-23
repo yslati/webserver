@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: mymik <mymik@student.42.fr>                +#+  +:+       +#+         #
+#    By: aaqlzim <aaqlzim@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/06/09 13:26:06 by aaqlzim           #+#    #+#              #
-#    Updated: 2021/06/23 14:04:31 by mymik            ###   ########.fr        #
+#    Updated: 2021/06/23 17:04:10 by aaqlzim          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -35,3 +35,10 @@ fclean: clean
 	@echo "\033[1;32m+INFO: $(NAME) removed!\033[0m"
 
 re: fclean all
+
+# postdata = name=ayoub
+# len = 10
+# type = application/x-www-form-urlencoded
+# method = POST
+# query_string = 
+# _scriptFileName = /Users/aaqlzim/Desktop/webserv/webserver/index.php

@@ -122,6 +122,8 @@ void	Client::_handleResponse(Request req, std::vector<HttpServer>::iterator it)
 
 	res._setRequest(req);
 	res._startResponse();
+	// for mymik
+	bool _close = res._toClose();
 
 	responseContent = res._getResContent();
 }
@@ -133,7 +135,7 @@ void	Client::_readHeader(std::string con)
 
 	while (getline(_read, _line))
 	{
-		if (_line.find("Host") != std::string::npos)
+		if (_line.find("Host:") != std::string::npos)
 		{
 			_req = _line.substr(_line.find("Host:") + 6);
 			_req.pop_back();
@@ -145,7 +147,8 @@ void Client::_handleRequest(std::vector<HttpServer>::iterator it)
 {
 	Request req;
 
-	// std::cout << content << std::endl;
+	std::cout << content << std::endl;
+	req._setIterator(it);
 	req._parseIncomingRequest(content);
 	_handleResponse(req, it);
 }
@@ -160,10 +163,12 @@ void	Client::setReady(bool x) {
 				std::string tmp = UnchunkContent::loop_over_numbers(content.substr(content.find("\r\n\r\n") + 4));
 				size_t k = content.find("\r\n\r\n");
 				content = content.substr(0, k);
+				if (content.find("GET") == std::string::npos && content.find("DELETE") == std::string::npos)
+					content += "\r\nContent-Length: " + std::to_string(tmp.size());
 				content += "\r\n\r\n";
 				content += tmp;
-				std::cout << content << std::endl;
-				// std::cout << "OKOKOK" << std::endl;
+				// content += "\r\n";
+				// std::cout << content << std::endl;
 			}
 			catch(const std::exception& e)
 			{
@@ -175,6 +180,7 @@ void	Client::setReady(bool x) {
 		Server& srv = Server::getInstance();
 		std::vector<HttpServer> s = srv.getHttpServers();
 		std::vector<HttpServer>::iterator it = s.begin();
+		bool found = false;
 		while (it != s.end())
 		{
 			_readHeader(content);
@@ -182,10 +188,20 @@ void	Client::setReady(bool x) {
 			std::string h = it->getServerName();
 			h.append(":").append(p);
 			if (_req.compare(h) == 0)
+			{
+				found = true;
 				break ;
+			}
 			it++;
 		}
-		_handleRequest(it);
+		if (found)
+			_handleRequest(it);
+		else
+		{
+			s = srv.getHttpServers();
+			it = s.begin();
+			_handleRequest(it);
+		}
 		sended = 0;
 		is_chunked = false;
 		pfd.events = POLLOUT;

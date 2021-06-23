@@ -72,7 +72,12 @@ int Response::_runCgi()
 	
 	std::string postdata = _request._getPostBody();
 
-
+	std::cout << "postdata = " << postdata << "\n";
+	std::cout << "len = " << _request._getHeaderContent("Content-Length") << "\n";
+	std::cout << "type = " << _request._getHeaderContent("Content-Type") << "\n";
+	std::cout << "method = " << _request._getHeaderContent("method") << "\n";
+	std::cout << "query_string = " << _request._getHeaderContent("query_string") << "\n";
+	std::cout << "_scriptFileName = " << _scriptFileName << "\n";
 
 	// for (size_t i = 0; i < _request._getVecCont().size(); i++)
 	// {
@@ -633,13 +638,13 @@ bool	Response::_matchEnd(std::string s1, std::string s2)
 	return true;
 }
 
-std::string		Response::_getContentType(std::string uri)
+std::string		Response::_getContentType()
 {
 	if (_Ctype.length())
 		return _Ctype;
-	else if (_matchEnd(".html", uri))
-		return "text/html";
-	return "text/plain";
+	// else if (_matchEnd(".html", uri))
+	// 	return "text/html";
+	return "text/html";
 }
 
 int		Response::_checkAllowedMethod(std::string method)
@@ -663,12 +668,15 @@ void	Response::_applyMethod()
 {
 	_scriptFileName = _getFilePath(_getFileNameFromUri(_request._getHeaderContent("uri")));
 
-	// std::cout << "scn = " << _scriptFileName << "\n";
+	
 	if (_scriptFileName.find("?") != std::string::npos)
 		_scriptFileName = _scriptFileName.substr(0, _scriptFileName.find("?"));
 
 	if (_request._getError())
+	{
 		_status = S_BAD_REQ;
+		_handleError();
+	}
 	else if (_httpServ.getMaxBodySize() != -1
 	&& _request._getContentLen() > _httpServ.getMaxBodySize())
 		_status = S_PAY_LOAD_TOO_LARGE;
@@ -677,7 +685,6 @@ void	Response::_applyMethod()
 	else if (_request._getHeaderContent("method").compare("GET") == 0
 	&& _checkAllowedMethod("GET"))
 	{
-		std::cout << "apply get method\n";
 		if (_location.getIsRedirect())
 			_handleRedirect();
 		else
@@ -685,10 +692,7 @@ void	Response::_applyMethod()
 	}
 	else if (_request._getHeaderContent("method").compare("POST") == 0
 	&& _checkAllowedMethod("POST"))
-	{
-		std::cout << "hey upload this file plz\n";
 		_applyPostMethod();
-	}
 	else if (_request._getHeaderContent("method").compare("DELETE") == 0
 	&& _checkAllowedMethod("DELETE"))
 		_applyDeleteMethod();
@@ -714,6 +718,13 @@ void Response::_makeStatus()
     _stResp[S_BAD_GATEWAY] = "Bad Gateway";
     _stResp[S_GATEWAY_TIMEOUT] = "Gateway Timeout";
     _stResp[S_HTTP_VERSION_NOT_SUPPORTED] = "HTTP Version Not Supported";
+}
+
+bool Response::_toClose()
+{
+	if (_status != S_OK)
+		return true;
+	return false;
 }
 
 void Response::_startResponse()
@@ -749,8 +760,8 @@ void Response::_startResponse()
 		{
 			_ResponseContent += "Server: webserv/0.0\r\n";
 			_ResponseContent += "Content-Type: ";
-			_ResponseContent += "text/html";
-			// _ResponseContent += _getContentType(_scriptFileName);
+			// _ResponseContent += "text/html";
+			_ResponseContent += _getContentType();
 			_ResponseContent += "\r\n";
 			_ResponseContent += "Content-Length: ";
 			_ResponseContent += std::to_string(_body.length());

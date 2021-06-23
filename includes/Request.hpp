@@ -38,6 +38,8 @@ class Request {
         void _parseQueryString(std::string uri);
         std::string _getPostBody() const;
         std::string _getBoundary() const;
+        bool    is_numeric(std::string const& x);
+        void    _setIterator(std::vector<HttpServer>::iterator it);
     private:
 		bool            _isDone;
 		unsigned int    _Clen;

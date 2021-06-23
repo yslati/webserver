@@ -30,7 +30,7 @@ class Server {
 			return _sockets;
 		}
 
-		std::vector<HttpServer> const& getHttpServers() const {
+		std::vector<HttpServer>& getHttpServers() {
 			return _http_servers;
 		}
 

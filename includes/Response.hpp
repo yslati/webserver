@@ -103,9 +103,10 @@ class Response {
 		std::string _getScriptFileName() const;
 		int _runCgi();
 		std::string _getKey(std::string ctype);
-		std::string _getContentType(std::string uri);
+		std::string _getContentType();
 		bool        _matchEnd(std::string s1, std::string s2);
 		void        _handleError();
+		bool 		_toClose();
 };
 
 #endif
