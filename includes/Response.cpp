@@ -1,5 +1,6 @@
 #include "Response.hpp"
 #include <regex>
+#include <sys/wait.h>
 
 Response::Response(Location& location, HttpServer& httpServ): _location(location), _httpServ(httpServ)
 {
@@ -199,7 +200,7 @@ void	Response::_handleCGI()
 
 	if (fd < 0)
 	{
-		_status = 500;
+		_status = S_INTERNAL_SERVER_ERROR;
 		_generateErrorPage();
 		return ;
 	}
@@ -391,13 +392,21 @@ void Response::_applyGetMethod()
 		}
 		else
 		{
-			_status = S_OK;
-			path.append(_location.getIndex());
-			if (!_checkPermission(path, R_OK))
-				_readFile(path);
+			if (_location.getIndex().length())
+			{
+				_status = S_OK;
+				path.append(_location.getIndex());
+				if (!_checkPermission(path, R_OK))
+					_readFile(path);
+				else
+				{
+					_status = S_FORBIDDEN;
+					_handleError();
+				}
+			}
 			else
 			{
-				_status = S_FORBIDDEN;
+				_status = S_NOT_FOUND;
 				_handleError();
 			}
 			// _status = S_FORBIDDEN;
@@ -683,7 +692,10 @@ void	Response::_applyMethod()
 	}
 	else if (_httpServ.getMaxBodySize() != -1
 	&& _request._getContentLen() > _httpServ.getMaxBodySize())
+	{
 		_status = S_PAY_LOAD_TOO_LARGE;
+		_handleError();
+	}
 	else if (_isCGI())
 		_handleCGI();
 	else if (_request._getHeaderContent("method").compare("GET") == 0
@@ -700,9 +712,16 @@ void	Response::_applyMethod()
 	else if (_request._getHeaderContent("method").compare("DELETE") == 0
 	&& _checkAllowedMethod("DELETE"))
 		_applyDeleteMethod();
-	else
+	else if (!_checkAllowedMethod("GET")
+	&& !_checkAllowedMethod("POST")
+	&& !_checkAllowedMethod("DELETE"))
 	{
 		_status = S_NOT_IMPLEMENTED;
+		_handleError();
+	}
+	else
+	{
+		_status = S_METHOD_NOT_ALLOWED;
 		_handleError();
 	}
 }
@@ -774,12 +793,13 @@ void Response::_startResponse()
 			_ResponseContent += std::to_string(_body.length());
 			_ResponseContent += "\r\n";
 			_ResponseContent += "Connection: ";
-			if (_request._getHeaderContent("Connection").length())
+			_ResponseContent += "keep-alive\r\n";
+			/*if (_request._getHeaderContent("Connection").length())
 				_ResponseContent += _request._getHeaderContent("Connection");
 			else if (_status != S_OK)
 				_ResponseContent += "close\r\n";
 			else if (_request._getHeaderContent("method").compare("POST") == 0)
-				_ResponseContent += "keep-alive\r\n";
+				_ResponseContent += "keep-alive\r\n";*/
 			_ResponseContent += "\r\n";
 			if (_request._getHeaderContent("method").compare("GET") == 0 ||
 			_request._getHeaderContent("method").compare("DELETE") == 0)
