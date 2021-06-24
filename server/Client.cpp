@@ -126,6 +126,10 @@ void	Client::_handleResponse(Request req, std::vector<HttpServer>::iterator it)
 	bool _close = res._toClose();
 
 	responseContent = res._getResContent();
+
+	std::cout << "======S========\n";
+	std::cout << responseContent << std::endl;
+	std::cout << "======S========\n";
 }
 
 void	Client::_readHeader(std::string con)
