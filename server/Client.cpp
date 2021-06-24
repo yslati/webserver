@@ -160,6 +160,8 @@ void Client::_handleRequest(std::vector<HttpServer>::iterator it)
 void	Client::setReady(bool x) {
     if (x)
 	{
+		// how many bytes i will send to the client init to 0
+		sended = 0;
 		if (is_chunked)
 		{
 			try
@@ -256,22 +258,11 @@ std::string ReplaceString(std::string subject, const std::string& search,
 }
 
 void Client::writeConnection() {
-	// if (sended >= responseContent.size()) {
-	// 	setReady(false);
-	// 	return;
-	// }
-	std::string toSend = responseContent.substr(sended, 16000); 
-	// int r = send(_conn, toSend.c_str(), 16000, 0); 
 	int r = send(_conn, responseContent.c_str(), responseContent.size(), 0);
 	if (r == -1) {
 		throw std::runtime_error("should close the connection");
 	}
-	// else if (r > 0) {
-	// 	std::cout << "r : " << r << std::endl;
-	// 	sended += r;
-	// }
 	setReady(false);
-
 }
 
 Client::~Client() {
