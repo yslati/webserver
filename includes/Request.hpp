@@ -49,9 +49,10 @@ class Request {
 		std::string     _body;
 		std::vector<HttpServer>::iterator _it;
 		int _error;
-        std::string _postBody;
+        std::string     _postBody;
 		bool            _isLine;
 		bool            _isL;
+        std::string     _host;
 };
 
 #endif

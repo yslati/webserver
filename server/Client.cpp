@@ -144,9 +144,9 @@ void	Client::setReady(bool x) {
 		while (it != s.end())
 		{
 			_readHeader(content);
-			std::string p = std::to_string(it->getPort());
+			// std::string p = std::to_string(it->getPort());
 			std::string h = it->getServerName();
-			h.append(":").append(p);
+			// h.append(":").append(p);
 			if (_req.compare(h) == 0)
 			{
 				found = true;
@@ -155,7 +155,10 @@ void	Client::setReady(bool x) {
 			it++;
 		}
 		if (found)
+		{
+			std::cout << "p = " << it->getPort() << std::endl;
 			_handleRequest(it);
+		}
 		else
 		{
 			s = srv.getHttpServers();

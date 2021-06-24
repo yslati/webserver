@@ -11,6 +11,7 @@ Request::Request()
 	_postBody = "";
 	_isLine = false;
 	_isL = false;
+	_host = "";
 }
 
 Request::~Request()
@@ -201,16 +202,17 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 		{
 			_line = "Host";
 			_rmap[_line] = _data.substr(_line.length() + 2, _data.length() - 1);
-			if (_rmap[_line].find(":") != std::string::npos)
-			{
-				_rmap["port"] = _rmap[_line].substr(_rmap[_line].find(":") + 1, _rmap[_line].length() - 1);
-				_rmap["port"].pop_back();
-			}
-			else
-			{
-				_rmap["port"] = std::to_string(_it->getPort());
-				_error = 1;
-			}
+			_host = _rmap[_line];
+			// if (_rmap[_line].find(":") != std::string::npos)
+			// {
+			// 	_rmap["port"] = _rmap[_line].substr(_rmap[_line].find(":") + 1, _rmap[_line].length() - 1);
+			// 	_rmap["port"].pop_back();
+			// }
+			// else
+			// {
+			// 	_rmap["port"] = std::to_string(_it->getPort());
+			// 	_error = 1;
+			// }
 		}
 		else if (!_rmap["Content-Length"].length() && _data.find("Content-Length:") != std::string::npos)
 		{
@@ -227,7 +229,6 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 			_line = "Content-Disposition";
 			_rmap[_line] = _data.substr(_line.length() + 2,
 			_data.length() - 1);
-			std::cout << "hnaya = " << _rmap[_line] << "\n";
 		}
 		else if (!_rmap["Connection"].length() && _data.find("Connection:") != std::string::npos)
 		{
@@ -267,12 +268,17 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 		_isDone = true;
 	if (_isDone)
 	{
+		std::cout << "method = " << _rmap["method"] << std::endl;
+		std::cout << "uri = " << _rmap["uri"] << std::endl;
+		std::cout << "protocol = " << _rmap["protocol"] << std::endl;
+		std::cout << "port = " << _rmap["port"] << std::endl;
+		std::cout << "host = " << _host << std::endl;
 		if (_rmap["method"].compare("GET") && _rmap["method"].compare("POST") &&
 		_rmap["method"].compare("DELETE"))
 			_error = 1;
 		else if (!_rmap["uri"].length())
 			_error = 1;
-		else if (!_rmap["Host"].length())
+		else if (!_host.length())
 			_error = 1;
 	}
 }

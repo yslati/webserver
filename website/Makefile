@@ -35,3 +35,4 @@ fclean: clean
 	@echo "\033[1;32m+INFO: $(NAME) removed!\033[0m"
 
 re: fclean all
+

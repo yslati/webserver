@@ -236,7 +236,8 @@ std::string Response::_getDir(void)
 			if (_httpServ.getRoot().length() &&
 			_httpServ.getRoot().front() != '/')
 				dir += "/";
-			dir.append(_httpServ.getRoot());
+			if (!_location.getIsUploadEnable())
+				dir.append(_httpServ.getRoot());
 		}
 	}
     return (dir);
@@ -295,8 +296,13 @@ void	Response::_readErrorPageFile(std::string file)
 
 
 	while (getline(input_file, _line))
-		body.append(_line).append("\n");
-	_body = body.append("\r\n");
+	{
+		if (!input_file.eof())
+			body.append(_line).append("\n");
+		else
+			body.append(_line);
+	}
+	_body = body;
 }
 
 void	Response::_handleError()
@@ -320,8 +326,13 @@ void Response::_readFile(std::string file)
 		return ;
 	}
 	while (getline(input_file, _line))
-		body.append(_line).append("\n");
-	_body = body.append("\r\n");
+	{
+		if (!input_file.eof())
+			body.append(_line).append("\n");
+		else
+			body.append(_line);
+	}
+	_body = body;
 	_status = S_OK;
 }
 
@@ -329,6 +340,7 @@ void Response::_applyGetMethod()
 {
     std::string path = _getFilePath(_getFileNameFromUri(_request._getHeaderContent("uri")));
 
+	std::cout << "path = " << path << "\n";
 	if (_location.getUri().compare(_request._getHeaderContent("uri")) == 0
 	&& !_location.getAutoIndex() && _isDir(path))
 	{
@@ -448,7 +460,7 @@ void	Response::_generateErrorPage()
 	_body += "	<hr>\r\n";
 	_body += "\t<center>webserv/0.0</center>\r\n";
 	_body += "</body>\r\n";
-	_body += "</html>\r\n\r\n";
+	_body += "</html>\r\n";
 	_body.replace(_body.find("$1"), 2, _stResp[_status]);
 	_body.replace(_body.find("$1"), 2, _stResp[_status]);
 }
@@ -461,7 +473,7 @@ void Response::_deleteFile(std::string _file)
 		_body += "	<body>\r\n";
 		_body += "		<h1>File deleted.</h1>\r\n";
 		_body += "	</body>\r\n";
-		_body += "</html>\r\n";
+		_body += "</html>\r\n\r\n";
 		_status = S_OK;
 	}
 	else
@@ -669,10 +681,31 @@ void Response::_startResponse()
 {
 	std::string _port = std::to_string(_httpServ.getPort());
 	std::string _data;
+	_makeStatus();
 
-	if (_request._getHeaderContent("port").compare(_port) == 0)
-	{
-		_makeStatus();
+	// if (_request._getHeaderContent("port").compare(_port))
+	// {
+	// 	_status = S_BAD_REQ;
+	// 	_handleError();
+	// 	_ResponseContent += "HTTP/1.1";
+	// 	_ResponseContent += " ";
+	// 	_ResponseContent += std::to_string(_status);
+	// 	_ResponseContent += " ";
+	// 	_ResponseContent += _stResp[_status];
+	// 	_ResponseContent += "\r\n";
+	// 	_ResponseContent += "Server: webserv/0.0\r\n";
+	// 	_ResponseContent += "Content-Type: ";
+	// 	_ResponseContent += _getContentType();
+	// 	_ResponseContent += "\r\n";
+	// 	_ResponseContent += "Content-Length: ";
+	// 	_ResponseContent += std::to_string(_body.length());
+	// 	_ResponseContent += "\r\n";
+	// 	_ResponseContent += "Connection: close\r\n\r\n";
+	// 	_ResponseContent += "\r\n";
+	// 	_ResponseContent += _body;
+	// }
+	// else if (_request._getHeaderContent("Host").compare(_port) == 0)
+	// {
 		_applyMethod();
 
 		_data = _request._getHeaderContent("protocol");
@@ -708,14 +741,14 @@ void Response::_startResponse()
 				_ResponseContent += "close\r\n";
 			else
 				_ResponseContent += "keep-alive\r\n";
-			_ResponseContent += "\r\n";
-			if (_request._getHeaderContent("method").compare("GET") == 0 ||
-			_request._getHeaderContent("method").compare("DELETE") == 0)
-				_ResponseContent += "\r\n";
+			// _ResponseContent += "\r\n";
+			// if (_request._getHeaderContent("method").compare("GET") == 0 ||
+			// _request._getHeaderContent("method").compare("DELETE") == 0)
+			// 	_ResponseContent += "\r\n";
 			_ResponseContent += "\r\n";
 			_ResponseContent += _body;
 		}
-	}
+	// }
 }
 
 std::string Response::_getResContent() const
