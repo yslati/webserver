@@ -131,6 +131,7 @@ void	HttpServer::addErrorPage(int statusCode, std::string path) {
 
 void    HttpServer::start_listen()
 {
+    std::cout << this->_port << std::endl;
      _fd = socket(AF_INET, SOCK_STREAM, 0);
     fcntl(_fd, F_SETFL, O_NONBLOCK);
     if (_fd < 0) {

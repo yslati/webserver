@@ -13,6 +13,8 @@
 // class Response;
 class Client {
     public:
+        bool close;
+
         Client(int server_fd);
 
         int getConnection();

@@ -206,7 +206,6 @@ void Server::acceptConnections() {
     std::cout << "start servers" << std::endl;
     start_servers();
     std::vector<HttpServer>::iterator h_it;
-
     while (true)
     {
         std::vector<struct pollfd> fds;
@@ -224,7 +223,6 @@ void Server::acceptConnections() {
             fds.push_back(c_it->getPfd());
             c_it++;
         }
-
 	std::vector<Client>::iterator it_c;
 	it_c = _clients.begin();
 	std::cout << "Fds: ";
@@ -237,11 +235,9 @@ void Server::acceptConnections() {
     int n = poll(&(*fds.begin()), fds.size(), -1);
     std::vector<Client> new_clients;
     std::set<int> toRemove;
-
 	if (n == 0) {
             std::cout << "Timeout" << std::endl;
     } else if (n > 0) {
-        std::cout << "Poll n: " << n << std::endl;
         for (int i = 0; i < fds.size(); i++) {
             if (fds[i].revents & POLLIN) {
                 if (i < _http_servers.size()) {
@@ -259,19 +255,8 @@ void Server::acceptConnections() {
                     // read connection
                     try
                     {
-                        // char buffer[1024];
-                        // int r = recv(fds[i].fd, buffer, 1023, 0);
-                        // if (r == 0) {
-                        //     std::cout << "Closed" << std::endl;
-                        // } else if (r > 0) {
-                        //     std::string tmp;
-                        //     buffer[r] = 0;
-                        //     tmp.assign(buffer);
-                        //     std::cout << buffer;
-                        // }
                         if (!_clients[i - _http_servers.size()].readConnection()) {
                             _clients[i - _http_servers.size()].setReady(true);
-                        //std::cout << "Siiiiiiiiize: " << _clients[i - _http_servers.size()].getContent().size() << std::endl;
                         }
                     }
                     catch(const std::exception& e)
@@ -279,42 +264,26 @@ void Server::acceptConnections() {
                             toRemove.insert(i - _http_servers.size());
                             std::cerr << e.what() << '\n';
                     }
-                    
                 }
             } else if (fds[i].revents & POLLOUT) {
-                // std::string content = "HTTP/1.1 200 OK\r\nContent-Length: 10\r\n\r\nhello world";
-                std::cout << "Write" << std::endl;
-                // std::cout << _clients[i - _http_servers.size()].getResponseContent() << std::endl;
-                send(_clients[i - _http_servers.size()].getConnection(),
-                _clients[i - _http_servers.size()].getResponseContent().c_str(),
-                _clients[i - _http_servers.size()].getResponseContent().size(), 0);
-                // try
-                // {
-                //     // _clients[i - _http_servers.size()].writeConnection();
-                // }
-                // catch(const std::exception& e)
-                // {
-                //     toRemove.insert(i - _http_servers.size());
-                //     std::cerr << e.what() << '\n';
-                // }
-                
-                _clients[i - _http_servers.size()].setReady(false);
+                try
+                {
+                    _clients[i - _http_servers.size()].writeConnection();
+                    if (_clients[i - _http_servers.size()].close)
+                        toRemove.insert(i - _http_servers.size());
+                }
+                catch(const std::exception& e)
+                {
+                    toRemove.insert(i - _http_servers.size());
+                    std::cerr << e.what() << '\n';
+                }
+                // _clients[i - _http_servers.size()].setReady(false);
             } else if (fds[i].revents & POLLHUP) {
                 toRemove.insert(i - _http_servers.size());
             }
         }
     }
 	std::set<int>::iterator it_set = toRemove.begin();
-    std::cout << "OK1" << std::endl;
-    std::cout << toRemove.size() << std::endl;
-    std::cout << _clients.size() << std::endl;
-    std::cout << "set remove: ";
-    while(it_set != toRemove.end())
-    {
-        std::cout << *it_set << " ";
-        it_set++;
-    }
-    std::cout << std::endl;
     it_set = toRemove.begin();
     std::vector<Client> tmp;
 	for (size_t i = 0; i < _clients.size(); i++)
@@ -325,9 +294,7 @@ void Server::acceptConnections() {
             close(_clients[i].getConnection());
         }
     }
-    // _clients.clear();
     _clients.assign(tmp.begin(), tmp.end());
-    std::cout << tmp.size() << std::endl;
     _clients.insert(_clients.end(), new_clients.begin(), new_clients.end());
     }
 }

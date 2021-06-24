@@ -793,13 +793,15 @@ void Response::_startResponse()
 			_ResponseContent += std::to_string(_body.length());
 			_ResponseContent += "\r\n";
 			_ResponseContent += "Connection: ";
-			_ResponseContent += "keep-alive\r\n";
-			/*if (_request._getHeaderContent("Connection").length())
-				_ResponseContent += _request._getHeaderContent("Connection");
-			else if (_status != S_OK)
+			// _ResponseContent += "keep-alive\r\n";
+			// if (_request._getHeaderContent("Connection").length())
+			// 	_ResponseContent += _request._getHeaderContent("Connection");
+			if (_status != S_OK)
 				_ResponseContent += "close\r\n";
-			else if (_request._getHeaderContent("method").compare("POST") == 0)
-				_ResponseContent += "keep-alive\r\n";*/
+			else
+				_ResponseContent += "keep-alive\r\n";
+			// else if (_request._getHeaderContent("method").compare("POST") == 0)
+			// 	_ResponseContent += "keep-alive\r\n";
 			_ResponseContent += "\r\n";
 			if (_request._getHeaderContent("method").compare("GET") == 0 ||
 			_request._getHeaderContent("method").compare("DELETE") == 0)
