@@ -123,10 +123,13 @@ void	Client::_handleResponse(Request req, std::vector<HttpServer>::iterator it)
 
 	res._setRequest(req);
 	res._startResponse();
+	responseContent = res._getResContent();
+	std::cout << "================================\n";
+	std::cout << responseContent << std::endl;
+	std::cout << "================================\n";
 	// for mymik
 	close = res._toClose();
 
-	responseContent = res._getResContent();
 }
 
 void	Client::_readHeader(std::string con)
@@ -212,7 +215,7 @@ void	Client::setReady(bool x) {
 		this->content = "";
 		pfd.events = POLLIN;
 	}
-		this->_ready = x;
+	this->_ready = x;
 }
 
 int Client::getConnection() {
@@ -253,19 +256,22 @@ std::string ReplaceString(std::string subject, const std::string& search,
 }
 
 void Client::writeConnection() {
-	if (sended >= responseContent.size()) {
-		setReady(false);
-		return;
-	}
+	// if (sended >= responseContent.size()) {
+	// 	setReady(false);
+	// 	return;
+	// }
 	std::string toSend = responseContent.substr(sended, 16000); 
-	int r = send(_conn, toSend.c_str(), 16000, 0); 
+	// int r = send(_conn, toSend.c_str(), 16000, 0); 
+	int r = send(_conn, responseContent.c_str(), responseContent.size(), 0);
 	if (r == -1) {
 		throw std::runtime_error("should close the connection");
 	}
-	else if (r > 0) {
-		std::cout << "r : " << r << std::endl;
-		sended += r;
-	}
+	// else if (r > 0) {
+	// 	std::cout << "r : " << r << std::endl;
+	// 	sended += r;
+	// }
+	setReady(false);
+
 }
 
 Client::~Client() {

@@ -269,8 +269,8 @@ void Server::acceptConnections() {
                 try
                 {
                     _clients[i - _http_servers.size()].writeConnection();
-                    if (_clients[i - _http_servers.size()].close)
-                        toRemove.insert(i - _http_servers.size());
+                    // if (_clients[i - _http_servers.size()].close)
+                    //     toRemove.insert(i - _http_servers.size());
                 }
                 catch(const std::exception& e)
                 {
