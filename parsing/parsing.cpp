@@ -173,8 +173,6 @@ void	pars::parsServer(int n) {
 			std::string tmp =  _conf[i].substr(_conf[i].find(":") + 1);
 			_httpServers.addErrorPage(atoi(tmp.c_str()), tmp.substr(tmp.find(":") + 1));
 		}
-		else if (_conf[i].find("#"))
-			throw "Syntax Error !";
 	}
 	_check_missing(_httpServers);
 	_Servers.addHttpServer(_httpServers);
@@ -185,19 +183,23 @@ void	pars::checkServer() {
 	int serverClosed = 0;
 	for (int i = 0; i < _conf.size(); i++) {
 		_conf[i].erase(std::remove_if(_conf[i].begin(), _conf[i].end(), ::isspace), _conf[i].end());
-		if (serverClosed == 0 && _conf[i].compare("server") == 0) {
+		if (serverClosed == 0 && (_conf[i].compare("server") == 0 || _conf[i].compare("server[") == 0)) {
+			if (_conf[i + 1].compare("[") != 0 || _conf[i + 1].compare("]") == 0)
+				throw "syntax error: you must open server `[`";
 			serverClosed = 1;
-			if (_conf[i + 1].compare("[") != 0)
-				break ;
 			_servBegin.push_back(i + 1);
 		}
 		else if (serverClosed == 1 &&  _conf[i].compare("]") == 0) {
 			_servEnd.push_back(i);
 			serverClosed = 0;
-			if ((i + 1) != _conf.size() && _conf[i + 1].compare("server") != 0)
-				throw "syntax err: at end of server";
+			if (_conf[i - 1].compare("[") == 0)
+				throw "syntax error: server is emty";
+			if ((i + 1) != _conf.size() && _conf[i + 1].compare("server") != 0 && _conf[i + 1].compare(0, 1, "#") != 0)
+				throw "syntax error: at end of server";
 		}
 	}
+	if (_servBegin.size() && (_servBegin.size() != _servEnd.size()))
+		throw "syntax error: server is emty";
 	for (int i = 0; i < _servBegin.size(); i++)
 		parsServer(i);
 }

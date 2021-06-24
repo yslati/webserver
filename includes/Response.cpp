@@ -113,6 +113,8 @@ int Response::_runCgi()
 	}
 	else if (_location.getNodeCGI())
 	{
+		query_string = "POST=" + postdata;
+		_env[2] = strdup(query_string.c_str());
 		args = (char**)malloc(sizeof(char *) * 3);
 		args[0] = strdup(_location.getFastcgiPass().c_str());
 		args[1] = strdup(_scriptFileName.c_str());
