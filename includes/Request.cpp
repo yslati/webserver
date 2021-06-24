@@ -56,23 +56,6 @@ unsigned int Request::_getPostLenght(std::string data, std::string boundary)
     return body.length();
 }
 
-// unsigned int Request::_getPostLenght(std::string data, std::string boundary)
-// {
-// 	std::string _line = "";
-// 	std::string body = "";
-// 	std::istringstream _read(data);
-// 	bool _isEmpty = true;
-
-// 	while (getline(_read, _line))
-// 	{
-// 		if(_isEmpty)
-// 			body.append(_line).append("\n");
-// 	}
-// 	if (!boundary.length())
-// 		body.pop_back();
-//     return body.length();
-// }
-
 void Request::_parseLine(const std::string& _line)
 {
     std::string _noSpace = "";
@@ -90,23 +73,6 @@ void Request::_parseLine(const std::string& _line)
 	this->_parse.push_back(_noSpace);
 }
 
-bool Request::_isPrefix(std::string& s1, std::string& s2)
-{
-	size_t n1 = s1.length();
-	size_t n2 = s2.length();
-	if (!n1 || !n2)
-		return false;
-	for (int i = 0; i < n1; i++)
-	{
-		if (s1[i] != s2[i])
-		{
-			if (i + 1 == n1)
-				return true;
-			return false;
-		}
-	}
-	return true;
-}
 
 bool Request::_matchBegin(std::string& _regex, std::string& _line)
 {
@@ -116,16 +82,6 @@ bool Request::_matchBegin(std::string& _regex, std::string& _line)
 	return _line.compare(0, _r.size(), _r) == 0;
 }
 
-void	Request::_printArg()
-{
-	std::cout << "s = " << _aCont.size() << "\n";
-	for (int i = 0; i < _aCont.size(); i++)
-	{
-		ArgContent arg = _aCont[i];
-		std::cout << "i = " << i << " _Cdisp = " << arg._Cdisp
-		<< " _Ctype = " << arg._Ctype << " _data = " << arg._data << std::endl;
-	}
-}
 
 Request::ArgContent Request::_pushToArg(std::string _data)
 {
@@ -206,7 +162,6 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
     std::string _data;
 	std::string _line;
 	std::string _bdr = "";
-	size_t 		f;
 	std::string _buff; 
 	_buff.append(_buffer);
 	ArgContent arg = {};
@@ -229,10 +184,8 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 			if (_data.find("boundary=") != std::string::npos)
 			{
 				_line = "Content-Type";
-				// _rmap[_line] = _data.substr(_line.length() + 2, _data.find_first_of(';') - 14);
 				_rmap[_line] = _data.substr(_line.length() + 2);
 				_rmap[_line].pop_back();
-				// std::cout << "CC = " << _rmap[_line] << std::endl;
 				_rmap["boundary"] = _bdr.append("--").append(_data.substr(_data.find("boundary=") + 9));
 				_rmap["boundary"].pop_back();
 				_boundary = _data.substr(_data.find("boundary=") + 9);
@@ -242,7 +195,6 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 			{
 				_rmap["Content-Type"] = _data.substr(_data.find(":") + 2);
 				_rmap["Content-Type"].pop_back();
-				// std::cout << "TT = " << _rmap["Content-Type"] << std::endl;
 			}
 		}
 		else if (!_rmap["Host"].length() && _data.find("Host:") != std::string::npos)
@@ -256,13 +208,8 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 			}
 			else
 			{
-				// std::cout << "port1 = " << _rmap["port"] << std::endl;
-				// if (!is_numeric(_rmap["port"]))
 				_rmap["port"] = std::to_string(_it->getPort());
 				_error = 1;
-				// _rmap["port"] = "5000";
-				// std::cout << "portt = " << _rmap["port"] << std::endl;
-				// std::cout << "portt = " << _it->getPort() << std::endl;
 			}
 		}
 		else if (!_rmap["Content-Length"].length() && _data.find("Content-Length:") != std::string::npos)
@@ -289,15 +236,6 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 			_data.length() - 1);
 			_rmap[_line].pop_back();
 		}
-		// else if (!_rmap["Transfer-Encoding"].length() && _data.find("Transfer-Encoding:") != std::string::npos)
-		// {
-		// 	std::cout << "------" << std::endl;
-		// 	std::cout << _data + "\n";
-		// 	std::cout << "------" << std::endl;
-		// 	// _line = "Transfer-Encoding";
-		// 	// _rmap[_line] = _data.substr(_data.find(_line) + 2 + _line.length());
-		// 	std::cout << "CHuked awld l3abd\n";
-		// }
 		else if (_Clen && !_rmap["boundary"].length())
 		{
 			if (_isL)
@@ -306,7 +244,6 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 				_isL = true;
 			if (_isArg)
 			{
-				// _argBody.append(_data);
 				if (_argBody.length())
 				{
 					arg._data = _argBody;
@@ -322,16 +259,10 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 		}
 		else if (_rmap["Content-Length"].length())
 		{
-			// std::cout << "dt1 = " << _data << "\n";
 			_pushToPostBody(_data);
 			_pushDataToArg(_data);
 		}
     }
-	std::cout << "================================================\n";
-	std::cout << _postBody << std::endl;
-	std::cout << _getPostLenght(_postBody, _boundary) << std::endl;
-	std::cout << _Clen << std::endl;
-	std::cout << "================================================\n";
 	if (!_boundary.length() || (_Clen && _Clen == _getPostLenght(_postBody, _boundary)))
 		_isDone = true;
 	if (_isDone)
@@ -364,16 +295,6 @@ std::string Request::_getHeaderContent(std::string _first)
 std::vector<Request::ArgContent> Request::_getVecCont() const
 {
 	return _aCont;
-}
-
-bool    Request::is_numeric(std::string const& x) {
-
-	for (size_t i = 0; i < x.size(); i++)
-	{
-		if (!std::isdigit(x[i]))
-			return false;
-	}
-	return true;
 }
 
 void Request::_setIterator(std::vector<HttpServer>::iterator it)

@@ -181,7 +181,7 @@ void	pars::parsServer(int n) {
 void	pars::checkServer() {
 
 	int serverClosed = 0;
-	for (int i = 0; i < _conf.size(); i++) {
+	for (size_t i = 0; i < _conf.size(); i++) {
 		_conf[i].erase(std::remove_if(_conf[i].begin(), _conf[i].end(), ::isspace), _conf[i].end());
 		if (serverClosed == 0 && (_conf[i].compare("server") == 0 || _conf[i].compare("server[") == 0)) {
 			if (_conf[i + 1].compare("[") != 0 || _conf[i + 1].compare("]") == 0)
@@ -200,7 +200,7 @@ void	pars::checkServer() {
 	}
 	if (_servBegin.size() && (_servBegin.size() != _servEnd.size()))
 		throw "syntax error: server is emty";
-	for (int i = 0; i < _servBegin.size(); i++)
+	for (size_t i = 0; i < _servBegin.size(); i++)
 		parsServer(i);
 }
 

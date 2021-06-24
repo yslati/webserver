@@ -29,8 +29,6 @@ class Request {
         ArgContent _pushToArg(std::string _data);
         ArgContent _getArg(size_t i);
         std::vector<ArgContent> _getVecCont() const;
-        void _printArg();
-        bool _isPrefix(std::string& s1, std::string& s2);
         bool _matchBegin(std::string& _regex, std::string& _line);
         int _getContentLen();
         int _getError();
@@ -38,7 +36,6 @@ class Request {
         void _parseQueryString(std::string uri);
         std::string _getPostBody() const;
         std::string _getBoundary() const;
-        bool    is_numeric(std::string const& x);
         void    _setIterator(std::vector<HttpServer>::iterator it);
     private:
 		bool            _isDone;

@@ -17,7 +17,6 @@ Client::Client(int server_fd) {
     pfd.events = POLLIN;
     pfd.fd = _conn;
 	_req = "";
-//     responseContent = "HTTP/1.1 200 OK\r\nContent-Length: 11\r\n\r\nhello world";
 }
 
 bool	Client::getReady()
@@ -33,34 +32,6 @@ bool	Client::_matchBegin(std::string _regex, std::string _line)
 	return _line.compare(0, _r.size(), _r) == 0;
 }
 
-bool Client::_isPrefix(std::string s1, std::string s2)
-{
-	size_t n1 = s1.length();
-	size_t n2 = s2.length();
-	if (!n1 || !n2)
-		return false;
-	for (int i = 0; i < n1; i++)
-	{
-		if (s1[i] != s2[i])
-		{
-			if (i + 1 == n1)
-				return true;
-			return false;
-		}
-	}
-	return true;
-}
-
-bool 	Client::_isSuffix(std::string s1, std::string s2)
-{
-	int n1 = s1.length(), n2 = s2.length();
-	if (n1 > n2 || !s1.length() || !s2.length())
-		return false;
-	for (int i = 0; i < n1; i++)
-		if (s1[n1 - i - 1] != s2[n2 - i - 1])
-			return false;
-	return true;
-}
 
 void	Client::_handleResponse(Request req, std::vector<HttpServer>::iterator it)
 {
@@ -100,16 +71,6 @@ void	Client::_handleResponse(Request req, std::vector<HttpServer>::iterator it)
 				*path = lit->getUri();
 				tmp = *lit;
 			}
-			// else if (tmp.getUri().length() == 0)
-			// {
-			// 	// *path = lit->getUri();
-			// 	tmp = *lit;
-			// }
-			// else if (tmp.getUri().length() < lit->getUri().length())
-			// {
-			// 	// *path = lit->getUri();
-			// 	tmp = *lit;
-			// }
 			else if (tmp.getUri().length() < lit->getUri().length())
 			{
 				*path = lit->getUri();
@@ -117,17 +78,13 @@ void	Client::_handleResponse(Request req, std::vector<HttpServer>::iterator it)
 			}
 		}
 	}
-	
+	delete path;
 	Response res = Response(tmp, *it);
 
 
 	res._setRequest(req);
 	res._startResponse();
 	responseContent = res._getResContent();
-	std::cout << "================================\n";
-	std::cout << responseContent << std::endl;
-	std::cout << "================================\n";
-	// for mymik
 	close = res._toClose();
 
 }
@@ -160,7 +117,6 @@ void Client::_handleRequest(std::vector<HttpServer>::iterator it)
 void	Client::setReady(bool x) {
     if (x)
 	{
-		// how many bytes i will send to the client init to 0
 		sended = 0;
 		if (is_chunked)
 		{
@@ -173,8 +129,6 @@ void	Client::setReady(bool x) {
 					content += "\r\nContent-Length: " + std::to_string(tmp.size());
 				content += "\r\n\r\n";
 				content += tmp;
-				// content += "\r\n";
-				// std::cout << content << std::endl;
 			}
 			catch(const std::exception& e)
 			{
@@ -271,51 +225,40 @@ Client::~Client() {
 int Client::readConnection() {
     char buffer[16000];
     int r = recv(_conn, buffer, 15999, 0);
-//     return 0;
-    if (r == -1) {
-            return 1;
-    }
-    if (r == 0) {
-            throw std::runtime_error("Closed");
-    }
-    else {
-            std::string tmp;
-            buffer[r] = '\0';
-            tmp.assign(buffer);
-            content += tmp;
-            // std::cout << i << " " << content.size() << std::endl;
-            // std::cout << "ENDOK" << std::endl;
-            size_t j = content.find("\r\n\r\n", 0);
 
-            // check if there is a \r\n\r\n
-            if (j != std::string::npos)
-            {
-                    // if there isnt a content length
-                    if (content.find("Content-Length: ") == std::string::npos) {
-                            // check if there is chunked
-                            if (content.find("Transfer-Encoding: chunked") != std::string::npos) {
-                                    if (checkEnd(content, "0\r\n\r\n") == 0)
-                                    {
-										is_chunked = true;
-                                            std::cout << "End" << std::endl;
-                                            return (0);
-                                    }
-                                    else
-                                            return (1);
-                            }
-                            else
-                                    return (0);
-                    }
-                    size_t  len = std::atoi(content.substr(content.find("Content-Length: ") + 16, 10).c_str());
-                //     size_t pos = content.find("\r\n\r\n");
-                    std::cout << "Content-Length: " << len << "==" << content.substr(j + 4).size() << std::endl;
-                    std::string tmp = content.substr(j + 4);
-                //     tmp = ReplaceString(tmp, "\r\n", "");
-                    if (tmp.size() >= len)
-                            return (0);
-                    else
-                            return (1);
-            }
+    if (r == -1)
+        return 1;
+    if (r == 0)
+        throw std::runtime_error("Closed");
+    else {
+		std::string tmp;
+		buffer[r] = '\0';
+		tmp.assign(buffer);
+		content += tmp;
+		size_t j = content.find("\r\n\r\n", 0);
+
+		if (j != std::string::npos)
+		{
+			if (content.find("Content-Length: ") == std::string::npos) {
+				if (content.find("Transfer-Encoding: chunked") != std::string::npos) {
+					if (checkEnd(content, "0\r\n\r\n") == 0)
+					{
+						is_chunked = true;
+						return (0);
+					}
+					else
+						return (1);
+				}
+				else
+					return (0);
+			}
+			size_t  len = std::atoi(content.substr(content.find("Content-Length: ") + 16, 10).c_str());
+			std::string tmp = content.substr(j + 4);
+			if (tmp.size() >= len)
+				return (0);
+			else
+				return (1);
+		}
     }
     return (1);
 }
@@ -323,6 +266,3 @@ int Client::readConnection() {
 std::string Client::getContent() const {
     return this->content;
 }
-
-// POST /filename HTTP/1.1
-// 

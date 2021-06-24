@@ -48,7 +48,7 @@ Location& Location::operator=(Location const& rhs) {
         _py_CGI = rhs._py_CGI;
 
         // methods
-        for(int i = 0; i < rhs._allowed_methods.size(); i++) {
+        for(size_t i = 0; i < rhs._allowed_methods.size(); i++) {
             _allowed_methods.push_back(rhs._allowed_methods[i]);
         }
     }
@@ -61,7 +61,7 @@ void		Location::setUri(std::string const& x) {	_uri = x; }
 void		Location::setRoot(std::string const& x) {	_root = x; }
 void		Location::setIndex(std::string const& x) {	_index = x; }
 void		Location::setAllowedMethods(std::vector<std::string> x) {
-    for (int i = 0; i < x.size(); i++) {
+    for (size_t i = 0; i < x.size(); i++) {
         if (x[i] != "GET" && x[i] != "POST" && x[i] != "DELETE")
             throw "allowed method not acceptable";
         _allowed_methods.push_back(x[i]);
@@ -95,7 +95,7 @@ std::vector<std::string>	Location::getAllowedMethod() const { return (_allowed_m
 void		Location::checkVal() {
     std::cout << "URI: \t\t" << _uri << "\t\tRoot: \t\t" << _root << std::endl;
     std::cout << "index: \t\t" << _index << "\tAllowed Method: ";
-    for (int i = 0; i < _allowed_methods.size(); i++)
+    for (size_t i = 0; i < _allowed_methods.size(); i++)
         std::cout << _allowed_methods[i] << " ";
     std::cout << std::endl;
     std::cout << "auto_index: \t" << std::boolalpha << _auto_index << "\t\tredirect: \t" << _is_redirect << std::endl;

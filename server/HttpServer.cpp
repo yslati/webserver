@@ -30,11 +30,11 @@ HttpServer& HttpServer::operator=(HttpServer const& rhs) {
         _stcode = rhs._stcode;
         _errors = rhs._errors;
         // methods
-        for(int i = 0; i < rhs._allowed_methods.size(); i++) {
+        for(size_t i = 0; i < rhs._allowed_methods.size(); i++) {
             _allowed_methods.push_back(rhs._allowed_methods[i]);
         }
 
-         for(int i = 0; i < rhs._locations.size(); i++) {
+         for(size_t i = 0; i < rhs._locations.size(); i++) {
             _locations.push_back(rhs._locations[i]);
         }
 
@@ -101,7 +101,7 @@ void	HttpServer::setRoot(std::string const& x) {
 }
 
 void	HttpServer::setAllowedMethods(std::vector<std::string> x) {
-    for (int i = 0; i < x.size(); i++) {
+    for (size_t i = 0; i < x.size(); i++) {
         if (x[i] != "GET" && x[i] != "POST" && x[i] != "DELETE")
             throw "allowed method not acceptable";
         _allowed_methods.push_back(x[i]);

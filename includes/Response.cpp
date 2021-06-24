@@ -4,7 +4,6 @@
 
 Response::Response(Location& location, HttpServer& httpServ): _location(location), _httpServ(httpServ)
 {
-	// std::cout << "wa si = " << _location.getRoot() << std::endl;
     _body = "";
     _ResponseContent = "";
 	_st = "";
@@ -30,8 +29,8 @@ Response::Response(Response const & rhs) : _location(rhs._location),  _httpServ(
 
 Response::~Response()
 {
-    _body.clear();
-    _ResponseContent.clear();
+	_body.clear();
+	_ResponseContent.clear();
 	_stResp.clear();
 }
 
@@ -62,38 +61,14 @@ int Response::_runCgi()
 
 
 	std::string tmp = "SCRIPT_FILENAME=" + _scriptFileName;
-	std::string PATH = "PATH='/usr/bin/:/Users/yslati/.brew/bin/'";
+	std::string PATH = "PATH='/usr/bin/:/Users/aaqlzim/goinfre/.brew/bin/'";
 	std::string query_string = "QUERY_STRING=" + _request._getHeaderContent("query_string");
 	std::string method = "REQUEST_METHOD=" + _request._getHeaderContent("method");
 	std::string st = "REDIRECT_STATUS=" + std::to_string(200);
 	std::string cn = "CONTENT_LENGTH=" + _request._getHeaderContent("Content-Length");
 	std::string ctype = "CONTENT_TYPE=" + _request._getHeaderContent("Content-Type");
-	// std::string ctype = "CONTENT_TYPE=application/json";
-	// std::string ctype = "CONTENT_TYPE=multipart/form-data; boundary=" + _request._getBoundary();
 	
 	std::string postdata = _request._getPostBody();
-
-	std::cout << "postdata = " << postdata << "\n";
-	std::cout << "len = " << _request._getHeaderContent("Content-Length") << "\n";
-	std::cout << "type = " << _request._getHeaderContent("Content-Type") << "\n";
-	std::cout << "method = " << _request._getHeaderContent("method") << "\n";
-	std::cout << "query_string = " << _request._getHeaderContent("query_string") << "\n";
-	std::cout << "_scriptFileName = " << _scriptFileName << "\n";
-
-	// for (size_t i = 0; i < _request._getVecCont().size(); i++)
-	// {
-	// 	Request::ArgContent arg = _request._getArg(i);
-	// 	if (arg._data.length() && arg._Cdisp.length())
-	// 	{
-	// 		arg._Cdisp.pop_back();
-	// 		// arg._data.pop_back();
-	// 		std::cout << "l = " << arg._data << std::endl;
-	// 		body.append("\"" + _getKey(arg._Cdisp) + "=" + arg._data + "&");
-	// 	}
-	// }
-	// body.pop_back();
-	
-	// std::cout << "bd = " << body << std::endl;
 
 	_env = (char **)malloc(sizeof(char *) * 8);
 	_env[0] = strdup(tmp.c_str());
@@ -148,26 +123,32 @@ int Response::_runCgi()
         close(fds1[1]);
 		waitpid(pid, &status, 0);
 		if (WIFEXITED(status))
-		{
-			std::cout << "Status: ";
 			status = WEXITSTATUS(status);
+	}
+	for (size_t i = 0; i < 7; i++)
+	{
+		if (_env[i])
+		{
+			free(_env[i]);
+			_env[i] = nullptr;
 		}
 	}
+	free(_env);
+	_env = nullptr;
+	size_t i = -1;
+	while (args[++i])
+	{
+		free(args[i]);
+		args[i] = nullptr;
+	}
+	free(args);
+	args = nullptr;
+
 	if (status == 1)
 		return -1;
 	return (fds2[0]);
 }
 
-// int main(int ac, char **av, char **env) {
-// 	int fd = runCgi(env);
-
-// 	int r;
-// 	char c;
-
-// 	while ((r = read(fd, &c, 1)) > 0)
-// 		write(1, &c, 1);
-// 	return 0;
-// }
 
 void Response::_setRequest(Request& req)
 {
@@ -238,15 +219,12 @@ std::string Response::_getDir(void)
 {
     char buff[1024];
     std::string dir = "";
-	// std::vector<HttpServer>::iterator it = _request._getIterator();
 
     if (!getcwd(buff, sizeof(buff)))
         std::cerr << "getcwd failed" << std::endl;
     else
 	{
         dir = std::string(buff);
-		// if there is a location path
-		// std::cout << "hnaya = " << _location.getRoot() << "\n";
 		if (_location.getRoot().length())
 		{
 			if (_location.getRoot().front() != '/')
@@ -255,8 +233,6 @@ std::string Response::_getDir(void)
 		}
 		else
 		{
-			std::cout << "rootDefault = " <<
-			_httpServ.getRoot() << "\n";
 			if (_httpServ.getRoot().length() &&
 			_httpServ.getRoot().front() != '/')
 				dir += "/";
@@ -288,7 +264,6 @@ std::string Response::_getFilePath(std::string uri)
 
 std::string Response::_getFileNameFromUri(std::string uri)
 {
-	// Parse filename from uri
 	std::string filename;
 	std::string u = uri;
 	int _exist = 0;
@@ -300,28 +275,11 @@ std::string Response::_getFileNameFromUri(std::string uri)
 			uri += "/";
 		filename = uri;
 	}
-	// then check if filename match any of locations spicified in the config file
 	if (_location.getUri().compare(filename) == 0)
-		// if (filename.append(_location.getIndex()) == is_exist)
 		_exist = 1;
-	// if true break and return the filename
-	// if (_exist)
-		// return (filename);
-	// std::cout << "index = " << _location.getIndex() << std::endl;
 	if (_exist)
     	return (filename.append(_location.getIndex()));
 	return (u);
-}
-
-bool	Response::_isSuffix(std::string s1, std::string s2)
-{
-    int n1 = s1.length(), n2 = s2.length();
-    if (n1 > n2)
-      return false;
-    for (int i=0; i<n1; i++)
-       if (s1[n1 - i - 1] != s2[n2 - i - 1])
-           return false;
-    return true;
 }
 
 std::string Response::_getScriptFileName() const
@@ -359,10 +317,6 @@ void Response::_readFile(std::string file)
 	{
 		_status = S_NOT_FOUND;
 		_handleError();
-		// if (_httpServ._getErrorPages(_status).length())
-		// 	_readErrorPageFile(_httpServ._getErrorPages(_status));
-		// else
-		// 	_generateErrorPage();
 		return ;
 	}
 	while (getline(input_file, _line))
@@ -382,11 +336,8 @@ void Response::_applyGetMethod()
 			path += "/";
 		path.append(_location.getIndex());
 	}
-	std::cout << "path = " << path << std::endl;
 	if (_isDir(path))
 	{
-		std::cout  << "path1 = " << path << "\n";
-		std::cout  << "bool = " << _location.getAutoIndex() << "\n";
 		if (_location.getAutoIndex())
 		{
 			_applyAutoIndexing(path);
@@ -411,17 +362,10 @@ void Response::_applyGetMethod()
 				_status = S_NOT_FOUND;
 				_handleError();
 			}
-			// _status = S_FORBIDDEN;
-			// _handleError();
-			// if (_httpServ._getErrorPages(_status).length())
-			// 	_readErrorPageFile(_httpServ._getErrorPages(_status));
-			// else
-			// 	_generateErrorPage();
 		}
 	}
 	else if (!_checkPermission(path, R_OK))
 		_readFile(path);
-	// std::cout << _body << std::endl;
 }
 
 std::string Response::_getFileNameFromDisp(std::string disp)
@@ -446,8 +390,7 @@ void Response::_applyPostMethod()
     std::string _filename = "";
     std::string _dir = "";
     std::string _line = "";
-    // get the path of the file
-    // put the data of the post method in the file
+
     for (size_t i = 0; i < _request._getVecCont().size(); i++)
     {
         Request::ArgContent arg = _request._getArg(i);
@@ -455,16 +398,12 @@ void Response::_applyPostMethod()
 
         if (_filename.length())
         {
-			// _dir = _getDir().append("/").append(_filename);
 			if (_location.getIsUploadEnable())
 			{
 				_dir = _getUploadDir();
 				_dir.append(_filename);
 			}
-			std::cout << "upload_dir = " << _dir << "\n";
 			std::ofstream _file(_dir);
-			// std::cout << arg._data << "\n";
-			// _file << arg._data;
 			std::istringstream ss(arg._data);
 
 			while (getline(ss, _line))
@@ -516,9 +455,6 @@ void	Response::_generateErrorPage()
 
 void Response::_deleteFile(std::string _file)
 {
-	// if (_checkPermission(_file, W_OK))
-	// 	throw Response::PermissionDiend();
-	std::cout << "_file = " << _file << std::endl;
 	if (!_checkPermission(_file, W_OK) && std::remove(_file.c_str()) == 0)
 	{
 		_body = "<html>\r\n";
@@ -539,15 +475,10 @@ void Response::_applyDeleteMethod()
 {
     std::string path = _getFilePath(_request._getHeaderContent("uri"));
 
-	std::cout << "path_del = " << path << std::endl;
 	if (_isDir(path))
 	{
 		_status = S_FORBIDDEN;
 		_handleError();
-		// if (_httpServ._getErrorPages(_status).length())
-		// 	_readErrorPageFile(_httpServ._getErrorPages(_status));
-		// else
-		// 	_generateErrorPage();
 	}
 	else
 		_deleteFile(path);
@@ -581,11 +512,6 @@ std::string Response::_getHrefLink(std::string dirname)
 
 int Response::_isDir(std::string dirname)
 {
-	// std::string dir = _getDir();
-	// if (dirname.front() != '/')
-	// 	dir += "/";
-	// dir += dirname;
-	// std::cout << "dir = " << dir << "\n";
 	if (!(opendir(dirname.c_str())))
 		return 0;
 	return 1;
@@ -599,7 +525,6 @@ void	Response::_applyAutoIndexing(std::string _dir)
 	std::string _name = "";
 	std::string _uri = "/";
 	std::string _data = "";
-	// std::string _dir = "/Users/aaqlzim/Desktop/webserv/webserver/website/dir";
 	std::string _index = "<h1>Index of: " + _uri + "</h1>\n\t\t<hr/>";
 
 	_body.append(_generateHtmlTemplate());
@@ -615,19 +540,6 @@ void	Response::_applyAutoIndexing(std::string _dir)
 		}
 	}
 	_body.replace(_body.find("$1"), 2, _data);
-
-	if (DEBUG_MODE)
-	{
-		std::ofstream file("test.html");
-		std::istringstream ss(_body);
-
-		while (getline(ss, _line))
-		{
-			file << _line;
-			file << std::endl;
-		}
-	}
-	// std::cout << _body << std::endl;
 }
 
 bool	Response::_matchBegin(std::string _regex, std::string _line)
@@ -657,8 +569,6 @@ std::string		Response::_getContentType()
 			_Ctype = _Ctype.substr(0, _Ctype.find(";"));
 		return _Ctype;
 	}
-	// else if (_matchEnd(".html", uri))
-	// 	return "text/html";
 	return "text/html";
 }
 
@@ -788,22 +698,16 @@ void Response::_startResponse()
 		{
 			_ResponseContent += "Server: webserv/0.0\r\n";
 			_ResponseContent += "Content-Type: ";
-			// _ResponseContent += "text/html";
 			_ResponseContent += _getContentType();
 			_ResponseContent += "\r\n";
 			_ResponseContent += "Content-Length: ";
 			_ResponseContent += std::to_string(_body.length());
 			_ResponseContent += "\r\n";
 			_ResponseContent += "Connection: ";
-			// _ResponseContent += "keep-alive\r\n";
-			// if (_request._getHeaderContent("Connection").length())
-			// 	_ResponseContent += _request._getHeaderContent("Connection");
 			if (_status == S_BAD_REQ)
 				_ResponseContent += "close\r\n";
 			else
 				_ResponseContent += "keep-alive\r\n";
-			// else if (_request._getHeaderContent("method").compare("POST") == 0)
-			// 	_ResponseContent += "keep-alive\r\n";
 			_ResponseContent += "\r\n";
 			if (_request._getHeaderContent("method").compare("GET") == 0 ||
 			_request._getHeaderContent("method").compare("DELETE") == 0)
@@ -812,7 +716,6 @@ void Response::_startResponse()
 			_ResponseContent += _body;
 		}
 	}
-	std::cout << _ResponseContent << std::endl;
 }
 
 std::string Response::_getResContent() const

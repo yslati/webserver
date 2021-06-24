@@ -12,7 +12,7 @@ int		main(int argc, char **argv)
 		}
 		else
 		{
-			pars ser("./parsing/file.conf");
+			pars ser("./config/webServ.conf");
 		}
 		Server& srv = Server::getInstance();
 		srv.acceptConnections();

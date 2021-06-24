@@ -12,6 +12,10 @@ Server& Server::getInstance() {
     return *_instance;
 }
 
+Server::~Server() {
+    delete _instance;
+}
+
 void Server::addHttpServer(HttpServer const& server) {
     _http_servers.push_back(server);
 }
@@ -110,7 +114,7 @@ void    Server::init_poll(std::vector<struct pollfd>& fds) {
     // server fds
     h_it = _http_servers.begin();
     while (h_it != _http_servers.end()) {
-        fds.push_back((struct pollfd){h_it->getFd(), POLLIN});
+        fds.push_back((struct pollfd){h_it->getFd(), POLLIN, 0});
         h_it++;
     }
     // client fds
@@ -124,9 +128,8 @@ void    Server::init_poll(std::vector<struct pollfd>& fds) {
 }
 
 void Server::acceptIncomingConnection(std::vector<struct pollfd>& fds, std::vector<Client>& clients) {
-    for(int i = 0; i < _http_servers.size(); i++) {
+    for(size_t i = 0; i < _http_servers.size(); i++) {
         if (fds[i].revents & POLLIN) {
-            std::cout << "Got a new connection" << std::endl;
             try
             {
                 Client c(fds[i].fd);
@@ -141,17 +144,13 @@ void Server::acceptIncomingConnection(std::vector<struct pollfd>& fds, std::vect
     }
 }
 
-void   Server::handle_read(std::vector<struct pollfd>& fds) {
-  
-}
-
 void Server::poll_handle(std::vector<struct pollfd>& fds) {
     int n = poll(&(*fds.begin()), fds.size(), 3000);
     std::vector<Client> new_clients;
     if (n == 0) {
         std::cout << "Timeout" << std::endl;
     } else if (n > 0) {
-        for (int i = 0; i < fds.size(); i++) {
+        for (size_t i = 0; i < fds.size(); i++) {
             if (i < _http_servers.size()) {
                 if (fds[i].revents & POLLIN) {
                     try
@@ -166,41 +165,12 @@ void Server::poll_handle(std::vector<struct pollfd>& fds) {
                 }
             }
         }
-        // acceptIncomingConnection(fds, new_clients);
-        // handle_read(fds);
-        // std::vector<Client>::iterator c_it;
-        // c_it = _clients.begin();
-        // while (c_it != _clients.end())
-        // {
-        //     std::cout << "rd" << std::endl;
-        //     if (c_it->getPfd().revents & POLLOUT) {
-        //         if (c_it->readConnection()) {
-        //             std::cout << "END" << std::endl;
-        //             c_it->setReady(true);
-        //         }
-        //     }
-        //     fds.push_back(c_it->getPfd());
-        //     c_it++;
-        // }
         _clients.assign(new_clients.begin(), new_clients.end());
     } else if (n == -1) {
         exit(EXIT_FAILURE);
     }
 }
 
-void Server::poll_loop() {
-    while (true) {
-        std::vector<struct pollfd> fds;
-        int i = 0;
-        std::cout << "FDS: ";
-        while (i < _clients.size()) {
-            std::cout << _clients[i].getConnection() << " ";
-        }
-        std::cout << std::endl;
-        init_poll(fds);
-        poll_handle(fds);
-    }
-}
 
 void Server::acceptConnections() {
     std::cout << "start servers" << std::endl;
@@ -212,7 +182,7 @@ void Server::acceptConnections() {
         // server fds
         h_it = _http_servers.begin();
         while (h_it != _http_servers.end()) {
-            fds.push_back((struct pollfd){h_it->getFd(), POLLIN});
+            fds.push_back((struct pollfd){h_it->getFd(), POLLIN, 0});
             h_it++;
         }
         // client fds
@@ -223,28 +193,19 @@ void Server::acceptConnections() {
             fds.push_back(c_it->getPfd());
             c_it++;
         }
-	std::vector<Client>::iterator it_c;
-	it_c = _clients.begin();
-	std::cout << "Fds: ";
-	while (it_c != _clients.end())
-	{
-		std::cout << it_c->getConnection() << " ";
-		it_c++;
-	}
-	std::cout << std::endl;
+
     int n = poll(&(*fds.begin()), fds.size(), -1);
     std::vector<Client> new_clients;
     std::set<int> toRemove;
 	if (n == 0) {
             std::cout << "Timeout" << std::endl;
     } else if (n > 0) {
-        for (int i = 0; i < fds.size(); i++) {
+        for (size_t i = 0; i < fds.size(); i++) {
             if (fds[i].revents & POLLIN) {
                 if (i < _http_servers.size()) {
                     try
                     {
                         Client c(fds[i].fd);
-                        std::cout << "new" << std::endl;
                         new_clients.push_back(c);
                     }
                     catch(const std::exception& e)
@@ -262,7 +223,6 @@ void Server::acceptConnections() {
                     catch(const std::exception& e)
                     {
                             toRemove.insert(i - _http_servers.size());
-                            std::cerr << e.what() << '\n';
                     }
                 }
             } else if (fds[i].revents & POLLOUT) {
@@ -275,9 +235,7 @@ void Server::acceptConnections() {
                 catch(const std::exception& e)
                 {
                     toRemove.insert(i - _http_servers.size());
-                    std::cerr << e.what() << '\n';
                 }
-                // _clients[i - _http_servers.size()].setReady(false);
             } else if (fds[i].revents & POLLHUP) {
                 toRemove.insert(i - _http_servers.size());
             }

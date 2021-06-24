@@ -19,7 +19,7 @@ std::string UnchunkContent::loop_over_numbers(std::string const& tmp)
     HexConvertor c;
     std::string content = "";
 
-    int i = 0;
+    size_t i = 0;
     bool is_number = true;
     int nbr;
 
