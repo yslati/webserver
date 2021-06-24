@@ -796,7 +796,7 @@ void Response::_startResponse()
 			// _ResponseContent += "keep-alive\r\n";
 			// if (_request._getHeaderContent("Connection").length())
 			// 	_ResponseContent += _request._getHeaderContent("Connection");
-			if (_status != S_OK)
+			if (_status == S_BAD_REQ)
 				_ResponseContent += "close\r\n";
 			else
 				_ResponseContent += "keep-alive\r\n";
