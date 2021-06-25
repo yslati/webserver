@@ -1,6 +1,5 @@
 #ifndef HTTP_SERVER_HPP
 # define HTTP_SERVER_HPP
-
 # include <iostream>
 #include <vector>
 #include <map>
@@ -18,49 +17,41 @@
 class HttpServer {
 	public:
 		HttpServer();
-		HttpServer(int port, std::string server_name);
 		HttpServer(HttpServer const& src);
-
 		HttpServer& operator=(HttpServer const& rhs);
 
 
-		// ---------------------------CHECKERS--------------------------
-		void	checkVal();
-
 		// ----------------------------GETTERS--------------------------
-		std::string const& getServerName() const;
+		std::string const&					getHost() const;
+		std::vector<int> const&				getPort();
+		std::string const&					getServerName() const;
+		std::string const&					getRoot() const;
 
-		std::string const& getHost() const;
-		std::string const& getRoot() const;
-
-		std::vector<std::string> const& getAllowedMethods() const;
-
-		int const& getPort() const;
-
-		int const& getMaxBodySize() const;
-
+		std::vector<std::string> const&		getAllowedMethods() const;
+		int const&							getMaxBodySize() const;
 		int getFd() const;
+
+		std::vector<Location>				getLocations();
+		std::string							_getErrorPages(int st);
 		// -----------------------------SETTERS-------------------------
-		void	setServerName(std::string const& x);
+		void								setHost(std::string const& x);
+		void								setPort(int const& x);
+		void								setServerName(std::string const& x);
+		void								setRoot(std::string const& x);
 
-		void	setHost(std::string const& x);
-		void	setRoot(std::string const& x);
+		void								setAllowedMethods(std::vector<std::string> x);
+		void								setMaxBodySize(int const& x);
 
-		void	setAllowedMethods(std::vector<std::string> x);
+		void								addLocation(Location const& loc);
 
-		void	setPort(int const& x);
-
-		void	setMaxBodySize(int const& x);
-
-		void	addLocation(Location const& loc);
 		// ----------------------------OVERLOADS-----------------------
 
-		void	addErrorPage(int statusCode, std::string path);
+		void								addErrorPage(int statusCode, std::string path);
+		void								start_listen();
 
-		void	start_listen();
 
 	private:
-		int							_port;
+		std::vector<int>			_port;
 		int							_maxBodySize;
 		std::string					_server_name;
 		std::string					_host;
@@ -68,13 +59,10 @@ class HttpServer {
 		std::vector<std::string>	_allowed_methods;
 		std::vector<Location> 		_locations;
 		std::map<int, std::string>	_errors;
+		int 						_stcode;
 		int							_fd;
 		struct sockaddr_in			_addr;
 
-		// std::vector<ErrorPage>	_error_pages;
 };
 
-// std::ostream& operator<<(std::ostream& o, HttpServer const& rhs) {
-
-// }
 #endif

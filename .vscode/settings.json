@@ -66,6 +66,7 @@
 		"deque": "cpp",
 		"clocale": "cpp",
 		"memory_resource": "cpp",
-		"set": "cpp"
+		"set": "cpp",
+		"regex": "cpp"
 	}
 }

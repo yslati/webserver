@@ -1,8 +1,12 @@
 #include "Client.hpp"
 #include <cstdlib>
 #include "Server.hpp"
+#include "UnchunkContent.hpp"
+
 
 Client::Client(int server_fd) {
+	close = false;
+	is_chunked = false;
     int len = sizeof(addr);
     _ready = false;
     _conn = accept(server_fd, (struct sockaddr*)&addr, (socklen_t*)&len);
@@ -12,28 +16,164 @@ Client::Client(int server_fd) {
     fcntl(_conn, F_SETFL, O_NONBLOCK);
     pfd.events = POLLIN;
     pfd.fd = _conn;
-    responseContent = "HTTP/1.1 200 OK\r\nContent-Length: 11\r\n\r\nhello world";
+	_req = "";
 }
 
-bool Client::getReady() {
-        return this->_ready;
+bool	Client::getReady()
+{
+    return this->_ready;
 }
 
-void Client::setReady(bool x) {
-        if (x)
+bool	Client::_matchBegin(std::string _regex, std::string _line)
+{
+	std::string _r = _regex;
+	_r.pop_back();
+
+	return _line.compare(0, _r.size(), _r) == 0;
+}
+
+
+void	Client::_handleResponse(Request req, std::vector<HttpServer>::iterator it)
+{
+    std::vector<Location> Locations = it->getLocations();
+	std::vector<Location>::iterator lit = Locations.begin();
+	Location tmp;
+	std::string _match;
+	std::string *path = new std::string("/");
+	std::string uri = req._getHeaderContent("uri");
+
+
+	for (; lit != Locations.end(); lit++)
 	{
-                // handle request
-                // Server& srv = Server::getInstance();
-                // srv.getHttpServers();
+		if (lit->getFastcgiPass().length())
+		{
+			if (uri.find(".") != std::string::npos)
+				_match = uri.substr(uri.find("."), uri.length());
+			if (_match.find("?") != std::string::npos)
+				_match = _match.substr(0, _match.find("?"));
+			if ((lit->getPhpCGI() && !_match.compare(".php"))
+			|| (lit->getPyCGI() && !_match.compare(".py"))
+			|| (lit->getNodeCGI() && !_match.compare(".js")))
+			{
+				tmp = *lit;
+				break ;
+			}
+		}
+		else if (_matchBegin(lit->getUri(), uri))
+		{
+			if (lit->getUri().compare(uri) == 0)
+			{
+				tmp = *lit;
+				break ;
+			}
+			else if (path->compare("/") == 0)
+			{
+				*path = lit->getUri();
+				tmp = *lit;
+			}
+			else if (tmp.getUri().length() < lit->getUri().length())
+			{
+				*path = lit->getUri();
+				tmp = *lit;
+			}
+		}
+	}
+	delete path;
+	Response res = Response(tmp, *it);
+
+
+	res._setRequest(req);
+	res._startResponse();
+	responseContent = res._getResContent();
+	close = res._toClose();
+
+}
+
+void	Client::_readHeader(std::string con)
+{
+	std::string _line;
+	std::istringstream _read(con);
+
+	while (getline(_read, _line))
+	{
+		if (_line.find("Host:") != std::string::npos)
+		{
+			_req = _line.substr(_line.find("Host:") + 6);
+			_req.pop_back();
+		}
+	}
+}
+
+void Client::_handleRequest(std::vector<HttpServer>::iterator it)
+{
+	Request req;
+
+	std::cout << content << std::endl;
+	req._setIterator(it);
+	req._parseIncomingRequest(content);
+	_handleResponse(req, it);
+}
+
+void	Client::setReady(bool x) {
+    if (x)
+	{
 		sended = 0;
+		if (is_chunked)
+		{
+			try
+			{
+				std::string tmp = UnchunkContent::loop_over_numbers(content.substr(content.find("\r\n\r\n") + 4));
+				size_t k = content.find("\r\n\r\n");
+				content = content.substr(0, k);
+				if (content.find("GET") == std::string::npos && content.find("DELETE") == std::string::npos)
+					content += "\r\nContent-Length: " + std::to_string(tmp.size());
+				content += "\r\n\r\n";
+				content += tmp;
+			}
+			catch(const std::exception& e)
+			{
+				std::cerr << e.what() << '\n';
+			}
+			
+		}
+		// handle request
+		Server& srv = Server::getInstance();
+		std::vector<HttpServer> s = srv.getHttpServers();
+		std::vector<HttpServer>::iterator it = s.begin();
+		bool found = false;
+		while (it != s.end())
+		{
+			_readHeader(content);
+			// std::string p = std::to_string(it->getPort());
+			std::string h = it->getServerName();
+			// h.append(":").append(p);
+			if (_req.compare(h) == 0)
+			{
+				found = true;
+				break ;
+			}
+			it++;
+		}
+		if (found)
+		{
+			_handleRequest(it);
+		}
+		else
+		{
+			s = srv.getHttpServers();
+			it = s.begin();
+			_handleRequest(it);
+		}
+		sended = 0;
+		is_chunked = false;
 		pfd.events = POLLOUT;
 	}
 	else
-        {
-                this->content = "";
-                pfd.events = POLLIN;
-        }
-        this->_ready = x;
+	{
+		this->content = "";
+		pfd.events = POLLIN;
+	}
+	this->_ready = x;
 }
 
 int Client::getConnection() {
@@ -59,6 +199,10 @@ int checkEnd(const std::string& str, const std::string& end)
         return (0);
 }
 
+std::string Client::getResponseContent() {
+        return this->responseContent;
+}
+
 std::string ReplaceString(std::string subject, const std::string& search,
                           const std::string& replace) {
     size_t pos = 0;
@@ -70,70 +214,53 @@ std::string ReplaceString(std::string subject, const std::string& search,
 }
 
 void Client::writeConnection() {
-	if (sended < content.size()) {
-		setReady(false);
-		return;
-	}
-	std::string toSend = responseContent.substr(sended, 128); 
-	int r = send(_conn, toSend.c_str(), 128, 0); 
-	if (r == 0 || r == -1) {
+	int r = send(_conn, responseContent.c_str(), responseContent.size(), 0);
+	if (r == -1) {
 		throw std::runtime_error("should close the connection");
 	}
-	else if (r > 0) {
-		sended += 128;
-	}
+	setReady(false);
 }
 
 Client::~Client() {
 }
 
 int Client::readConnection() {
-    char buffer[1028];
-    int r = recv(_conn, buffer, 128, 0);
-//     return 0;
-    if (r == -1) {
-            return 1;
-    }
-    if (r == 0) {
-            throw std::runtime_error("Closed");
-    }
-    else {
-            std::string tmp;
-            buffer[r] = '\0';
-            tmp.assign(buffer);
-            content += tmp;
-            // std::cout << i << " " << content.size() << std::endl;
-            // std::cout << "ENDOK" << std::endl;
-            size_t j = content.find("\r\n\r\n", 0);
+    char buffer[16000];
+    int r = recv(_conn, buffer, 15999, 0);
 
-            // check if there is a \r\n\r\n
-            if (j != std::string::npos)
-            {
-                    // if there isnt a content length
-                    if (content.find("Content-Length: ") == std::string::npos) {
-                            // check if there is chunked
-                            if (content.find("Transfer-Encoding: chunked") != std::string::npos) {
-                                    if (checkEnd(content, "0\r\n\r\n") == 0)
-                                    {
-                                            std::cout << "End" << std::endl;
-                                            return (0);
-                                    }
-                                    else
-                                            return (1);
-                            }
-                            else
-                                    return (0);
-                    }
-                    size_t  len = std::atoi(content.substr(content.find("Content-Length: ") + 16, 10).c_str());
-                //     size_t pos = content.find("\r\n\r\n");
-                    std::cout << "Content-Length: " << len << "==" << content.substr(j + 4).size() << std::endl;
-                    std::string tmp = content.substr(j + 4);
-                //     tmp = ReplaceString(tmp, "\r\n", "");
-                    if (tmp.size() >= len)
-                            return (0);
-                    else
-                            return (1);
-            }
+    if (r == -1)
+        return 1;
+    if (r == 0)
+        throw std::runtime_error("Closed");
+    else {
+		std::string tmp;
+		buffer[r] = '\0';
+		tmp.assign(buffer);
+		content += tmp;
+		size_t j = content.find("\r\n\r\n", 0);
+
+		if (j != std::string::npos)
+		{
+			if (content.find("Content-Length: ") == std::string::npos) {
+				if (content.find("Transfer-Encoding: chunked") != std::string::npos) {
+					if (checkEnd(content, "0\r\n\r\n") == 0)
+					{
+						is_chunked = true;
+						return (0);
+					}
+					else
+						return (1);
+				}
+				else
+					return (0);
+			}
+			size_t  len = std::atoi(content.substr(content.find("Content-Length: ") + 16, 10).c_str());
+			std::string tmp = content.substr(j + 4);
+			if (tmp.size() >= len)
+				return (0);
+			else
+				return (1);
+		}
     }
     return (1);
 }
@@ -141,6 +268,3 @@ int Client::readConnection() {
 std::string Client::getContent() const {
     return this->content;
 }
-
-// POST /filename HTTP/1.1
-// 

@@ -1,9 +1,28 @@
 #include "parsing.hpp"
+# include <string.h>
 
 bool	pars::_checkbool(std::string str) {
 	if (str == "on")
 		return (true);
 	return (false);
+}
+
+bool	pars::_checkCGI(std::string str) {
+	if (str != "*.php" && str != "*.js" && str != "*.py")
+		return false;
+	return true;
+}
+
+bool	pars::_setCGI(Location &src) {
+	if (src.getUri() == "*.php")
+		src.setPhpCGI(true);
+	else if (src.getUri() == "*.js")
+		src.setNodeCGI(true);
+	else if (src.getUri() == "*.py")
+		src.setPyCGI(true);
+	else
+		return false;
+	return true;
 }
 
 std::vector<std::string> pars::_split(std::string const &str, char sep)
@@ -66,28 +85,45 @@ int		pars::parsLocation(int i, int end, HttpServer& srv) {
 				throw "Syntax Error: location: 'redirect_path' duplicated";
 			tmp.setRedirectUrl(_conf[i].substr(_conf[i].find("=") + 1));
 		}
+		else if (_conf[i].compare(0, 13, "upload_enable") == 0) {
+			if (tmp.getIsUploadEnable())
+				throw "Syntax Error: location: 'upload_enable' duplicated";
+			tmp.setIsUploadEnable(_checkbool(_conf[i].substr(_conf[i].find("=") + 1)));
+		}
+		else if (_conf[i].compare(0, 12, "upload_store") == 0) {
+			if (tmp.getUploadDir() != "")
+				throw "Syntax Error: location: 'upload_store' duplicated";
+			tmp.setUploadDir(_conf[i].substr(_conf[i].find("=") + 1));
+		}
+		else if (_conf[i].compare(0, 12, "fastcgi_pass") == 0) {
+			if (tmp.getFastcgiPass().length())
+				throw "Syntax Error: location: 'fastcgi_pass' duplicated";
+			if (_setCGI(tmp) == false)
+				throw "Syntax Error: location: CGI extension not Allowed";
+			tmp.setFastcgiPass(_conf[i].substr(_conf[i].find("=") + 1));
+		}
 	}
+
 	if (tmp.getIsRedirect() == true && (tmp.getStatusCode() == -1 || tmp.getRedirectUrl() == ""))
 		throw "you need to setup redirect code and index";
+	// std::cout << "py_CGI: " << tmp.getPyCGI() << "\tnode_CGI: " << tmp.getNodeCGI() << "\tphp_CGI: " << tmp.getPhpCGI() << std::endl;
+	if ((tmp.getUri() == "*.php" || tmp.getUri() == "*.js" || tmp.getUri() == "*.py") && !tmp.getFastcgiPass().length())
+		throw "your CGI extension need to be like this: `fastcgi_pass = on`";
+
+	// if (tmp.getAutoIndex() == true && tmp.getIndex() == "")
+	// 	throw "you need to setup the index, or change auto index to off";
+
 	srv.addLocation(tmp);
 	return (i);
 }
 
 void	pars::_check_missing(HttpServer &srv) {
-	if (srv.getPort() == -1)
+	if (srv.getPort().empty())
 		throw "syntax err: Port Not found!";
 	else if (srv.getHost() == "")
 		throw "syntax err: Host Not found!";
 	else if (srv.getRoot() == "")
 		throw "syntax err: Root Not found!";
-}
-
-bool pars::_isNumber(const std::string& str)
-{
-    for (int i = 0; i < str.length(); i++) {
-        if (std::isdigit(str[i]) == 0) return false;
-    }
-    return true;
 }
 
 void	pars::parsServer(int n) {
@@ -99,10 +135,6 @@ void	pars::parsServer(int n) {
 		if (_conf[i].compare("server") == 0)
 			throw "Syntax Error: You miss to Close the server `]`";
 		if (_conf[i].compare(0, 4, "port") == 0) {
-			if (_httpServers.getPort() != -1)
-				throw "Syntax Error: 'Port' duplicated";
-			if (!_isNumber(_conf[i].substr(_conf[i].find(":") + 1)))
-				throw "Port must be number ";
 			_httpServers.setPort(atoi(_conf[i].substr(_conf[i].find(":") + 1).c_str()));
 		}
 		else if (_conf[i].compare(0, 11, "server_name") == 0) {
@@ -131,7 +163,7 @@ void	pars::parsServer(int n) {
 			_httpServers.setAllowedMethods(_split(_conf[i].substr(_conf[i].find(":") + 1), ','));
 		}
 		else if (_conf[i].compare(0, 8, "location") == 0) {
-			if (_conf[i].substr(_conf[i].find(":") + 1).compare(0, 1, "/") != 0)
+			if ((_conf[i].substr(_conf[i].find(":") + 1).compare(0, 1, "/") != 0) && !_checkCGI(_conf[i].substr(_conf[i].find(":") + 1)))
 				throw "Location URI error";
 			i = parsLocation(i++, _servEnd[n], _httpServers);
 		}
@@ -139,8 +171,6 @@ void	pars::parsServer(int n) {
 			std::string tmp =  _conf[i].substr(_conf[i].find(":") + 1);
 			_httpServers.addErrorPage(atoi(tmp.c_str()), tmp.substr(tmp.find(":") + 1));
 		}
-		else if (_conf[i].find("#"))
-			throw "Syntax Error !";
 	}
 	_check_missing(_httpServers);
 	_Servers.addHttpServer(_httpServers);
@@ -149,22 +179,26 @@ void	pars::parsServer(int n) {
 void	pars::checkServer() {
 
 	int serverClosed = 0;
-	for (int i = 0; i < _conf.size(); i++) {
+	for (size_t i = 0; i < _conf.size(); i++) {
 		_conf[i].erase(std::remove_if(_conf[i].begin(), _conf[i].end(), ::isspace), _conf[i].end());
-		if (serverClosed == 0 && _conf[i].compare("server") == 0) {
+		if (serverClosed == 0 && (_conf[i].compare("server") == 0 || _conf[i].compare("server[") == 0)) {
+			if (_conf[i + 1].compare("[") != 0 || _conf[i + 1].compare("]") == 0)
+				throw "syntax error: you must open server `[`";
 			serverClosed = 1;
-			if (_conf[i + 1].compare("[") != 0)
-				break ;
 			_servBegin.push_back(i + 1);
 		}
 		else if (serverClosed == 1 &&  _conf[i].compare("]") == 0) {
 			_servEnd.push_back(i);
 			serverClosed = 0;
-			if ((i + 1) != _conf.size() && _conf[i + 1].compare("server") != 0)
-				throw "syntax err: at end of server";
+			if (_conf[i - 1].compare("[") == 0)
+				throw "syntax error: server is emty";
+			if ((i + 1) != _conf.size() && _conf[i + 1].compare("server") != 0 && _conf[i + 1].compare(0, 1, "#") != 0)
+				throw "syntax error: at end of server";
 		}
 	}
-	for (int i = 0; i < _servBegin.size(); i++)
+	if (_servBegin.size() && (_servBegin.size() != _servEnd.size()))
+		throw "syntax error: server is emty";
+	for (size_t i = 0; i < _servBegin.size(); i++)
 		parsServer(i);
 }
 
