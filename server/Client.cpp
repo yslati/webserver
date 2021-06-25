@@ -2,9 +2,10 @@
 #include <cstdlib>
 #include "Server.hpp"
 #include "UnchunkContent.hpp"
-
+#include "RequestValidator.hpp"
 
 Client::Client(int server_fd) {
+	status = 1;
 	close = false;
 	is_chunked = false;
     int len = sizeof(addr);
@@ -110,6 +111,7 @@ void Client::_handleRequest(std::vector<HttpServer>::iterator it)
 
 	std::cout << content << std::endl;
 	req._setIterator(it);
+	req._setStatus(status);
 	req._parseIncomingRequest(content);
 	_handleResponse(req, it);
 }
@@ -141,7 +143,7 @@ void	Client::setReady(bool x) {
 		std::vector<HttpServer> s = srv.getHttpServers();
 		std::vector<HttpServer>::iterator it = s.begin();
 		bool found = false;
-		while (it != s.end())
+		while (it != s.end() && status == 1)
 		{
 			_readHeader(content);
 			// std::string p = std::to_string(it->getPort());
@@ -157,6 +159,7 @@ void	Client::setReady(bool x) {
 		if (found)
 		{
 			std::cout << "p = " << it->getPort() << std::endl;
+			// if (status == 400 || status == 504)
 			_handleRequest(it);
 		}
 		else
@@ -242,6 +245,18 @@ int Client::readConnection() {
 
 		if (j != std::string::npos)
 		{
+			// std::cout << "OK" << std::endl;
+			std::string headers = content.substr(0, j + 2);
+			if (!RequestValidator::validHeaders(headers))
+			{
+				status = 400;
+				size_t newline = headers.find("\n");
+				if (!RequestValidator::validRequest(headers.substr(0, newline).append("\n")))
+					status = 504;
+				std::cout << status << std::endl;
+				return (0);
+			}
+			std::cout << r << std::endl;
 			if (content.find("Content-Length: ") == std::string::npos) {
 				if (content.find("Transfer-Encoding: chunked") != std::string::npos) {
 					if (checkEnd(content, "0\r\n\r\n") == 0)

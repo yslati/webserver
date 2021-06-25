@@ -14,6 +14,7 @@
 class Client {
     public:
         bool close;
+        int status;
 
         Client(int server_fd);
 
