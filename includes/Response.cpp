@@ -207,7 +207,7 @@ void	Response::_handleCGI()
 		else if (_line.find("Location: ") != std::string::npos)
 			_loc = _line.substr(_line.find("Location: " + 10));
 		else if (_line.find("Set-Cookie: ") != std::string::npos)
-			_loc = "hey";
+			_loc = "Parse Cookie here";
 		else
 		{
 			if (_isEmpty)
