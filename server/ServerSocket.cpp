@@ -46,7 +46,7 @@ void ServerSocket::socketCreate() {
     if (_fd == -1) {
         std::cerr << "Socket failed" << std::endl;
     } else {
-        fcntl(_fd, F_SETFL, O_NONBLOCK);
+        // fcntl(_fd, F_SETFL, O_NONBLOCK);
     }
 }
 

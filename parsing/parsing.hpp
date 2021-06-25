@@ -1,9 +1,9 @@
 #ifndef PARSING_H
 #define PARSING_H
 
-#include "HttpServer.hpp"
-#include "Location.hpp"
-#include "Server.hpp"
+#include "../server/HttpServer.hpp"
+#include "../server/Location.hpp"
+#include "../server/Server.hpp"
 
 # include <iostream>
 # include <fstream>
@@ -27,6 +27,8 @@ class pars {
 
 		std::vector<std::string>	_split(std::string const &str, char sep);
 		bool						_checkbool(std::string str);
+		bool						_setCGI(Location &src);
+		bool						_checkCGI(std::string str);
 		void						_check_missing(HttpServer &srv);
 		bool						_isNumber(const std::string& str);
 

@@ -68,5 +68,10 @@
 		"memory_resource": "cpp",
 		"set": "cpp",
 		"regex": "cpp"
+<<<<<<< HEAD
 	}
+=======
+	},
+	"python.formatting.provider": "yapf"
+>>>>>>> 9c19826d463704444cb6edd0e597e015e3b330cf
 }
