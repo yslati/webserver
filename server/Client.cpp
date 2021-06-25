@@ -2,9 +2,11 @@
 #include <cstdlib>
 #include "Server.hpp"
 #include "UnchunkContent.hpp"
+#include "RequestValidator.hpp"
 
 
 Client::Client(int server_fd) {
+	status = 1;
 	close = false;
 	is_chunked = false;
     int len = sizeof(addr);
@@ -91,16 +93,13 @@ void	Client::_handleResponse(Request req, std::vector<HttpServer>::iterator it)
 
 void	Client::_readHeader(std::string con)
 {
-	std::string _line;
-	std::istringstream _read(con);
-
-	while (getline(_read, _line))
+	size_t pos = con.find("\r\n\r\n");
+	std::string headers = con.substr(0, pos);
+	if ((pos = headers.find("Host:")) != std::string::npos)
 	{
-		if (_line.find("Host:") != std::string::npos)
-		{
-			_req = _line.substr(_line.find("Host:") + 6);
-			_req.pop_back();
-		}
+		size_t newline = headers.substr(pos).find("\r\n");
+		std::string tmp = headers.substr(pos).substr(0, newline);
+		_req = tmp.substr(6);
 	}
 }
 
@@ -110,6 +109,7 @@ void Client::_handleRequest(std::vector<HttpServer>::iterator it)
 
 	std::cout << content << std::endl;
 	req._setIterator(it);
+	req._setStatus(status);
 	req._parseIncomingRequest(content);
 	_handleResponse(req, it);
 }
@@ -141,12 +141,10 @@ void	Client::setReady(bool x) {
 		std::vector<HttpServer> s = srv.getHttpServers();
 		std::vector<HttpServer>::iterator it = s.begin();
 		bool found = false;
-		while (it != s.end())
+		while (it != s.end() && status == 1)
 		{
 			_readHeader(content);
-			// std::string p = std::to_string(it->getPort());
 			std::string h = it->getServerName();
-			// h.append(":").append(p);
 			if (_req.compare(h) == 0)
 			{
 				found = true;
@@ -155,10 +153,7 @@ void	Client::setReady(bool x) {
 			it++;
 		}
 		if (found)
-		{
-			std::cout << "p = " << it->getPort() << std::endl;
 			_handleRequest(it);
-		}
 		else
 		{
 			s = srv.getHttpServers();
@@ -228,7 +223,6 @@ Client::~Client() {
 int Client::readConnection() {
     char buffer[16000];
     int r = recv(_conn, buffer, 15999, 0);
-
     if (r == -1)
         return 1;
     if (r == 0)
@@ -239,9 +233,29 @@ int Client::readConnection() {
 		tmp.assign(buffer);
 		content += tmp;
 		size_t j = content.find("\r\n\r\n", 0);
-
 		if (j != std::string::npos)
 		{
+			std::string headers = content.substr(0, j + 2);
+			try
+			{
+				size_t newline = headers.find("\n");
+				if (!RequestValidator::validRequest(headers.substr(0, newline).append("\n")))
+					;
+			}
+			catch(const std::exception& e)
+			{
+				status = 505;
+				std::cout << status << std::endl;
+				return 0;
+			}
+			;
+			if (!RequestValidator::validHeaders(headers))
+			{
+				status = 400;
+				std::cout << status << std::endl;
+				return (0);
+			}
+			std::cout << r << std::endl;
 			if (content.find("Content-Length: ") == std::string::npos) {
 				if (content.find("Transfer-Encoding: chunked") != std::string::npos) {
 					if (checkEnd(content, "0\r\n\r\n") == 0)

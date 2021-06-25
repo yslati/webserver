@@ -37,7 +37,9 @@ class Request {
         std::string _getPostBody() const;
         std::string _getBoundary() const;
         void    _setIterator(std::vector<HttpServer>::iterator it);
+        void _setStatus(int st);
     private:
+        int             _st;
 		bool            _isDone;
 		unsigned int    _Clen;
 		std::vector<std::string> _parse;

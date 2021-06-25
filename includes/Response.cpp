@@ -340,7 +340,6 @@ void Response::_applyGetMethod()
 {
     std::string path = _getFilePath(_getFileNameFromUri(_request._getHeaderContent("uri")));
 
-	std::cout << "path = " << path << "\n";
 	if (_location.getUri().compare(_request._getHeaderContent("uri")) == 0
 	&& !_location.getAutoIndex() && _isDir(path))
 	{
@@ -614,6 +613,11 @@ void	Response::_applyMethod()
 		_status = S_BAD_REQ;
 		_handleError();
 	}
+	else if (_request._getError() == 2)
+	{
+		_status = S_HTTP_VERSION_NOT_SUPPORTED;
+		_handleError();
+	}
 	else if (_httpServ.getMaxBodySize() != -1
 	&& _request._getContentLen() > _httpServ.getMaxBodySize())
 	{
@@ -677,78 +681,127 @@ bool Response::_toClose()
 	return false;
 }
 
+std::vector<std::string>	Response::_split(std::string s, std::string delimiter)
+{
+	size_t pos = 0;
+	std::string token;
+	std::vector<std::string> _v;
+
+	while ((pos = s.find(delimiter)) != std::string::npos)
+	{
+		token = s.substr(0, pos);
+		_v.push_back(token);
+		s.erase(0, pos + delimiter.length());
+	}
+	if (s.find(";") != std::string::npos)
+		s.pop_back();
+	_v.push_back(s);
+	return _v;
+}
+
+void 	Response::_setCookie()
+{
+	std::string cookie = _request._getHeaderContent("Cookie");
+	std::string delimiter = ";";
+
+	if (cookie.find(";; ") != std::string::npos)
+		delimiter = ";; ";
+	else if (cookie.find("; ") != std::string::npos)
+		delimiter = "; ";
+
+	std::vector<std::string> _v = _split(cookie, delimiter);
+
+	if (cookie.length() && !_isCGI())
+	{
+		for (size_t i = 0; i < _v.size(); i++)
+			if (_v[i].length())
+				_ResponseContent += "Set-Cookie: " + _v[i] + "\r\n";
+		// _ResponseContent.pop_back();
+	}
+	else if (_isCGI())
+	{
+	}
+}
+
+void Response::_handleRequestError(int st)
+{
+	_status = st;
+	_handleError();
+	_ResponseContent += "HTTP/1.1";
+	_ResponseContent += " ";
+	_ResponseContent += std::to_string(_status);
+	_ResponseContent += " ";
+	_ResponseContent += _stResp[_status];
+	_ResponseContent += "\r\n";
+	_ResponseContent += "Server: webserv/0.0\r\n";
+	_ResponseContent += "Content-Type: ";
+	_ResponseContent += _getContentType();
+	_ResponseContent += "\r\n";
+	_ResponseContent += "Content-Length: ";
+	_ResponseContent += std::to_string(_body.length());
+	_ResponseContent += "\r\n";
+	_setCookie();
+	_ResponseContent += "Connection: close\r\n";
+	_ResponseContent += "\r\n";
+	_ResponseContent += _body;
+}
+
+void Response::_RenderResponseContent()
+{
+	_applyMethod();
+	// _data = _request._getHeaderContent("protocol");
+	// if (_data.compare("HTTP/1.1") == 0)
+	// 	_ResponseContent += _request._getHeaderContent("protocol");
+	// else
+	_ResponseContent += "HTTP/1.1";
+	_ResponseContent += " ";
+	_ResponseContent += std::to_string(_status);
+	_ResponseContent += " ";
+	_ResponseContent += _stResp[_status];
+	_ResponseContent += "\r\n";
+	if (_location.getIsRedirect())
+	{
+		_ResponseContent += "Location: ";
+		_ResponseContent += _location.getRedirectUrl();
+		_ResponseContent += "\r\n\r\n";
+	}
+	else
+	{
+		_ResponseContent += "Server: webserv/0.0\r\n";
+		_ResponseContent += "Content-Type: ";
+		_ResponseContent += _getContentType();
+		_ResponseContent += "\r\n";
+		_ResponseContent += "Content-Length: ";
+		_ResponseContent += std::to_string(_body.length());
+		_ResponseContent += "\r\n";
+		_setCookie();
+		// _ResponseContent +"Set-Cookie: a=b\r\n";
+		_ResponseContent += "Connection: ";
+		if (_status == S_BAD_REQ || _status == S_HTTP_VERSION_NOT_SUPPORTED)
+			_ResponseContent += "close\r\n";
+		else
+			_ResponseContent += "keep-alive\r\n";
+		// _ResponseContent += "\r\n";
+		// if (_request._getHeaderContent("method").compare("GET") == 0 ||
+		// _request._getHeaderContent("method").compare("DELETE") == 0)
+		// 	_ResponseContent += "\r\n";
+		_ResponseContent += "\r\n";
+		_ResponseContent += _body;
+	}
+}
+
 void Response::_startResponse()
 {
 	std::string _port = std::to_string(_httpServ.getPort());
 	std::string _data;
 	_makeStatus();
 
-	// if (_request._getHeaderContent("port").compare(_port))
-	// {
-	// 	_status = S_BAD_REQ;
-	// 	_handleError();
-	// 	_ResponseContent += "HTTP/1.1";
-	// 	_ResponseContent += " ";
-	// 	_ResponseContent += std::to_string(_status);
-	// 	_ResponseContent += " ";
-	// 	_ResponseContent += _stResp[_status];
-	// 	_ResponseContent += "\r\n";
-	// 	_ResponseContent += "Server: webserv/0.0\r\n";
-	// 	_ResponseContent += "Content-Type: ";
-	// 	_ResponseContent += _getContentType();
-	// 	_ResponseContent += "\r\n";
-	// 	_ResponseContent += "Content-Length: ";
-	// 	_ResponseContent += std::to_string(_body.length());
-	// 	_ResponseContent += "\r\n";
-	// 	_ResponseContent += "Connection: close\r\n\r\n";
-	// 	_ResponseContent += "\r\n";
-	// 	_ResponseContent += _body;
-	// }
-	// else if (_request._getHeaderContent("Host").compare(_port) == 0)
-	// {
-		_applyMethod();
-
-		_data = _request._getHeaderContent("protocol");
-		if (_data.compare("HTTP/1.1") == 0)
-			_ResponseContent += _request._getHeaderContent("protocol");
-		else
-		{
-			_status = S_HTTP_VERSION_NOT_SUPPORTED;
-			_ResponseContent += "HTTP/1.1";
-		}
-		_ResponseContent += " ";
-		_ResponseContent += std::to_string(_status);
-		_ResponseContent += " ";
-		_ResponseContent += _stResp[_status];
-		_ResponseContent += "\r\n";
-		if (_location.getIsRedirect())
-		{
-			_ResponseContent += "Location: ";
-			_ResponseContent += _location.getRedirectUrl();
-			_ResponseContent += "\r\n\r\n";
-		}
-		else
-		{
-			_ResponseContent += "Server: webserv/0.0\r\n";
-			_ResponseContent += "Content-Type: ";
-			_ResponseContent += _getContentType();
-			_ResponseContent += "\r\n";
-			_ResponseContent += "Content-Length: ";
-			_ResponseContent += std::to_string(_body.length());
-			_ResponseContent += "\r\n";
-			_ResponseContent += "Connection: ";
-			if (_status == S_BAD_REQ || _status == S_HTTP_VERSION_NOT_SUPPORTED)
-				_ResponseContent += "close\r\n";
-			else
-				_ResponseContent += "keep-alive\r\n";
-			// _ResponseContent += "\r\n";
-			// if (_request._getHeaderContent("method").compare("GET") == 0 ||
-			// _request._getHeaderContent("method").compare("DELETE") == 0)
-			// 	_ResponseContent += "\r\n";
-			_ResponseContent += "\r\n";
-			_ResponseContent += _body;
-		}
-	// }
+	if (_request._getError() == 400)
+		_handleRequestError(S_BAD_REQ);
+	else if (_request._getError() == 505)
+		_handleRequestError(S_HTTP_VERSION_NOT_SUPPORTED);
+	else
+		_RenderResponseContent();
 }
 
 std::string Response::_getResContent() const

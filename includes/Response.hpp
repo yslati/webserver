@@ -106,6 +106,10 @@ class Response {
 		bool        _matchEnd(std::string s1, std::string s2);
 		void        _handleError();
 		bool 		_toClose();
+		void 		_setCookie();
+		std::vector<std::string>	_split(std::string s, std::string delimiter);
+		void 	_handleRequestError(int st);
+		void 	_RenderResponseContent();
 };
 
 #endif
