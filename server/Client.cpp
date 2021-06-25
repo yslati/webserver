@@ -138,10 +138,10 @@ void	Client::setReady(bool x) {
 		}
 		// handle request
 		Server& srv = Server::getInstance();
-		std::vector<HttpServer> s = srv.getHttpServers();
-		std::vector<HttpServer>::iterator it = s.begin();
+		
+		std::vector<HttpServer>::iterator it = srv.getInstance().getHttpServers().begin();
 		bool found = false;
-		while (it != s.end() && status == 1)
+		while (it != srv.getInstance().getHttpServers().end() && status == 1)
 		{
 			_readHeader(content);
 			std::string h = it->getServerName();
@@ -156,8 +156,7 @@ void	Client::setReady(bool x) {
 			_handleRequest(it);
 		else
 		{
-			s = srv.getHttpServers();
-			it = s.begin();
+			it = srv.getInstance().getHttpServers().begin();
 			_handleRequest(it);
 		}
 		sended = 0;

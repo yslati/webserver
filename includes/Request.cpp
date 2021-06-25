@@ -1,5 +1,4 @@
 #include "Request.hpp"
-#include <regex>
 
 Request::Request()
 {

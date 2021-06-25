@@ -24,7 +24,7 @@ std::vector<ServerSocket> const& Server::getSockets() const {
     return _sockets;
 }
 
-std::vector<HttpServer> const& Server::getHttpServers() const {
+std::vector<HttpServer>& Server::getHttpServers() {
     return _http_servers;
 }
 

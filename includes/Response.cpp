@@ -34,21 +34,27 @@ Response::~Response()
 	_stResp.clear();
 }
 
-std::string		Response::_getKey(std::string ctype)
+std::string		Response::_getVal(std::string data, std::string _regex, bool boundary, bool self)
 {
-	std::string path = "";
-    std::regex re("name=\"");
-    std::smatch match;
-    if (ctype.length())
-    {
-        std::regex_search(ctype, match, re);
-        if (!match.empty())
-        {
-            path = match.suffix();
-            path = path.substr(0, path.find("\""));
-        }
-    }
-	return path;
+	std::string val = "";
+	Regex re(_regex);
+	Match match;
+
+	if (data.length())
+	{
+		re.regex_search(data, match, re);
+		if (!match.empty())
+		{
+			val = match.suffix();
+			if (!boundary)
+				val = val.substr(0, val.find("\r\n"));
+			else
+				val = val.substr(0, val.find(_regex));
+		}
+	}
+	if (self)
+		return (match.self());
+	return val;
 }
 
 int Response::_runCgi()
@@ -406,6 +412,7 @@ void Response::_applyPostMethod()
     {
         Request::ArgContent arg = _request._getArg(i);
         _filename = _getFileNameFromDisp(arg._Cdisp);
+		// _filename = _getVal(arg._Cdisp, "filename=\"", false, false);
 
         if (_filename.length())
         {

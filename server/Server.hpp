@@ -17,7 +17,7 @@ class Server {
 
 		std::vector<ServerSocket> const& getSockets() const;
 
-		std::vector<HttpServer> const& getHttpServers() const;
+		std::vector<HttpServer>& getHttpServers();
 
 		// polymorph socketCreate
 		void socketsCreate();

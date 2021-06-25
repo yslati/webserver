@@ -12,6 +12,7 @@
 # include <dirent.h>
 # include <sys/types.h>
 # include "../server/Location.hpp"
+# include "Regex.hpp"
 
 # define S_OK 200
 # define S_MOVED_PERM 301
@@ -101,7 +102,6 @@ class Response {
 		void _deleteFile(std::string _file);
 		std::string _getScriptFileName() const;
 		int _runCgi();
-		std::string _getKey(std::string ctype);
 		std::string _getContentType();
 		bool        _matchEnd(std::string s1, std::string s2);
 		void        _handleError();
@@ -110,6 +110,7 @@ class Response {
 		std::vector<std::string>	_split(std::string s, std::string delimiter);
 		void 	_handleRequestError(int st);
 		void 	_RenderResponseContent();
+		std::string		_getVal(std::string data, std::string _regex, bool boundary, bool self);
 };
 
 #endif
