@@ -609,7 +609,7 @@ void	Response::_applyMethod()
 	if (_scriptFileName.find("?") != std::string::npos)
 		_scriptFileName = _scriptFileName.substr(0, _scriptFileName.find("?"));
 
-	if (_request._getError())
+	if (_request._getError() == 1)
 	{
 		_status = S_BAD_REQ;
 		_handleError();
@@ -737,7 +737,7 @@ void Response::_startResponse()
 			_ResponseContent += std::to_string(_body.length());
 			_ResponseContent += "\r\n";
 			_ResponseContent += "Connection: ";
-			if (_status == S_BAD_REQ)
+			if (_status == S_BAD_REQ || _status == S_HTTP_VERSION_NOT_SUPPORTED)
 				_ResponseContent += "close\r\n";
 			else
 				_ResponseContent += "keep-alive\r\n";
