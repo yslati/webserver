@@ -1,5 +1,4 @@
 #include "Response.hpp"
-#include <regex>
 #include <sys/wait.h>
 
 Response::Response(Location& location, HttpServer& httpServ): _location(location), _httpServ(httpServ)
@@ -390,11 +389,11 @@ void Response::_applyGetMethod()
 std::string Response::_getFileNameFromDisp(std::string disp)
 {
     std::string path = "";
-    std::regex re("filename=\"");
-    std::smatch match;
+    Regex re("filename=\"");
+    Match match;
     if (disp.length())
     {
-        std::regex_search(disp, match, re);
+        re.regex_search(disp, match, re);
         if (!match.empty())
         {
             path = match.suffix();
@@ -414,8 +413,6 @@ void Response::_applyPostMethod()
     {
         Request::ArgContent arg = _request._getArg(i);
         _filename = _getFileNameFromDisp(arg._Cdisp);
-		// _filename = _getVal(arg._Cdisp, "filename=\"", false, false);
-
         if (_filename.length())
         {
 			if (_location.getIsUploadEnable())
