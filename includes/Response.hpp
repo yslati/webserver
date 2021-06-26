@@ -50,20 +50,6 @@ class Response {
 		std::string _loc;
 		std::string _headers;
 	public:
-		// class MethodNotFound: public std::exception
-		// {
-		// 	public:
-		// 		virtual const char* what() const throw() {
-		// 			return "Not Implemented";
-		// 		} 
-		// };
-		// class PermissionDiend: public std::exception
-		// {
-		// 	public:
-		// 		virtual const char* what() const throw() {
-		// 			return "Permission Diend";
-		// 		} 
-		// };
 		Response(Location& location, HttpServer& httpServ);
 		Response(Response const & rhs);
 		Response& operator=(Response const & rhs);

@@ -1,5 +1,4 @@
 #include "Response.hpp"
-#include <regex>
 #include <sys/wait.h>
 
 Response::Response(Location& location, HttpServer& httpServ): _location(location), _httpServ(httpServ)
