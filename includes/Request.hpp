@@ -7,7 +7,6 @@
 # include <sstream>
 # include <map>
 # include <string>
-// # include "../server/Client.hpp"
 # include "../server/HttpServer.hpp"
 
 class Request {
