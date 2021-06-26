@@ -1,14 +1,8 @@
 #include "HttpServer.hpp"
 
 HttpServer::HttpServer() {
-    _port = -1;
     _maxBodySize = -1;
     _stcode = -1;
-}
-
-HttpServer::HttpServer(int port, std::string server_name) {
-    _port = port;
-    _server_name = server_name;
 }
 
 HttpServer::HttpServer(HttpServer const& src) {
@@ -43,20 +37,6 @@ HttpServer& HttpServer::operator=(HttpServer const& rhs) {
 }
 
 
-// ---------------------------CHECKERS--------------------------
-void	HttpServer::checkVal() {
-    std::cout << "server_name: \t" << _server_name << "\tPort: " << _port << std::endl;
-    // std::cout << "allowed_methods: ";
-    // for (int i = 0; i < _allowed_methods.size(); i++)
-        // std::cout << _allowed_methods[0] << " ";
-
-    std::cout << "\t\thost: " << _host << std::endl;
-    std::cout << "\t\troot: " << _root << std::endl;
-    std::cout << "\t\tmax_body_size: " << _maxBodySize << std::endl;
-    std::cout << "\t\t_stcode = : " << _stcode << std::endl;
-    std::cout << "\t\terr = : " << _errors[_stcode] << std::endl;
-    std::cout << "============================" << std::endl;
-}
 
 // ----------------------------GETTERS--------------------------
 std::string const& HttpServer::getServerName() const {
@@ -75,7 +55,7 @@ std::vector<std::string> const& HttpServer::getAllowedMethods() const {
     return _allowed_methods;
 }
 
-int const& HttpServer::getPort() const {
+std::vector<int> HttpServer::getPort() {
     return _port;
 }
 
@@ -109,7 +89,7 @@ void	HttpServer::setAllowedMethods(std::vector<std::string> x) {
 }
 
 void	HttpServer::setPort(int const& x) {
-    _port = x;
+    _port.push_back(x);
 }
 
 void	HttpServer::setMaxBodySize(int const& x) {
@@ -131,7 +111,6 @@ void	HttpServer::addErrorPage(int statusCode, std::string path) {
 
 void    HttpServer::start_listen()
 {
-    std::cout << this->_port << std::endl;
      _fd = socket(AF_INET, SOCK_STREAM, 0);
     fcntl(_fd, F_SETFL, O_NONBLOCK);
     if (_fd < 0) {
@@ -142,7 +121,7 @@ void    HttpServer::start_listen()
         throw std::runtime_error("setsockopt failed");
     }
     _addr.sin_family = AF_INET;
-    _addr.sin_port = htons(_port);
+    _addr.sin_port = htons(this->_port[0]);
     _addr.sin_addr.s_addr = inet_addr(_host.c_str());
     if (bind(_fd, (struct sockaddr*)&_addr, (socklen_t)sizeof(_addr)) == -1) {
         throw std::runtime_error("bind failed");

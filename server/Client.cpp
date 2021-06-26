@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include "Server.hpp"
 #include "UnchunkContent.hpp"
-#include "RequestValidator.hpp"
+#include "RequestValidator.hpp" 
 
 
 Client::Client(int server_fd) {
@@ -107,7 +107,6 @@ void Client::_handleRequest(std::vector<HttpServer>::iterator it)
 {
 	Request req;
 
-	std::cout << content << std::endl;
 	req._setIterator(it);
 	req._setStatus(status);
 	req._parseIncomingRequest(content);
@@ -136,12 +135,10 @@ void	Client::setReady(bool x) {
 			}
 			
 		}
-		// handle request
-		Server& srv = Server::getInstance();
-		
-		std::vector<HttpServer>::iterator it = srv.getInstance().getHttpServers().begin();
+		// handle request;
+		std::vector<HttpServer>::iterator it = Server::getInstance().getHttpServers().begin();
 		bool found = false;
-		while (it != srv.getInstance().getHttpServers().end() && status == 1)
+		while (it != Server::getInstance().getHttpServers().end() && status == 1)
 		{
 			_readHeader(content);
 			std::string h = it->getServerName();
@@ -156,7 +153,7 @@ void	Client::setReady(bool x) {
 			_handleRequest(it);
 		else
 		{
-			it = srv.getInstance().getHttpServers().begin();
+			it = Server::getInstance().getHttpServers().begin();
 			_handleRequest(it);
 		}
 		sended = 0;
@@ -210,7 +207,7 @@ std::string ReplaceString(std::string subject, const std::string& search,
 
 void Client::writeConnection() {
 	int r = send(_conn, responseContent.c_str(), responseContent.size(), 0);
-	if (r == -1) {
+	if (r == -1 || r == 0) {
 		throw std::runtime_error("should close the connection");
 	}
 	setReady(false);

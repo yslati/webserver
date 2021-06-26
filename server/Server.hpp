@@ -7,6 +7,8 @@
 # include <algorithm>
 # include <set>
 # include "Client.hpp"
+#include "Sockets.hpp"
+
 
 class Server {
 	public:
@@ -19,6 +21,7 @@ class Server {
 
 		std::vector<HttpServer>& getHttpServers();
 
+		void double_servers();
 		// polymorph socketCreate
 		void socketsCreate();
 
@@ -27,6 +30,7 @@ class Server {
 
 		void	acceptConnections();
 
+		void make_sockets();
 		void addServerSocketsToSet();
 		void start_servers();
 		void poll_handle(std::vector<struct pollfd>& fds);
@@ -39,6 +43,8 @@ class Server {
 		std::vector<HttpServer> _http_servers;
 		std::vector<ServerSocket> _sockets;
 		std::vector<Client> _clients;
+		std::vector<Sockets> _socks;
+
 		fd_set master_set;
 
 		// add socket

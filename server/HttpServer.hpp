@@ -17,7 +17,6 @@
 class HttpServer {
 	public:
 		HttpServer();
-		HttpServer(int port, std::string server_name);
 		HttpServer(HttpServer const& src);
 
 		HttpServer& operator=(HttpServer const& rhs);
@@ -34,7 +33,7 @@ class HttpServer {
 
 		std::vector<std::string> const& getAllowedMethods() const;
 
-		int const& getPort() const;
+		std::vector<int> getPort();
 
 		int const& getMaxBodySize() const;
 
@@ -62,7 +61,7 @@ class HttpServer {
 		void	start_listen();
 
 	private:
-		int							_port;
+		std::vector<int>			_port;
 		int							_maxBodySize;
 		std::string					_server_name;
 		std::string					_host;
@@ -73,8 +72,6 @@ class HttpServer {
 		int 						_stcode;
 		int							_fd;
 		struct sockaddr_in			_addr;
-
-		// std::vector<ErrorPage>	_error_pages;
 };
 
 // std::ostream& operator<<(std::ostream& o, HttpServer const& rhs) {

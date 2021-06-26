@@ -11,6 +11,7 @@ Request::Request()
 	_isLine = false;
 	_isL = false;
 	_host = "";
+	_postCgi = "";
 }
 
 Request::~Request()
@@ -42,6 +43,29 @@ std::string		Request::_getBoundary() const
 void Request::_setStatus(int st)
 {
 	_st = st;
+}
+
+std::string		Request::_getVal(std::string data, std::string _regex, bool boundary, bool self)
+{
+	std::string val = "";
+	Regex re(_regex);
+	Match match;
+
+	if (data.length())
+	{
+		re.regex_search(data, match, re);
+		if (!match.empty())
+		{
+			val = match.suffix();
+			if (self)
+				return (val);
+			if (!boundary)
+				val = val.substr(0, val.find("\r\n"));
+			else
+				val = val.substr(0, val.find(_regex));
+		}
+	}
+	return val;
 }
 
 unsigned int Request::_getPostLenght(std::string data, std::string boundary)
@@ -162,7 +186,10 @@ void Request::_pushToPostBody(std::string _data)
 	}
 }
 
-
+std::string Request::_getPostCgi() const
+{
+	return _postCgi;
+}
 
 void Request::_parseIncomingRequest(const std::string& _buffer)
 {
@@ -275,6 +302,12 @@ void Request::_parseIncomingRequest(const std::string& _buffer)
 			_pushDataToArg(_data);
 		}
     }
+	_postCgi = _getVal(_buff, "\r\n\r\n", false, true);
+	// _postCgi = _postBody;
+	// _postCgi.pop_back();
+	// std::cout << "===========p==============" << std::endl;
+	// std::cout << _postCgi << std::endl;
+	// std::cout << "===========p==============" << std::endl;
 	if (!_boundary.length() || (_Clen && _Clen == _getPostLenght(_postBody, _boundary)))
 		_isDone = true;
 	if (_isDone)

@@ -48,22 +48,22 @@ class Response {
 		std::string _Ctype;
 		std::string _st;
 		std::string _loc;
+		std::string _headers;
 	public:
-		std::map<std::string, std::string> _headers;
-		class MethodNotFound: public std::exception
-		{
-			public:
-				virtual const char* what() const throw() {
-					return "Not Implemented";
-				} 
-		};
-		class PermissionDiend: public std::exception
-		{
-			public:
-				virtual const char* what() const throw() {
-					return "Permission Diend";
-				} 
-		};
+		// class MethodNotFound: public std::exception
+		// {
+		// 	public:
+		// 		virtual const char* what() const throw() {
+		// 			return "Not Implemented";
+		// 		} 
+		// };
+		// class PermissionDiend: public std::exception
+		// {
+		// 	public:
+		// 		virtual const char* what() const throw() {
+		// 			return "Permission Diend";
+		// 		} 
+		// };
 		Response(Location& location, HttpServer& httpServ);
 		Response(Response const & rhs);
 		Response& operator=(Response const & rhs);
@@ -110,6 +110,7 @@ class Response {
 		std::vector<std::string>	_split(std::string s, std::string delimiter);
 		void 	_handleRequestError(int st);
 		void 	_RenderResponseContent();
+		void	_RenderResponse();
 		std::string		_getVal(std::string data, std::string _regex, bool boundary, bool self);
 };
 

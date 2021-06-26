@@ -10,6 +10,7 @@ Response::Response(Location& location, HttpServer& httpServ): _location(location
 	_Ctype = "";
 	_loc = "";
     _status = 0;
+	_headers = "";
 }
 
 Response& Response::operator=(Response const & rhs)
@@ -53,7 +54,7 @@ std::string		Response::_getVal(std::string data, std::string _regex, bool bounda
 		}
 	}
 	if (self)
-		return (match.self());
+		return (match.prefix());
 	return val;
 }
 
@@ -73,10 +74,15 @@ int Response::_runCgi()
 	std::string st = "REDIRECT_STATUS=" + std::to_string(200);
 	std::string cn = "CONTENT_LENGTH=" + _request._getHeaderContent("Content-Length");
 	std::string ctype = "CONTENT_TYPE=" + _request._getHeaderContent("Content-Type");
+	std::string cookie = "HTTP_COOKIE=" + _request._getHeaderContent("Cookie");
 	
-	std::string postdata = _request._getPostBody();
+	std::string postdata = _request._getPostCgi();
+	// postdata.pop_back();
 
-	_env = (char **)malloc(sizeof(char *) * 8);
+	// std::cout << "-----------------hh" << std::endl;
+	// std::cout << postdata << std::endl;
+	// std::cout << "-----------------hh" << std::endl;
+	_env = (char **)malloc(sizeof(char *) * 9);
 	_env[0] = strdup(tmp.c_str());
 	_env[1] = strdup(PATH.c_str());
 	_env[2] = strdup(query_string.c_str());
@@ -84,7 +90,8 @@ int Response::_runCgi()
 	_env[4] = strdup(st.c_str());
 	_env[5] = strdup(cn.c_str());
 	_env[6] = strdup(ctype.c_str());
-	_env[7] = NULL;
+	_env[7] = strdup(cookie.c_str());
+	_env[8] = NULL;
 
 	if (_location.getPhpCGI())
 	{
@@ -131,7 +138,7 @@ int Response::_runCgi()
 		if (WIFEXITED(status))
 			status = WEXITSTATUS(status);
 	}
-	for (size_t i = 0; i < 7; i++)
+	for (size_t i = 0; i < 8; i++)
 	{
 		if (_env[i])
 		{
@@ -185,7 +192,9 @@ void	Response::_handleCGI()
 	int r;
 	std::string body = "";
 	bool _isEmpty = false;
+	bool _ish = false;
 	std::string _line;
+	std::string _tmp = "";
 
 	if (fd < 0)
 	{
@@ -193,33 +202,55 @@ void	Response::_handleCGI()
 		_generateErrorPage();
 		return ;
 	}
-	while ((r = read(fd, buffer, sizeof(buffer))) > 0)
-		buffer[r] = '\0';
-	std::cout << buffer << std::endl;
-	std::istringstream _read(buffer);
 
-	while (getline(_read, _line))
+	while ((r = read(fd, buffer, sizeof(buffer))) > 0)
 	{
-		if (_line.find("Content-type: ") != std::string::npos)
-			_Ctype = _line.substr(_line.find("Content-Type: ") + 14);
-		else if (_line.find("Status: ") != std::string::npos)
-			_st = _line.substr(_line.find("Status: ") + 8);
-		else if (_line.find("Location: ") != std::string::npos)
-			_loc = _line.substr(_line.find("Location: " + 10));
-		else if (_line.find("Set-Cookie: ") != std::string::npos)
-			_loc = "Parse Cookie here";
-		else
-		{
-			if (_isEmpty)
-			{
-				if (_line.length())
-					body.append(_line).append("\r\n");
-			}
-			else
-				_isEmpty = true;
-		}
+		buffer[r] = '\0';
+		_tmp += buffer;
 	}
-	_body = body.append("\r\n");
+	std::cout << "-------------------" << std::endl;
+	std::cout << buffer << std::endl;
+	std::cout << "-------------------" << std::endl;
+	std::istringstream _read(_tmp);
+	body = _getVal(_tmp, "\r\n\r\n", false, false);
+	_headers = _getVal(_tmp, "Content-type: ", false, true);
+	// _Ctype = _getVal(_tmp, "Content-Length: ", false, false);
+	// while (_tmp.compare("\r\n\r\n"))
+	// 	_headers += _tmp;
+
+	// while (getline(_read, _line))
+	// {
+	// 	// if (_line.find("Content-type: ") != std::string::npos)
+	// 	// 	_Ctype = _line.substr(_line.find("Content-Type: ") + 14);
+	// 	// else if (_line.find("Status: ") != std::string::npos)
+	// 	// 	_st = _line.substr(_line.find("Status: ") + 8);
+	// 	// else if (_line.find("Location: ") != std::string::npos)
+	// 	// 	_loc = _line.substr(_line.find("Location: " + 10));
+	// 	// else if (_line.find("Set-Cookie: ") != std::string::npos)
+	// 	// 	std::cout << _line << std::endl;
+	// 	if (_line.compare("\n") && !_ish)
+	// 	{
+	// 		std::cout << "line = " << _line << std::endl;
+	// 		_headers += _line;
+	// 		_headers.append("\r\n");
+	// 	}
+	// 	else
+	// 	{
+	// 		_ish = true;
+	// 		if (_isEmpty)
+	// 		{
+	// 			if (_line.length())
+	// 				body.append(_line).append("\r\n");
+	// 		}
+	// 		else
+	// 			_isEmpty = true;
+	// 	}
+	// }
+	// _body = body.append("\r\n");
+	// std::cout << "===============b==================" << std::endl;
+	// std::cout << _headers << std::endl;
+	// std::cout << "===============b==================" << std::endl;
+	_body = body;
 	_status = S_OK;
 }
 
@@ -389,19 +420,20 @@ void Response::_applyGetMethod()
 
 std::string Response::_getFileNameFromDisp(std::string disp)
 {
-    std::string path = "";
-    std::regex re("filename=\"");
-    std::smatch match;
+	std::string val = "";
+	Regex re("filename=\"");
+	Match match;
+
     if (disp.length())
     {
-        std::regex_search(disp, match, re);
+        re.regex_search(disp, match, re);
         if (!match.empty())
         {
-            path = match.suffix();
-            path = path.substr(0, path.find("\""));
+            val = match.suffix();
+            val = val.substr(0, val.find("\""));
         }
     }
-	return path;
+	return val;
 }
 
 void Response::_applyPostMethod()
@@ -414,7 +446,6 @@ void Response::_applyPostMethod()
     {
         Request::ArgContent arg = _request._getArg(i);
         _filename = _getFileNameFromDisp(arg._Cdisp);
-		// _filename = _getVal(arg._Cdisp, "filename=\"", false, false);
 
         if (_filename.length())
         {
@@ -799,18 +830,66 @@ void Response::_RenderResponseContent()
 	}
 }
 
+void	Response::_RenderResponse()
+{
+	_applyMethod();
+	_ResponseContent += "HTTP/1.1";
+	_ResponseContent += " ";
+	_ResponseContent += std::to_string(_status);
+	_ResponseContent += " ";
+	_ResponseContent += _stResp[_status];
+	_ResponseContent += "\r\n";
+	if (_location.getIsRedirect())
+	{
+		_ResponseContent += "Location: ";
+		_ResponseContent += _location.getRedirectUrl();
+		_ResponseContent += "\r\n\r\n";
+	}
+	else
+	{
+		_ResponseContent += "Server: webserv/0.0\r\n";
+		if (_isCGI())
+		{
+			_ResponseContent += _headers;
+			_ResponseContent += "Content-Type: ";
+			_ResponseContent += _getContentType();
+			_ResponseContent += "\r\n";
+			_ResponseContent += "Content-Length: ";
+			_ResponseContent += std::to_string(_body.length());
+			_ResponseContent += "\r\n";
+		}
+		else
+		{
+			_ResponseContent += "Content-Type: ";
+			_ResponseContent += _getContentType();
+			_ResponseContent += "\r\n";
+			_ResponseContent += "Content-Length: ";
+			_ResponseContent += std::to_string(_body.length());
+			_ResponseContent += "\r\n";
+			_setCookie();
+		}
+		_ResponseContent += "Connection: ";
+		if (_status == S_BAD_REQ || _status == S_HTTP_VERSION_NOT_SUPPORTED)
+			_ResponseContent += "close\r\n";
+		else
+			_ResponseContent += "keep-alive\r\n";
+		_ResponseContent += "\r\n";
+		_ResponseContent += _body;
+	}
+}
+
 void Response::_startResponse()
 {
-	std::string _port = std::to_string(_httpServ.getPort());
-	std::string _data;
 	_makeStatus();
 
 	if (_request._getError() == 400)
 		_handleRequestError(S_BAD_REQ);
 	else if (_request._getError() == 505)
 		_handleRequestError(S_HTTP_VERSION_NOT_SUPPORTED);
+	// else if (_isCGI())
+	// 	_RenderCgiResponse();
 	else
-		_RenderResponseContent();
+		_RenderResponse();
 }
 
 std::string Response::_getResContent() const

@@ -9,6 +9,7 @@
 # include <string>
 // # include "../server/Client.hpp"
 # include "../server/HttpServer.hpp"
+# include "Regex.hpp"
 
 class Request {
     public:
@@ -35,9 +36,11 @@ class Request {
         std::string _getCgiUriFile();
         void _parseQueryString(std::string uri);
         std::string _getPostBody() const;
+        std::string _getPostCgi() const;
         std::string _getBoundary() const;
         void    _setIterator(std::vector<HttpServer>::iterator it);
         void _setStatus(int st);
+        std::string		_getVal(std::string data, std::string _regex, bool boundary, bool self);
     private:
         int             _st;
 		bool            _isDone;
@@ -52,6 +55,7 @@ class Request {
 		std::vector<HttpServer>::iterator _it;
 		int _error;
         std::string     _postBody;
+        std::string     _postCgi;
 		bool            _isLine;
 		bool            _isL;
         std::string     _host;

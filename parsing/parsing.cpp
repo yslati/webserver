@@ -118,7 +118,7 @@ int		pars::parsLocation(int i, int end, HttpServer& srv) {
 }
 
 void	pars::_check_missing(HttpServer &srv) {
-	if (srv.getPort() == -1)
+	if (srv.getPort().empty())
 		throw "syntax err: Port Not found!";
 	else if (srv.getHost() == "")
 		throw "syntax err: Host Not found!";
@@ -135,8 +135,6 @@ void	pars::parsServer(int n) {
 		if (_conf[i].compare("server") == 0)
 			throw "Syntax Error: You miss to Close the server `]`";
 		if (_conf[i].compare(0, 4, "port") == 0) {
-			if (_httpServers.getPort() != -1)
-				throw "Syntax Error: 'Port' duplicated";
 			_httpServers.setPort(atoi(_conf[i].substr(_conf[i].find(":") + 1).c_str()));
 		}
 		else if (_conf[i].compare(0, 11, "server_name") == 0) {

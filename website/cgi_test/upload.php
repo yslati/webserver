@@ -2,6 +2,7 @@
 
 
 print_r($_FILES);
+print_r($_POST);
 // Check if image file is a actual image or fake image
 if (isset($_POST)) {
 	echo "OK";
