@@ -792,7 +792,7 @@ void Response::_RenderResponseContent()
 
 void Response::_startResponse()
 {
-	std::string _port = std::to_string(_httpServ.getPort());
+	// std::string _port = std::to_string(_httpServ.getPort());
 	std::string _data;
 	_makeStatus();
 

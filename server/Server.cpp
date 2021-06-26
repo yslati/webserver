@@ -24,7 +24,7 @@ std::vector<ServerSocket> const& Server::getSockets() const {
     return _sockets;
 }
 
-std::vector<HttpServer> const& Server::getHttpServers() const {
+std::vector<HttpServer>& Server::getHttpServers() {
     return _http_servers;
 }
 
@@ -81,31 +81,6 @@ std::vector<ServerSocket>::iterator Server::isServerSocket(int fd) {
         }
     }
     return it;
-}
-
-void Server::start_servers() {
-    std::set< std::vector<HttpServer>::iterator > toRemove;
-    std::vector<HttpServer>::iterator it;
-    it = _http_servers.begin();
-    while (it != _http_servers.end())
-    {
-        try
-        {
-           it->start_listen();
-        }
-        catch(const std::exception& e)
-        {
-            toRemove.insert(it);
-            std::cerr << e.what() << '\n';
-        }
-        it++;
-    }
-    std::set< std::vector<HttpServer>::iterator >::iterator its;
-    its = toRemove.begin();
-    while (its != toRemove.end()) {
-        _http_servers.erase(*its);
-        its++;
-    }
 }
 
 void    Server::init_poll(std::vector<struct pollfd>& fds) {
@@ -171,19 +146,94 @@ void Server::poll_handle(std::vector<struct pollfd>& fds) {
     }
 }
 
+void Server::make_sockets() {
+    std::set<int> _ports_set;
+    std::vector<HttpServer>::iterator it;
+    std::vector<Sockets> _sockets;
+
+    it = _http_servers.begin();
+    while (it != _http_servers.end())
+    {
+        std::vector<int> _ports = it->getPort();
+        for (size_t i = 0; i < _ports.size(); i++)
+        {
+            std::set<int>::iterator s_it = _ports_set.find(_ports[i]);
+            if (s_it == _ports_set.end())
+            {
+                std::cout << "OK" << std::endl;
+                Sockets s(_ports[i], it->getHost());
+                _ports_set.insert(_ports[i]);
+                this->_socks.push_back(s);
+            }
+        }
+        it++;
+    }
+}
+
+void Server::start_servers() {
+    // std::set< std::vector<HttpServer>::iterator > toRemove;
+    // std::vector<HttpServer>::iterator it;
+    
+    // it = _http_servers.begin();
+    // while (it != _http_servers.end())
+    // {
+    //     try
+    //     {
+    //        it->start_listen();
+    //     }
+    //     catch(const std::exception& e)
+    //     {
+    //         toRemove.insert(it);
+    //         std::cerr << e.what() << '\n';
+    //     }
+    //     it++;
+    // }
+    // std::set< std::vector<HttpServer>::iterator >::iterator its;
+    // its = toRemove.begin();
+    // while (its != toRemove.end()) {
+    //     _http_servers.erase(*its);
+    //     its++;
+    // }
+
+    make_sockets();
+    std::vector<Sockets>::iterator s_it;
+
+    s_it = _socks.begin();
+    while (s_it != _socks.end())
+    {
+        try
+        {
+            s_it->start_listen();
+            std::cout << "Listen Failed" << std::endl;
+        }
+        catch(const std::exception& e)
+        {
+            std::cout << e.what() << std::endl;
+            s_it = _socks.erase(s_it);
+            continue;
+        }
+        s_it++;        
+    }
+}
 
 void Server::acceptConnections() {
     std::cout << "start servers" << std::endl;
+    std::cout << "SIZE" << _socks.size() << std::endl;
     start_servers();
-    std::vector<HttpServer>::iterator h_it;
+    std::cout << "SIZE" << _socks.size() << std::endl;
+    if (_socks.size() == 0) {
+        throw std::runtime_error("no server running");
+    }
+    std::vector<Sockets>::iterator s_it;
     while (true)
     {
         std::vector<struct pollfd> fds;
         // server fds
-        h_it = _http_servers.begin();
-        while (h_it != _http_servers.end()) {
-            fds.push_back((struct pollfd){h_it->getFd(), POLLIN, 0});
-            h_it++;
+        s_it = _socks.begin();
+        while (s_it != _socks.end()) {
+            fds.push_back((struct pollfd){s_it->getFd(), POLLIN, 0});
+            std::cout << s_it->getFd() << std::endl;
+            s_it++;
         }
         // client fds
         std::vector<Client>::iterator c_it;
@@ -194,7 +244,7 @@ void Server::acceptConnections() {
             c_it++;
         }
 
-    int n = poll(&(*fds.begin()), fds.size(), -1);
+    int n = poll(&(*fds.begin()), fds.size(), 3000);
     std::vector<Client> new_clients;
     std::set<int> toRemove;
 	if (n == 0) {
@@ -202,7 +252,7 @@ void Server::acceptConnections() {
     } else if (n > 0) {
         for (size_t i = 0; i < fds.size(); i++) {
             if (fds[i].revents & POLLIN) {
-                if (i < _http_servers.size()) {
+                if (i < _socks.size()) {
                     try
                     {
                         Client c(fds[i].fd);
@@ -216,28 +266,28 @@ void Server::acceptConnections() {
                     // read connection
                     try
                     {
-                        if (!_clients[i - _http_servers.size()].readConnection()) {
-                            _clients[i - _http_servers.size()].setReady(true);
+                        if (!_clients[i - _socks.size()].readConnection()) {
+                            _clients[i - _socks.size()].setReady(true);
                         }
                     }
                     catch(const std::exception& e)
                     {
-                            toRemove.insert(i - _http_servers.size());
+                            toRemove.insert(i - _socks.size());
                     }
                 }
             } else if (fds[i].revents & POLLOUT) {
                 try
                 {
-                    _clients[i - _http_servers.size()].writeConnection();
-                    if (_clients[i - _http_servers.size()].close)
-                        toRemove.insert(i - _http_servers.size());
+                    _clients[i - _socks.size()].writeConnection();
+                    if (_clients[i - _socks.size()].close)
+                        toRemove.insert(i - _socks.size());
                 }
                 catch(const std::exception& e)
                 {
-                    toRemove.insert(i - _http_servers.size());
+                    toRemove.insert(i - _socks.size());
                 }
             } else if (fds[i].revents & POLLHUP) {
-                toRemove.insert(i - _http_servers.size());
+                toRemove.insert(i - _socks.size());
             }
         }
     }

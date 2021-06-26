@@ -136,12 +136,10 @@ void	Client::setReady(bool x) {
 			}
 			
 		}
-		// handle request
-		Server& srv = Server::getInstance();
-		std::vector<HttpServer> s = srv.getHttpServers();
-		std::vector<HttpServer>::iterator it = s.begin();
+		// handle request;
+		std::vector<HttpServer>::iterator it = Server::getInstance().getHttpServers().begin();
 		bool found = false;
-		while (it != s.end() && status == 1)
+		while (it != Server::getInstance().getHttpServers().end() && status == 1)
 		{
 			_readHeader(content);
 			std::string h = it->getServerName();
@@ -156,10 +154,10 @@ void	Client::setReady(bool x) {
 			_handleRequest(it);
 		else
 		{
-			s = srv.getHttpServers();
-			it = s.begin();
+			it = Server::getInstance().getHttpServers().begin();
 			_handleRequest(it);
 		}
+		responseContent = "HTTP/1.1 200 OK\r\nContent-Length: 10\r\n\r\nhelloworld";
 		sended = 0;
 		is_chunked = false;
 		pfd.events = POLLOUT;
@@ -211,7 +209,7 @@ std::string ReplaceString(std::string subject, const std::string& search,
 
 void Client::writeConnection() {
 	int r = send(_conn, responseContent.c_str(), responseContent.size(), 0);
-	if (r == -1) {
+	if (r == -1 || r == 0) {
 		throw std::runtime_error("should close the connection");
 	}
 	setReady(false);
